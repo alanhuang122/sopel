@@ -2,11 +2,13 @@
 # Copyright 2013 Elsie Powell - embolalia.com
 # Licensed under the Eiffel Forum License 2.
 from __future__ import unicode_literals, absolute_import, print_function, division
-from sopel import web, tools
+import requests
+from sopel import tools
 from sopel.config.types import StaticSection, ValidatedAttribute
 from sopel.module import NOLIMIT, commands, example, rule
 import json
 import re
+import bs4
 
 import sys
 if sys.version_info.major < 3:
@@ -50,7 +52,7 @@ def mw_search(server, query, num):
                   '&list=search&srlimit=%d&srprop=timestamp&srwhat=text'
                   '&srsearch=') % (server, num)
     search_url += query
-    query = json.loads(web.get(search_url))
+    query = json.loads(requests.get(search_url).text)
     if 'query' in query:
         query = query['query']['search']
         return [r['title'] for r in query]
@@ -61,14 +63,74 @@ def mw_search(server, query, num):
 def say_snippet(bot, server, query, show_url=True):
     page_name = query.replace('_', ' ')
     query = query.replace(' ', '_')
-    snippet = mw_snippet(server, query)
+    snippet = mw_snippet(bot, server, query)
+    if snippet is None:
+        return
     msg = '[WIKIPEDIA] {} | "{}"'.format(page_name, snippet)
     if show_url:
         msg = msg + ' | https://{}/wiki/{}'.format(server, query)
     bot.say(msg)
 
+def hexreplace(match):
+    return chr(int(match.group(0)[1:], 16))
 
-def mw_snippet(server, query):
+def say_section(bot, server, query, section):
+    page_name = re.sub('_',' ',query)
+    
+    section = re.sub('_', ' ', section)
+    section = re.sub('\...', hexreplace, section)
+
+    snippet = mw_section(bot, server, query, section)
+    if snippet is None:
+        return
+    msg = u'[WIKIPEDIA] {0} - {1} | {2}'.format(page_name, section, snippet)
+    bot.say(msg)
+
+def mw_section(bot, server, query, section):
+    number = None
+    sections_url = ('https://' + server + '/w/api.php?format=json'
+                    '&action=parse&prop=sections&page=')
+    sections_url += query
+    try:
+        sections = json.loads(requests.get(sections_url).text)
+    except Exception:
+        bot.say("I couldn't load the page.")
+        return None
+    for key in sections['parse']['sections']:
+        if key['line'] == section:
+            number = int(key['index'])
+            break
+    
+    if number is None:
+        bot.say("I couldn't find that section.")
+        return None
+
+    snippet_url = ('https://' + server + '/w/api.php?format=json'
+                    '&action=query&prop=revisions&rvparse=True&rvprop=content&titles=')
+    snippet_url += query + '&rvsection=' + str(number)
+
+    snippet = json.loads(requests.get(snippet_url).text)
+    snippet = snippet['query']['pages']
+
+    snippet = snippet[list(snippet.keys())[0]]
+    snippet = snippet['revisions'][0]['*']
+    soup = bs4.BeautifulSoup(snippet, 'html.parser')
+    for key in soup.find_all(['ol','sup','h2','h3','div','span','table']):
+        key.decompose()
+
+    text = soup.get_text().strip()
+    trimmed = False
+    print(len(text))
+    while len(text) > (430 - len(query) - len(section) - 18):
+        text = text.rsplit(None,1)[0]
+        trimmed = True
+    print(text)
+    if trimmed:
+        text += '...'
+
+    return text
+
+def mw_snippet(bot, server, query):
     """
     Retrives a snippet of the specified length from the given page on the given
     server.
@@ -77,7 +139,11 @@ def mw_snippet(server, query):
                    '&action=query&prop=extracts&exintro&explaintext'
                    '&exchars=300&redirects&titles=')
     snippet_url += query
-    snippet = json.loads(web.get(snippet_url))
+    try:
+        snippet = json.loads(requests.get(snippet_url).text)
+    except Exception:
+        bot.say("I couldn't load the page.")
+        return
     snippet = snippet['query']['pages']
 
     # For some reason, the API gives the page *number* as the key, so we just
@@ -86,15 +152,20 @@ def mw_snippet(server, query):
 
     return snippet['extract']
 
-
-@rule('.*\/([a-z]+\.wikipedia.org)\/wiki\/((?!File\:)[^ ]+).*')
+@rule('.*/([a-z]+\.wikipedia\.org)/wiki/([^# ]+)#?(.+)*')
 def mw_info(bot, trigger, found_match=None):
     """
     Retrives a snippet of the specified length from the given page on the given
     server.
     """
     match = found_match or trigger
-    say_snippet(bot, match.group(1), unquote(match.group(2)), show_url=False)
+    try:
+        if match.group(3) is None:
+            say_snippet(bot, match.group(1), unquote(match.group(2)), show_url=False)
+        else:
+            say_section(bot, match.group(1), unquote(match.group(2)), match.group(3))
+    except KeyError:
+        bot.say("I couldn't find that.")
 
 
 @commands('w', 'wiki', 'wik')
