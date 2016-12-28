@@ -34,6 +34,21 @@ if sys.version_info.major >= 3:
 else:
     py3 = False
 
+from threading import Timer
+
+class Locker:
+    def __init__(self,time,limit):
+        self.time = time
+        self.limit = limit
+        self.ctr = 0
+    def sub(self):
+        self.ctr -= 1
+    def add(self):
+        self.ctr += 1
+        t = Timer(self.time,self.sub)
+        t.start()
+    def check(self):
+        return self.ctr <= self.limit
 
 class _CapReq(object):
     def __init__(self, prefix, module, failure=None, arg=None, success=None):
@@ -129,6 +144,9 @@ class Sopel(irc.Bot):
 
         self.scheduler = sopel.tools.jobs.JobScheduler(self)
         self.scheduler.start()
+
+        self.lockers = {}
+        self.warns = {}
 
         # Set up block lists
         # Default to empty
@@ -326,13 +344,24 @@ class Sopel(irc.Bot):
 
                 # If what we about to send repeated at least 5 times in the
                 # last 2 minutes, replace with '...'
-                if messages.count(text) >= 5 and elapsed < 120:
-                    text = '...'
-                    if messages.count('...') >= 3:
-                        # If we said '...' 3 times, discard message
-                        return
+                if messages.count(text) >= 3 and elapsed < 120:
+                    return
+
+            if recipient_id not in self.lockers:
+                self.lockers[recipient_id] = Locker(60,5)
+
+            if not self.lockers[recipient_id].check():
+                if recipient_id not in self.warns:
+                    self.warns[recipient_id] = False
+
+                if not self.warns[recipient_id]:
+                    self.write(('PRIVMSG', recipient), "Too many messages. Wait a minute.")
+                    self.warns[recipient_id] = True
+                return
 
             self.write(('PRIVMSG', recipient), text)
+            self.warns[recipient_id] = False
+            self.lockers[recipient_id].add()
             self.stack[recipient_id].append((time.time(), self.safe(text)))
             self.stack[recipient_id] = self.stack[recipient_id][-10:]
         finally:
