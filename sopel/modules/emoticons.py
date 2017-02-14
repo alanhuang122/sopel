@@ -217,7 +217,10 @@ def explain_command(bot, trigger):
     if trigger.sender.lower() == '#fallenlondon' and randint(0, 1):
         bot.say('Who knowzz?')
     else:
-        bot.reply("because fuck you, that's why")
+        if randint(0,5) == 1:
+            bot.reply("THERE IS AS YET INSUFFICIENT DATA FOR A MEANINGFUL ANSWER")
+        else:
+            bot.reply("because fuck you, that's why")
     stats['why'] += 1
     save()
 
