@@ -4,6 +4,9 @@ import urllib2
 import json
 import sopel.module
 
+def setup(bot):
+    getMelt(bot.config.melt.database,bot.config.melt.key,b64decode(bot.config.melt.iv))
+
 def first(text,key,iv):
     ecb = AES.new(key, AES.MODE_ECB, iv)
     return ecb.decrypt(b64decode(text))[:16]
@@ -21,7 +24,9 @@ def getEntry(database,key,iv):
     return decrypt(entry.get('body'),key,iv)
     
 def getQualitiesAffected(database,key,iv):
-    entry = json.loads(getEntry(database,key,iv))
+    text = r'{0}'.format(getEntry(database,key,iv))
+    text = "".join([text.rsplit("}",1)[0],"}"])
+    entry = json.loads(text)
     return entry.get('QualitiesAffected')
     
 def getMelt(database,key,iv):
@@ -36,4 +41,4 @@ def melt(bot,trigger):
     if rate == None:
         bot.say("No melt rate")
         return
-    bot.say("Current Melt Rate :"+rate)
+    bot.say("Current Melt Rate: "+rate)
