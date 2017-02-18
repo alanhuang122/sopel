@@ -7,9 +7,8 @@ Licensed under the Eiffel Forum License 2.
 http://sopel.chat
 """
 from __future__ import unicode_literals, absolute_import, print_function, division
-
+import requests
 import re
-from sopel import web
 from sopel.module import commands, example
 
 uri = 'http://en.wiktionary.org/w/index.php?title=%s&printable=yes'
@@ -27,7 +26,7 @@ def text(html):
 
 
 def wikt(word):
-    bytes = web.get(uri % web.quote(word))
+    bytes = requests.get(uri % word).text
     bytes = r_ul.sub('', bytes)
 
     mode = None

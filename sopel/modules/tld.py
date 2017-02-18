@@ -8,7 +8,7 @@ http://sopel.chat
 """
 from __future__ import unicode_literals, absolute_import, print_function, division
 
-from sopel import web
+import requests
 from sopel.module import commands, example
 import re
 import sys
@@ -23,7 +23,7 @@ r_tag = re.compile(r'<(?!!)[^>]+>')
 @example('.tld ru')
 def gettld(bot, trigger):
     """Show information about the given Top Level Domain."""
-    page = web.get(uri)
+    page = requests.get(uri).text
     tld = trigger.group(2)
     if tld[0] == '.':
         tld = tld[1:]

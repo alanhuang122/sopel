@@ -3,13 +3,13 @@
 # Author: Elsie Powell http://embolalia.com
 from __future__ import unicode_literals, absolute_import, print_function, division
 
-from sopel import web
+import requests
 from sopel.module import commands
 
 
 @commands('isup')
 def isup(bot, trigger):
-    """isup.me website status checker"""
+    """Checks if a website is up or down."""
     site = trigger.group(2)
     if not site:
         return bot.reply("What site do you want to check?")
@@ -25,7 +25,7 @@ def isup(bot, trigger):
         site += ".com"
 
     try:
-        response = web.get(site)
+        response = requests.get(site)
     except Exception:
         bot.say(site + ' looks down from here.')
         return

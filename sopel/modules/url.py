@@ -8,14 +8,12 @@
 from __future__ import unicode_literals, absolute_import, print_function, division
 
 import re
-from sopel import web, tools, __version__
+from sopel import web, tools
 from sopel.module import commands, rule, example
 from sopel.config.types import ValidatedAttribute, ListAttribute, StaticSection
 
 import requests
 
-USER_AGENT = 'Sopel/{} (http://sopel.chat)'.format(__version__)
-default_headers = {'User-Agent': USER_AGENT}
 url_finder = None
 # These are used to clean up the title tag before actually parsing it. Not the
 # world's best way to do this, but it'll do for now.
@@ -115,6 +113,9 @@ def title_auto(bot, trigger):
     where the URL redirects to and show the title for that (or call a function
     from another module to give more information).
     """
+    if '.shorten' in trigger:
+        return
+
     if re.match(bot.config.core.prefix + 'title', trigger):
         return
 
@@ -155,7 +156,7 @@ def process_urls(bot, trigger, urls):
             except:
                 pass
             # First, check that the URL we got doesn't match
-            matched = check_callbacks(bot, trigger, url, False)
+            matched = check_callbacks(bot, trigger, url, False) 
             if matched:
                 continue
             # Finally, actually show the URL
@@ -181,22 +182,27 @@ def check_callbacks(bot, trigger, url, run=True):
             if run or hasattr(function, 'url_regex'):
                 function(bot, trigger, match)
             matched = True
+    if 'github.com' in url:
+        matched = True
     return matched
 
 
 def find_title(url, verify=True):
     """Return the title for the given URL."""
+    response = requests.get(url, stream=True, verify=verify, headers={'User-Agent':'Sopel (alanhuang122@gmail.com)'})
     try:
-        response = requests.get(url, stream=True, verify=verify,
-                                headers=default_headers)
-        content = b''
-        for byte in response.iter_content(chunk_size=512):
-            content += byte
-            if b'</title>' in content or len(content) > max_bytes:
+        content = ''
+        for byte in response.iter_content(chunk_size=512, decode_unicode=True):
+            if not isinstance(byte, bytes):
+                content += byte
+            else:
                 break
-        content = content.decode('utf-8', errors='ignore')
-        # Need to close the connection because we have not read all
-        # the data
+            if '</title>' in content or len(content) > max_bytes:
+                break
+    except UnicodeDecodeError:
+        return  # Fail silently when data can't be decoded
+    finally:
+        # need to close the connexion because we have not read all the data
         response.close()
     except requests.exceptions.ConnectionError:
         return None
