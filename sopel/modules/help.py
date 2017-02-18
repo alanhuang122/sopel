@@ -19,11 +19,11 @@ from sopel.logger import get_logger
 from sopel.module import commands, rule, example, priority
 
 logger = get_logger(__name__)
-
+import cPickle, os
 
 @rule('$nick' '(?i)(help|doc) +([A-Za-z]+)(?:\?+)?$')
 @example('.help tell')
-@commands('help', 'commands')
+@commands('help', 'commands', 'man')
 @priority('low')
 def help(bot, trigger):
     """Shows a command's documentation, and possibly an example."""
@@ -54,10 +54,16 @@ def help(bot, trigger):
         if 'command-gist' in bot.memory and bot.memory['command-gist'][0] == len(bot.command_groups):
             url = bot.memory['command-gist'][1]
         else:
-            bot.say("Hang on, I'm creating a list.")
             msgs = []
 
             name_length = max(6, max(len(k) for k in bot.command_groups.keys()))
+                
+            heading1 = 'Module Name'.upper().ljust(name_length)
+            msg = heading1 + '  ' + "commands:"
+            indent = ' ' * (name_length + 2)
+            # Honestly not sure why this is a list here
+            msgs.append('\n'.join(textwrap.wrap(msg, subsequent_indent=indent)))
+            
             for category, cmds in collections.OrderedDict(sorted(bot.command_groups.items())).items():
                 category = category.upper().ljust(name_length)
                 cmds = '  '.join(cmds)
@@ -66,10 +72,19 @@ def help(bot, trigger):
                 # Honestly not sure why this is a list here
                 msgs.append('\n'.join(textwrap.wrap(msg, subsequent_indent=indent)))
 
-            url = create_gist(bot, '\n\n'.join(msgs))
+            docs = []
+            if os.path.isfile('/home/ec2-user/.sopel/{0}-docs'.format(bot.config.help.config)):
+                docs = cPickle.load(open('/home/ec2-user/.sopel/{0}-docs'.format(bot.config.help.config),'r'))
+            
+            if docs == msgs:
+                url = cPickle.load(open('/home/ec2-user/.sopel/{0}-docs_url'.format(bot.config.help.config),'r'))
+            else:
+                url = create_gist(bot, '\n\n'.join(msgs))
             if not url:
                 return
             bot.memory['command-gist'] = (len(bot.command_groups), url)
+            cPickle.dump(msgs,open('/home/ec2-user/.sopel/{0}-docs'.format(bot.config.help.config),'w'))
+            cPickle.dump(url,open('/home/ec2-user/.sopel/{0}-docs_url'.format(bot.config.help.config),'w'))
         bot.say("I've posted a list of my commands at {} - You can see "
                 "more info about any of these commands by doing .help "
                 "<command> (e.g. .help time)".format(url))
