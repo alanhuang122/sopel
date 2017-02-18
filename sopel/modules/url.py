@@ -182,7 +182,7 @@ def check_callbacks(bot, trigger, url, run=True):
             if run or hasattr(function, 'url_regex'):
                 function(bot, trigger, match)
             matched = True
-    if 'github.com' in url:
+    if re.search(r'https?://github\.com/([^ /]+?)/([^ /]+)/?(?!\S)', url):
         matched = True
     return matched
 
