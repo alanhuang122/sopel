@@ -10,6 +10,8 @@ import xml.etree.ElementTree as ET
 
 @interval(10)
 def update_news(bot):
+    if not bot.config.news.target_channel:
+        return
     timeofday = time.time()
     sec_12h = timeofday % 43200
     if not sec_12h < 10:
@@ -34,7 +36,6 @@ def update_news(bot):
             headline_count += 1
 
     bot.say(u"It's {1}:00 CST. Latest headlines from Reuters: {0}".format(headlines[0:-3], time.localtime()[3]), bot.config.news.target_channel)
-
     bot.memory['news'] = data
     bot.memory['newssource'] = 'reuters'
     bot.memory['newsindex'] = headline_count
