@@ -80,7 +80,7 @@ def setup(self):
 
 @commands('tell', 'ask')
 @nickname_commands('tell', 'ask')
-@example('$nickname, tell Embolalia he broke something again.')
+@example('$nickname, tell Alan something\'s broken again.')
 def f_remind(bot, trigger):
     """Give someone a message the next time they're seen"""
     teller = trigger.nick
@@ -106,6 +106,8 @@ def f_remind(bot, trigger):
         return bot.reply('That nickname is too long.')
     if tellee == bot.nick:
         return bot.reply("I'm here now, you can tell me whatever you want!")
+    if tellee == 'MordaineBarimen':
+        return bot.say("I'm sorry, {0}. I'm afraid I can't do that. (Tell them yourself!)".format(teller))
 
     if not tellee in (Identifier(teller), bot.nick, 'me'):
         tz = get_timezone(bot.db, bot.config, None, tellee)
