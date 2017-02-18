@@ -163,7 +163,7 @@ def mw_snippet(bot, server, query):
     return snippet['extract']
 
 
-@rule('.*/([a-z]+\.wikipedia\.org)/wiki/([^# ]+)#?(.+)*')
+@rule('.*/([a-z]+\.wikipedia\.org)/wiki/([^# ]+)#?([^\s]+)*')
 def mw_info(bot, trigger, found_match=None):
     """
     Retrives a snippet of the specified length from the given page on the given
