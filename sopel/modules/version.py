@@ -31,6 +31,11 @@ def git_info():
                     return sha
 
 
+@sopel.module.commands('source')
+def source(bot, trigger):
+    """Gibs sauce."""
+    bot.reply("https://github.com/alanhuang122/sopel")
+
 @sopel.module.commands('version')
 def version(bot, trigger):
     """Display the latest commit version, if Sopel is running in a git repo."""
@@ -46,11 +51,9 @@ def version(bot, trigger):
     bot.reply("Sopel v. {} at commit: {}".format(sopel.__version__, sha))
 
 
-@sopel.module.intent('VERSION')
+@sopel.module.rule('\x01VERSION\x01')
 @sopel.module.rate(20)
-@sopel.module.rule('.*')
 def ctcp_version(bot, trigger):
-    print('wat')
     bot.write(('NOTICE', trigger.nick),
               '\x01VERSION Sopel IRC Bot version %s\x01' % sopel.__version__)
 

@@ -71,12 +71,16 @@ def say_snippet(bot, server, query, show_url=True):
         msg = msg + ' | https://{}/wiki/{}'.format(server, query)
     bot.say(msg)
 
+
 def hexreplace(match):
+    # converts hexadecimal into chars
     return chr(int(match.group(0)[1:], 16))
 
+
 def say_section(bot, server, query, section):
-    page_name = re.sub('_',' ',query)
-    
+    page_name = re.sub('_', ' ', query)
+
+    # format section name
     section = re.sub('_', ' ', section)
     section = re.sub('\...', hexreplace, section)
 
@@ -86,7 +90,10 @@ def say_section(bot, server, query, section):
     msg = u'[WIKIPEDIA] {0} - {1} | {2}'.format(page_name, section, snippet)
     bot.say(msg)
 
+
 def mw_section(bot, server, query, section):
+    # Looks up section number by name,
+    # then gets snippet by section number.
     number = None
     sections_url = ('https://' + server + '/w/api.php?format=json'
                     '&action=parse&prop=sections&page=')
@@ -100,13 +107,14 @@ def mw_section(bot, server, query, section):
         if key['line'] == section:
             number = int(key['index'])
             break
-    
+
     if number is None:
         bot.say("I couldn't find that section.")
         return None
 
     snippet_url = ('https://' + server + '/w/api.php?format=json'
-                    '&action=query&prop=revisions&rvparse=True&rvprop=content&titles=')
+                   '&action=query&prop=revisions&rvparse=True'
+                   '&rvprop=content&titles=')
     snippet_url += query + '&rvsection=' + str(number)
 
     snippet = json.loads(requests.get(snippet_url).text)
@@ -115,20 +123,22 @@ def mw_section(bot, server, query, section):
     snippet = snippet[list(snippet.keys())[0]]
     snippet = snippet['revisions'][0]['*']
     soup = bs4.BeautifulSoup(snippet, 'html.parser')
-    for key in soup.find_all(['ol','sup','h2','h3','div','span','table']):
+    # Trying to remove all items that aren't main article text...
+    tags = ['ol', 'sup', 'h2', 'h3', 'div', 'span', 'table']
+    for key in soup.find_all(tags):
         key.decompose()
 
     text = soup.get_text().strip()
     trimmed = False
-    print(len(text))
+    # Trim the snippet to fit within one IRC message (more or less)
     while len(text) > (430 - len(query) - len(section) - 18):
-        text = text.rsplit(None,1)[0]
+        text = text.rsplit(None, 1)[0]
         trimmed = True
-    print(text)
     if trimmed:
         text += '...'
 
     return text
+
 
 def mw_snippet(bot, server, query):
     """
@@ -152,6 +162,7 @@ def mw_snippet(bot, server, query):
 
     return snippet['extract']
 
+
 @rule('.*/([a-z]+\.wikipedia\.org)/wiki/([^# ]+)#?(.+)*')
 def mw_info(bot, trigger, found_match=None):
     """
@@ -161,9 +172,11 @@ def mw_info(bot, trigger, found_match=None):
     match = found_match or trigger
     try:
         if match.group(3) is None:
-            say_snippet(bot, match.group(1), unquote(match.group(2)), show_url=False)
+            say_snippet(bot, match.group(1), unquote(match.group(2)),
+                        show_url=False)
         else:
-            say_section(bot, match.group(1), unquote(match.group(2)), match.group(3))
+            say_section(bot, match.group(1), unquote(match.group(2)),
+                        match.group(3))
     except KeyError:
         bot.say("I couldn't find that.")
 
@@ -173,7 +186,7 @@ def mw_info(bot, trigger, found_match=None):
 def wikipedia(bot, trigger):
     lang = bot.config.wikipedia.default_lang
 
-    #change lang if channel has custom language set
+    # change lang if channel has custom language set
     if (trigger.sender and not trigger.sender.is_nick() and
             bot.config.wikipedia.lang_per_channel):
         customlang = re.search('(' + trigger.sender + '):(\w+)',

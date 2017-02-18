@@ -40,9 +40,7 @@ def startup_version_check(bot, trigger):
 def check_version(bot):
     version = sopel.version_info
 
-    # TODO: Python3 specific. Disable urllib warning from config file.
-    # requests.packages.urllib3.disable_warnings()
-    info = requests.get(version_url, verify=bot.config.core.verify_ssl).json()
+    info = requests.get(version_url).json()
     if version.releaselevel == 'final':
         latest = info['version']
         notes = info['release_notes']

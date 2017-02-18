@@ -170,7 +170,7 @@ def url_handler(bot, trigger):
 
 @sopel.module.commands('safety')
 def toggle_safety(bot, trigger):
-    """ Set safety setting for channel """
+    """ Set safety setting for channel malicious URL scanning"""
     if not trigger.admin and bot.privileges[trigger.sender][trigger.nick] < OP:
         bot.reply('Only channel operators can change safety settings')
         return
