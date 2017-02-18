@@ -10,16 +10,16 @@ import random
 from sopel.module import rule, priority, thread
 
 
-@rule(r'(?i)(hi|hello|hey),? $nickname[ \t]*$')
+@rule(r'(?i)(hi|hello|hey),? $nickname[.! \t]*$')
 def hello(bot, trigger):
-    greeting = random.choice(('Hi', 'Hey', 'Hello'))
-    punctuation = random.choice(('', '!'))
+    greeting = random.choice(('hi', 'hey there', 'hello'))
+    punctuation = random.choice(('', '.'))
     bot.say(greeting + ' ' + trigger.nick + punctuation)
 
 
-@rule(r'(?i)(Fuck|Screw) you,? $nickname[ \t]*$')
+@rule(r'(?i)(Fuck|Screw) you,? $nickname[.! \t]*$')
 def rude(bot, trigger):
-    bot.say('Watch your mouth, ' + trigger.nick + ', or I\'ll tell your mother!')
+    bot.say("well fuck you too {0}".format(trigger.nick))
 
 
 @rule('$nickname!')
@@ -27,3 +27,40 @@ def rude(bot, trigger):
 @thread(False)
 def interjection(bot, trigger):
     bot.say(trigger.nick + '!')
+
+@rule(r'(?i)(pats|pets) $nickname[. \t]*$')
+@rule(r'(?i)(good bot)[. \t!]*$')
+def praise(bot, trigger):
+    if trigger.nick == 'Infinity_Simulacrum' and random.randint(0,3) == 0:
+        return
+    evil = random.randint(0,4)
+    if evil == 0:
+        bot.say('>:3c')
+    else:
+        bot.say('^_^')
+
+@rule(r'(?i)(kisses) $nickname[ \t.]*$')
+def kiss(bot, trigger):
+    bot.say('o///o')
+
+@rule(r'(?i)(hugs) $nickname[ \t.]*$')
+def affection(bot, trigger):
+    bot.say('<3')
+
+@rule(r'(?i)(kinkshames) $nickname[ \t.]*$')
+def shame(bot, trigger):
+    bot.say('Hey! >:c')
+
+@rule(r'(?i)(lobotomizes|smacks|beats|hurts|stabs|punches|slaps|defenestrates|hits|kicks|whacks|whaps|abuses|molests) $nickname[ \t.]*$')
+def hurt(bot,trigger):
+    bot.say('D:')
+
+@rule('(THAT)[\'\"]?(S NOT POSIX)[!. \t]*$')
+def posix(bot, trigger):
+    bot.reply('YOU\'RE NOT POSIX!')
+
+@rule(r'(?i)(pokes) $nickname[ \t.]*$')
+def poke(bot, trigger):
+    response = random.choice(('?', 'Hmm?'))
+    bot.say(response)
+
