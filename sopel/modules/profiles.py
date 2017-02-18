@@ -14,16 +14,34 @@ def equal(a, b):
 
 @commands('item')
 def item_command(bot, trigger):
-    bot.say(worker_command(trigger.group(2), 1))
-
+    if not trigger.group(2):
+        bot.say(worker_command(trigger.nick, 1))
+        return
+    else:
+        bot.say(worker_command(trigger.group(2), 1))
+        return
 
 @commands('quality')
 def quality_command(bot, trigger):
-    bot.say(worker_command(trigger.group(2), 2))
+    if not trigger.group(2):
+        bot.say(worker_command(trigger.nick, 2))
+        return
+    else:
+        bot.say(worker_command(trigger.group(2), 2))
+        return
+
+@commands('profile')
+def profile_command(bot, trigger):
+    url = quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(trigger.group(2).strip()), safe=':/')
+    data = requests.get(url)
+    if data.history:
+        bot.say('Couldn\'t find that profile.')
+        return
+    bot.say(url)
 
 
 def worker_command(user, index):
-    url = quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(user), safe=':/')
+    url = quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(user.strip()), safe=':/')
     data = requests.get(url)
     if data.history:
         return "I couldn't find that profile."
@@ -33,9 +51,12 @@ def worker_command(user, index):
             tag = soup.find('section', id='usersMantel')
         elif index is 2:
             tag = soup.find('section', id='usersScrapbook')
-        text = tag.find_all('h1')[1]
-        return u'{0} has {1}.'.format(soup.find('a', class_='character-name').text, text.text)
+        try:
+            text = tag.find_all('h1')[1]
+        except IndexError:
+            return u'I couldn\'t find anything...'
 
+        return u'{0} has {1}'.format(soup.find('a', class_='character-name').text, text.text)
 
 @commands('abom')
 def abom_command(bot, trigger):
@@ -56,3 +77,11 @@ def drugs_command(bot, trigger):
 @commands('box')
 def box_command(bot, trigger):
     bot.say('Gazzien ' + worker_command('Mr Forms', 1).split(' ', 2)[2].rsplit(' ', 4)[0] + ' Surprise Packages <3')
+
+@commands('changed')
+def changed_command(bot, trigger):
+    bot.say(worker_command('Phryne Amarantyne', 2))
+
+@commands('ushabti')
+def shabti_command(bot,trigger):
+    bot.say('Vavakx ' + worker_command('Vavakx  Nonexus',1).split(' ',3)[3])
