@@ -27,8 +27,14 @@ def search(word):
 def lookup(word):
     s = aspell.Speller()
     if not s.check(word):
+        if len(s.suggest(word)) is 0:
+            return "I couldn't find any definitions for that word."
         word = s.suggest(word)[0]
+
     word_id = search(word)
+    if word_id is None:
+        return 'I couldn\'t find any definitions for that word.'
+
     global app_id, app_key
     data = requests.get(url + '/entries/en/' + word_id + '/definitions', headers = {'app_id' : app_id, 'app_key' : app_key}).json()
     defs = []
@@ -58,7 +64,7 @@ def lookup(word):
     msg = '{0} — {1}'.format(word.lower(), ' — '.join(defs))
     return msg
 
-@commands('define', 'dict')
+@commands('define', 'dict', 'wt')
 @example('.dict bailiwick')
 def dictionary(bot, trigger):
     """Look up a word in the Oxford English Dictionary."""
