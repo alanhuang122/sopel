@@ -5,26 +5,10 @@
 # Licensed under the Eiffel Forum License 2.
 from __future__ import unicode_literals, absolute_import, print_function, division
 
-import random
-import re
-import requests
-from sopel.modules.search import google_search
+import random, re, requests
 from sopel.module import commands, url
 
-ignored_sites = [
-    # For google searching
-    'almamater.xkcd.com',
-    'blog.xkcd.com',
-    'blag.xkcd.com',
-    'forums.xkcd.com',
-    'fora.xkcd.com',
-    'forums3.xkcd.com',
-    'store.xkcd.com',
-    'wiki.xkcd.com',
-    'what-if.xkcd.com',
-]
-sites_query = ' site:xkcd.com -site:' + ' -site:'.join(ignored_sites)
-
+sites_query = ' site:xkcd.com'
 
 def get_info(number=None):
     if number:
@@ -35,15 +19,17 @@ def get_info(number=None):
     data['url'] = 'http://xkcd.com/' + str(data['num'])
     return data
 
-
-def google(query):
-    url = google_search(query + sites_query)
-    if not url:
+def google(query, key):
+    url = 'https://www.googleapis.com/customsearch/v1'
+    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:hytymhiw4na', 'q' : query}).json()
+    if 'items' not in data:
         return None
-    match = re.match('(?:https?://)?xkcd.com/(\d+)/?', url)
-    if match:
-        return match.group(1)
-
+    results = data['items']
+    for result in results:
+        match = re.match('(?:https?://)?xkcd.com/(\d+)/?', result['link'])
+        if match:
+            return match.group(1)
+    return None
 
 @commands('xkcd')
 def xkcd(bot, trigger):
@@ -73,10 +59,10 @@ def xkcd(bot, trigger):
             return numbered_result(bot, query, latest)
         else:
             # Non-number: google.
-            if (query.lower() == "latest" or query.lower() == "newest"):
+            if (query.lower() == "latest" or query.lower() == "newest" or query.lower() == "today"):
                 requested = latest
             else:
-                number = google(query)
+                number = google(query, bot.config.xkcd.key)
                 if not number:
                     bot.say('Could not find any comics for that query.')
                     return
@@ -115,7 +101,7 @@ def say_result(bot, result):
     bot.say(message)
 
 
-@url('xkcd.com/(\d+)')
+@url('(^| )(http|https)?(www\.)?xkcd.com/(\d+)')
 def get_url(bot, trigger, match):
     latest = get_info()
-    numbered_result(bot, int(match.group(1)), latest)
+    numbered_result(bot, int(match.group(5)), latest)
