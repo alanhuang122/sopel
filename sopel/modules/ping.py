@@ -64,3 +64,22 @@ def poke(bot, trigger):
     response = random.choice(('?', 'Hmm?'))
     bot.say(response)
 
+from time import sleep
+from datetime import datetime
+@rule(r'(?i)murders $nickname (\d+)(s|m|h)$')
+def kill(bot, trigger):
+    if trigger.owner:
+        if trigger.group(2) == 's':
+            time = int(trigger.group(1))
+        elif trigger.group(2) == 'm':
+            time = int(trigger.group(1)) * 60
+        elif trigger.group(2) == 'h':
+            time = int(trigger.group(1)) * 3600
+        print('Dead for {0}s at {1}'.format(time, datetime.now().strftime('%H:%M:%S')))
+        bot.say('x_x')
+        bot.dead = True
+        sleep(time)
+        bot.dead = False
+        print('Alive again')
+    else:
+        print('{0} tried to murder me...'.format(trigger.nick))
