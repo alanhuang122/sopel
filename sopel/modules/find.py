@@ -20,12 +20,6 @@ from threading import Thread
 def setup(bot):
     bot.memory['find_lines'] = SopelMemory()
 
-def tempban(bot,trigger):
-    print('tempban...')
-    bot.write(['MODE',trigger.sender,'+b','*!*@{0}'.format(trigger.host)])
-    sleep(300)
-    bot.write(['MODE',trigger.sender,'-b','*!*@{0}'.format(trigger.host)])
-
 @rule('.*')
 @priority('low')
 def collectlines(bot, trigger):
@@ -52,14 +46,6 @@ def collectlines(bot, trigger):
     else:
         templist.append(line)
     
-    if templist.count(line) > 3:
-        if trigger.nick != bot.nick:
-            print('{0},{1}'.format(trigger.sender,trigger.nick))
-            thread = Thread(target=tempban,args=(bot,trigger))
-            thread.start()
-            sleep(1)
-            bot.write(['KICK',trigger.sender,trigger.nick], 'Flooding (message repeated 4x in the last 10 messages)')
-
     del templist[:-10]  # Keep the log to 10 lines per person
 
     bot.memory['find_lines'][trigger.sender][Identifier(trigger.nick)] = templist
