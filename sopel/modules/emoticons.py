@@ -312,3 +312,71 @@ def treat_command(bot, trigger):
     stats['treat'] += 1
     save()
     return
+
+@commands('praise')
+def praise_command(bot, trigger):
+    if not trigger.group(2):
+        bot.reply(u'\[T]/ \[T]/'.format(trigger.nick))
+    else:
+        bot.say(u'{0}: \[T]/ \[T]/'.format(clean(trigger.group(2).strip())))
+    if 'praise' not in stats:
+        stats['praise'] = 0
+    stats['praise'] += 1
+    save()
+    return
+
+@commands('hf')
+def five_command(bot, trigger):
+    if not trigger.group(2):
+        bot.reply(u'ヘ( ^o^)ノ＼(^_^ )'.format(trigger.nick))
+    else:
+        bot.say(u'{0}: ヘ( ^o^)ノ＼(^_^ )'.format(clean(trigger.group(2).strip())))
+    if 'hf' not in stats:
+        stats['hf'] = 0
+    stats['hf'] += 1
+    save()
+    return
+
+taunts = ["I don't want to talk to you no more, you empty-headed animal food trough wiper!",
+          "I fart in your general direction!",
+          "Your mother was a hamster and your father smelt of elderberries!",
+          "You don't frighten us, English pig-dogs!",
+          "Go and boil your bottoms, you sons of a silly person!",
+          "I blow my nose at you, so-called \"Arthur King,\" you and all your silly English Kniggets!",
+          "You don't frighten us with your silly knees-bent running around advancing behaviour!",
+          "'Allo, daffy English kniggets and Monsieur Arthur-King, who has the brain of a duck, you know!", 
+          "I one more time-a unclog my nose in your direction, sons of a window-dresser!",
+          "I wave my private parts at your aunties, you cheesy lot of second-hand electric donkey-bottom biters!",
+          "I burst my pimples at you and call your door opening request a silly thing!",
+          "You tiny-brained wipers of other people's bottoms!",
+          "Yes, depart a lot at this time and cut the approaching any more or we fire arrows at the tops of your heads and make castanets out of your testicles already! Ha ha!",
+          "And now remain gone, illegitimate faced buggerfolk!",
+          "Daffy English kniggets! Thpppt!"]
+
+continues = ["And, if you think you got nasty taunting this time, you ain't heard nothing yet!",
+             "Now go away or I shall taunt you a second time-a!"]
+
+@commands('taunt')
+@commands('insult')
+def taunt_command(bot, trigger):
+    if randint(0,2) == 0:
+        taunt = 'Haw haw!'
+        followup = 0
+    else:
+        taunt = choice(taunts)
+        followup = randint(0,1)
+
+    if not trigger.group(2):
+        bot.reply(taunt)
+        if followup == 1:
+            bot.reply(choice(continues))
+    else:
+        bot.say("{0}: {1}".format(clean(trigger.group(2).strip()), taunt))
+        if followup == 1:
+            bot.say("{0}: {1}".format(clean(trigger.group(2).strip()), choice(continues)))
+    
+    if 'taunt' not in stats:
+        stats['taunt'] = 0
+    stats['taunt'] += 1
+    save()
+    return
