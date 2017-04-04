@@ -25,11 +25,11 @@ def search(word):
     return data['results'][0]['id']
     
 def lookup(word):
-    s = aspell.Speller()
-    if not s.check(word):
-        if len(s.suggest(word)) is 0:
-            return "I couldn't find any definitions for that word."
-        word = s.suggest(word)[0]
+#    s = aspell.Speller()
+#    if not s.check(word):
+#        if len(s.suggest(word)) is 0:
+#            return "I couldn't find any definitions for that word."
+#        word = s.suggest(word)[0]
 
     word_id = search(word)
     if word_id is None:
@@ -47,18 +47,18 @@ def lookup(word):
         temp = []
         for sub in entry['entries']:
             for sense in sub['senses']:
-                temp.append(sense['definitions'][0][:-1])
+                temp.append(sense['definitions'][0])
                 if 'subsenses' in sense:
                     for subsense in sense['subsenses']:
-                        temp.append(subsense['definitions'][0][:-1])
+                        temp.append(subsense['definitions'][0])
         tempdefs = ['%s. %s' % (i + 1, e) for i, e in enumerate(temp)]
         slug = ', '.join(tempdefs)
-        while len(slug) > limit:
-            tempdefs = tempdefs[:-1]
-            slug = ', '.join(tempdefs)
-        if count != 1: #recalculate limit for remaining entries
-            limit = ((limit * count) - len(slug)) / (count - 1)
-            count -= 1
+#        while len(slug) > limit:
+#            tempdefs = tempdefs[:-1]
+#            slug = ', '.join(tempdefs)
+#        if count != 1: #recalculate limit for remaining entries
+#        limit = ((limit * count) - len(slug)) / (count - 1)
+#            count -= 1
         defs.append('{0}: {1}'.format(entry['lexicalCategory'], slug))
 
     msg = '{0} — {1}'.format(word.lower(), ' — '.join(defs))

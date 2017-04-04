@@ -17,7 +17,7 @@ def hello(bot, trigger):
     bot.say(greeting + ' ' + trigger.nick + punctuation)
 
 
-@rule(r'(?i)(Fuck|Screw) you,? $nickname[.! \t]*$')
+@rule(r'(?i)(fuck|screw) you( .+)?,? $nickname[.! \t]*$')
 def rude(bot, trigger):
     bot.say("well fuck you too {0}".format(trigger.nick))
 
@@ -31,8 +31,6 @@ def interjection(bot, trigger):
 @rule(r'(?i)(pats|pets) $nickname[. \t]*$')
 @rule(r'(?i)(good bot)[. \t!]*$')
 def praise(bot, trigger):
-    if trigger.nick == 'Infinity_Simulacrum' and random.randint(0,3) == 0:
-        return
     evil = random.randint(0,4)
     if evil == 0:
         bot.say('>:3c')
