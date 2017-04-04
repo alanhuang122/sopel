@@ -16,26 +16,15 @@ if sys.version_info.major < 3:
 else:
     from urllib.parse import quote_plus
 
-
-def formatnumber(n):
-    """Format a number with beautiful commas."""
-    parts = list(str(n))
-    for i in range((len(parts) - 3), 0, -3):
-        parts.insert(i, ',')
-    return ''.join(parts)
-
-r_bing = re.compile(r'<h3><a href="([^"]+)"')
-
-
-def bing_search(query, lang='en-GB'):
-    base = 'http://www.bing.com/search?mkt=%s&q=' % lang
-    bytes = requests.get(base + query).text
-    m = r_bing.search(bytes)
-    if m:
-        return m.group(1)
+def google(query, key):
+    url = 'https://www.googleapis.com/customsearch/v1'
+    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:jb4yson7hu0', 'q' : query}).json()
+    if 'items' not in data:
+        return None
+    results = data['items']
+    return web.decode(results[0]['link'])
 
 r_duck = re.compile(r'nofollow" class="[^"]+" href="(?!https?:\/\/r\.search\.yahoo)(.*?)">')
-
 
 def duck_search(query):
     query = query.replace('!', '')
@@ -46,10 +35,6 @@ def duck_search(query):
     m = r_duck.search(bytes)
     if m:
         return web.decode(m.group(1))
-
-# Alias google_search to duck_search
-google_search = duck_search
-
 
 def duck_api(query):
     if '!bang' in query.lower():
@@ -68,8 +53,19 @@ def duck_api(query):
     else:
         return None
 
+@commands('g','search')
+def gs(bot, trigger):
+    query = trigger.group(2)
+    if not query:
+        return bot.reply('What do you want me to search for?')
+    result = google(query, bot.config.cse.key)
+    if result:
+        bot.reply(result)
+        return
+    else:
+        bot.reply('No results found for \'{0}\'.'.format(query))
 
-@commands('duck', 'ddg', 'g')
+@commands('duck', 'ddg')
 @example('.duck privacy or .duck !mcwiki obsidian')
 def duck(bot, trigger):
     """Queries Duck Duck Go for the specified input."""
@@ -92,29 +88,6 @@ def duck(bot, trigger):
             bot.memory['last_seen_url'][trigger.sender] = uri
     else:
         bot.reply("No results found for '%s'." % query)
-
-
-@commands('search')
-@example('.search nerdfighter')
-def search(bot, trigger):
-    """Searches Bing and Duck Duck Go."""
-    if not trigger.group(2):
-        return bot.reply('.search for what?')
-    query = trigger.group(2)
-    bu = bing_search(query) or '-'
-    du = duck_search(query) or '-'
-
-    if bu == du:
-        result = '%s (b, d)' % bu
-    else:
-        if len(bu) > 150:
-            bu = '(extremely long link)'
-        if len(du) > 150:
-            du = '(extremely long link)'
-        result = '%s (b), %s (d)' % (bu, du)
-
-    bot.reply(result)
-
 
 @commands('suggest')
 def suggest(bot, trigger):

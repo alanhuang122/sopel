@@ -62,7 +62,7 @@ def xkcd(bot, trigger):
             if (query.lower() == "latest" or query.lower() == "newest" or query.lower() == "today"):
                 requested = latest
             else:
-                number = google(query, bot.config.xkcd.key)
+                number = google(query, bot.config.cse.key)
                 if not number:
                     bot.say('Could not find any comics for that query.')
                     return
@@ -101,7 +101,7 @@ def say_result(bot, result):
     bot.say(message)
 
 
-@url('(^| )(http|https)?(www\.)?xkcd.com/(\d+)')
+@url('(^| )((http|https)://)?(www\.)?xkcd.com/(\d+)')
 def get_url(bot, trigger, match):
     latest = get_info()
     numbered_result(bot, int(match.group(5)), latest)
