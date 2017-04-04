@@ -137,7 +137,6 @@ def title_auto(bot, trigger):
         if message != trigger:
             bot.say(message)
 
-
 def process_urls(bot, trigger, urls):
     """
     For each URL in the list, ensure that it isn't handled by another module.

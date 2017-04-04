@@ -11,6 +11,9 @@ from sopel.module import commands, example
 import json
 import sys
 
+from sopel.trigger import PreTrigger
+from sopel.modules.url import find_title
+
 if sys.version_info.major < 3:
     from urllib import quote_plus
 else:
@@ -60,8 +63,17 @@ def gs(bot, trigger):
         return bot.reply('What do you want me to search for?')
     result = google(query, bot.config.cse.key)
     if result:
-        bot.reply(result)
-        return
+        bot.say(result)
+
+        parts = trigger.raw.split(None)
+        parts = parts[:3]
+        parts.append(':{0}'.format(result))
+        string = ' '.join(parts)
+        print(string)
+        
+        pt = PreTrigger(bot.nick, string)
+        bot.dispatch(pt)
+
     else:
         bot.reply('No results found for \'{0}\'.'.format(query))
 
