@@ -3,7 +3,7 @@
 
 from sopel.module import commands, example
 import json
-from random import randint
+from random import randint, choice
 import operator
 import re
 def setup(bot):
@@ -196,6 +196,9 @@ def fight_command(bot, trigger):
 def flower_command(bot, trigger):
     if not trigger.group(2):
         bot.say(u'{0}: (◕◡◕)ノ✿'.format(trigger.nick))
+    elif trigger.group(2).lower() == 'alan':
+        bot.say(u'...')
+        return
     else:
         bot.say(u'{0}: (◕◡◕)ノ✿'.format(clean(trigger.group(2).strip())))
     stats['flower'] += 1
@@ -227,7 +230,7 @@ def explain_command(bot, trigger):
     if trigger.sender.lower() == '#fallenlondon' and randint(0, 1):
         bot.say(u'Who knowzz?')
     else:
-        if trigger.nick == 'phy1729':
+        if trigger.nick == 'phy1729' or trigger.nick == 'Alan':
             bot.reply(u'because fuck you, that\'s why')
         elif randint(1,5) == 1:
             bot.say("THERE IS AS YET INSUFFICIENT DATA FOR A MEANINGFUL ANSWER")
@@ -266,5 +269,46 @@ def hoi_command(bot, trigger):
         bot.say(u'{0}: hOI!!!!!'.format(clean(trigger.group(2).strip())))
     stats['tem'] += 1
     stats['temmie'] += 1
+    save()
+    return
+
+@commands('finger')
+def finger_command(bot, trigger):
+    if not trigger.group(2):
+        bot.reply(u'(☞ﾟヮﾟ)☞')
+    else:
+        bot.say(u'{0}: (☞ﾟヮﾟ)☞'.format(clean(trigger.group(2).strip())))
+    if 'finger' not in stats:
+        stats['finger'] = 0
+    stats['finger'] += 1
+    save()
+    return
+
+@commands('wonk')
+def wonk_command(bot, trigger):
+    bot.say(u':O')
+    if 'wonk' not in stats:
+        stats['wonk'] = 0
+    stats['wonk'] += 1
+    save()
+    return
+
+@commands('wank')
+def wank_command(bot, trigger):
+    bot.say(u'Ewwww...')
+    if 'wank' not in stats:
+        stats['wank'] = 0
+    stats['wank'] += 1
+    save()
+    return
+
+treats = ['a cupcake', 'a donut', 'an éclair', 'froyo', 'gingerbread', 'honeycomb', 'an ice cream sandwich', 'jellybeans', 'a kitkat', 'a lollipop', 'marshmallow', 'nougat']
+
+@commands('treat')
+def treat_command(bot, trigger):
+    bot.say("Oooh, {0}!".format(choice(treats)))
+    if 'treat' not in stats:
+        stats['treat'] = 0
+    stats['treat'] += 1
     save()
     return

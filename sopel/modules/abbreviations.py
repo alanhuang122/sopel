@@ -2,18 +2,14 @@
 #coding: utf-8
 
 from sopel.module import commands, example
-import pickle
+import cPickle
 from fuzzywuzzy import fuzz, process
-def setup(bot):
-    global data
-    with open('/home/ec2-user/.sopel/abbreviations') as dictionary:
-        data = pickle.loads(dictionary.read())
 
 @commands('abb')
 @commands('acr')
 def lookup_command(bot, trigger):
     """Searches the FL wiki for an abbreviation."""
-    global data
+    data = cPickle.load(open('/home/ec2-user/.sopel/abbreviations'))
     if not trigger.group(2):
         bot.say('What acronym do you want to look up?')
         return

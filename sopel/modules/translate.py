@@ -65,7 +65,6 @@ def tl(bot, trigger):
     targetlang = 'en'
     string = command
     test = command.split(None, 1)
-    print(match)
     if test[0].startswith(':'):
         targetlang = test[0][1:]  #strips initial colon from string
         string = test[1]
@@ -82,4 +81,4 @@ def tl(bot, trigger):
     client = translate.Client()
     translation = client.translate(string, target_language=targetlang)
 
-    bot.reply(u'"{0}" ({1} to {2})'.format(translation['translatedText'], translation['detectedSourceLanguage'], targetlang))
+    bot.reply(u'"{0}" ({1} to {2})'.format(re.sub('&#39;','\'',translation['translatedText']), translation['detectedSourceLanguage'], targetlang))
