@@ -86,7 +86,7 @@ def help(bot, trigger):
             cPickle.dump(msgs,open('/home/ec2-user/.sopel/{0}-docs'.format(bot.config.help.config),'w'))
             cPickle.dump(url,open('/home/ec2-user/.sopel/{0}-docs_url'.format(bot.config.help.config),'w'))
         bot.say("I've posted a list of my commands at {} - You can see "
-                "more info about any of these commands by doing .help "
+                "more info about most of these commands by doing .help "
                 "<command> (e.g. .help time)".format(url))
 
 
