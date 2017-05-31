@@ -44,7 +44,7 @@ def advent_command(bot, trigger):
             return
         bot.say('Not released yet...')
         return
-    with open('/home/ec2-user/.sopel/advent') as page:
+    with open('/home/alan/.sopel/advent') as page:
         li = page.readlines()
         running = True
         licycle = cycle(li)

@@ -9,7 +9,7 @@ from fuzzywuzzy import fuzz, process
 @commands('acr')
 def lookup_command(bot, trigger):
     """Searches the FL wiki for an abbreviation."""
-    data = cPickle.load(open('/home/ec2-user/.sopel/abbreviations'))
+    data = cPickle.load(open('/home/alan/.sopel/abbreviations'))
     if not trigger.group(2):
         bot.say('What acronym do you want to look up?')
         return

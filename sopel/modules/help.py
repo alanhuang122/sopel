@@ -76,18 +76,18 @@ def help(bot, trigger):
                 msgs.append('\n'.join(textwrap.wrap(msg, subsequent_indent=indent)))
 
             docs = []
-            if os.path.isfile('/home/ec2-user/.sopel/{0}-docs'.format(bot.config.help.config)):
-                docs = cPickle.load(open('/home/ec2-user/.sopel/{0}-docs'.format(bot.config.help.config),'r'))
+            if os.path.isfile('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config)):
+                docs = cPickle.load(open('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config),'r'))
             
             if docs == msgs:
-                url = cPickle.load(open('/home/ec2-user/.sopel/{0}-docs_url'.format(bot.config.help.config),'r'))
+                url = cPickle.load(open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'r'))
             else:
                 url = create_gist(bot, '\n\n'.join(msgs))
             if not url:
                 return
             bot.memory['command-gist'] = (len(bot.command_groups), url)
-            cPickle.dump(msgs,open('/home/ec2-user/.sopel/{0}-docs'.format(bot.config.help.config),'w'))
-            cPickle.dump(url,open('/home/ec2-user/.sopel/{0}-docs_url'.format(bot.config.help.config),'w'))
+            cPickle.dump(msgs,open('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config),'w'))
+            cPickle.dump(url,open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'w'))
         bot.say("I've posted a list of my commands at {} - You can see "
                 "more info about most of these commands by doing .help "
                 "<command> (e.g. .help time)".format(url))

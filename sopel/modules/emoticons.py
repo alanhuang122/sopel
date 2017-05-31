@@ -8,7 +8,7 @@ import operator
 import re
 def setup(bot):
     global stats
-    stats = json.load(open('/home/ec2-user/.sopel/stats'))
+    stats = json.load(open('/home/alan/.sopel/stats'))
     unicode_chars = ''.join(map(unichr, range(0,32) + range(127,160)))
     global regex
     regex = re.compile('[%s]' % re.escape(unicode_chars))
@@ -18,7 +18,7 @@ def clean(s):
 
 
 def save():
-    f = open('/home/ec2-user/.sopel/stats', 'w')
+    f = open('/home/alan/.sopel/stats', 'w')
     f.write(json.dumps(stats))
     f.close()
     return

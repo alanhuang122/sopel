@@ -66,7 +66,7 @@ def xkcd(bot, trigger):
                     return
                 requested = get_info(number)
 
-    say_result(bot, requested)
+    say_result(bot, requested, True)
 
 
 def numbered_result(bot, query, latest):

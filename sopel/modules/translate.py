@@ -17,7 +17,7 @@ if sys.version_info.major >= 3:
     unicode = str
 
 def setup(bot):
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/ec2-user/google-cloud-sdk/sopel-irc-key.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/alan/.sopel/sopel-irc-key.json'
     global client, languages
     client = translate.Client()
     languages = client.get_languages()
