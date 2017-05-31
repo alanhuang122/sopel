@@ -16,13 +16,14 @@ import sopel.loader
 import sopel.module
 import subprocess
 
-
+@sopel.module.commands('reload')
 @sopel.module.nickname_commands("reload")
 @sopel.module.priority("low")
 @sopel.module.thread(False)
 def f_reload(bot, trigger):
     """Reloads a module, for use by admins only."""
     if not trigger.admin:
+        bot.say('{0} is not in the sudoers file. This incident will be reported.'.format(trigger.nick))
         return
 
     name = trigger.group(2)

@@ -188,7 +188,7 @@ def check_callbacks(bot, trigger, url, run=True):
 
 def find_title(url, verify=True):
     """Return the title for the given URL."""
-    response = requests.get(url, stream=True, verify=verify, headers={'User-Agent':'Sopel (alanhuang122@gmail.com)'})
+    response = requests.get(url, stream=True, verify=verify, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'})
     try:
         content = ''
         for byte in response.iter_content(chunk_size=512, decode_unicode=True):

@@ -1,7 +1,15 @@
 # coding=utf-8
 
-import aspell
+import aspell, re, operator, string
 from sopel.module import commands
+
+def setup(bot):
+    chars = string.letters
+    global regex
+    regex = re.compile('[^%s]' % re.escape(chars))
+
+def clean(s):
+    return regex.sub('',s)
 
 @commands('add')
 def add_command(bot, trigger):
@@ -18,17 +26,17 @@ def check_multiple(bot, words):
 
     c = aspell.Speller('lang', 'en')
     for word in words:
-        if not c.check(word):
-            mistakes.append(word)
+        if not c.check(clean(word)):
+            mistakes.append(clean(word))
 
     if len(mistakes) == 0:
         bot.say("Nothing seems to be misspelled.")
     else:
-        bot.say('The following words seem to be misspelled: {0}'.format(', '.join(['"{0}"'.format(w) for w in mistakes])))
+        bot.say('The following word(s) seem to be misspelled: {0}'.format(', '.join(['"{0}"'.format(w) for w in mistakes])))
 
 def check_one(bot, word):
     c = aspell.Speller('lang', 'en')
-    if c.check(word):
+    if c.check(clean(word)):
         bot.say("I don't see any problems with that word.")
         return
     else:
@@ -39,7 +47,7 @@ def check_one(bot, word):
     else:
         bot.say("That doesn't seem to be correct. Try {0}.".format(', '.join(['"{0}"'.format(s) for s in suggestions])))
 
-@commands('spell')
+@commands('spell', 'check', 'spellcheck')
 def spellchecker(bot, trigger):
     if not trigger.group(2):
         bot.say('What word am I checking?')

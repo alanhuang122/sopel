@@ -36,9 +36,12 @@ def lookup(word):
         return 'I couldn\'t find any definitions for that word.'
 
     global app_id, app_key
-    data = requests.get(url + '/entries/en/' + word_id + '/definitions', headers = {'app_id' : app_id, 'app_key' : app_key}).json()
+    data = requests.get(url + '/entries/en/' + word_id + '/definitions', headers = {'app_id' : app_id, 'app_key' : app_key})
+    if data.status_code == 404:
+        return 'I couldn\'t find that word.'
+    data = data.json()
     defs = []
-
+    word = data['results'][0]['word']
     lexicalEntries = data['results'][0]['lexicalEntries']
     count = len(lexicalEntries)
     limit = 400 / count

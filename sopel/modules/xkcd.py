@@ -8,15 +8,13 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 import random, re, requests
 from sopel.module import commands, url
 
-sites_query = ' site:xkcd.com'
-
 def get_info(number=None):
     if number:
         url = 'http://xkcd.com/{}/info.0.json'.format(number)
     else:
         url = 'http://xkcd.com/info.0.json'
     data = requests.get(url).json()
-    data['url'] = 'http://xkcd.com/' + str(data['num'])
+    data['url'] = 'https://xkcd.com/' + str(data['num'])
     return data
 
 def google(query, key):
@@ -71,7 +69,7 @@ def xkcd(bot, trigger):
     say_result(bot, requested)
 
 
-def numbered_result(bot, query, latest, say_link=True, verify_ssl=True):
+def numbered_result(bot, query, latest):
     max_int = latest['num']
     if query > max_int:
         bot.say(("Sorry, comic #{} hasn't been posted yet. "
@@ -92,10 +90,10 @@ def numbered_result(bot, query, latest, say_link=True, verify_ssl=True):
         # Negative: go back that many from current
         requested = get_info(max_int + query)
 
-    say_result(bot, requested, say_link)
+    say_result(bot, requested)
 
 
-def say_result(bot, result, say_link):
+def say_result(bot, result, say_link=True):
     if say_link:
         message = '{} | {} | Alt-text: {}'.format(result['url'], result['title'], result['alt'])
     else:
@@ -106,4 +104,4 @@ def say_result(bot, result, say_link):
 @url('(^| )((http|https)://)?(www\.)?xkcd.com/(\d+)')
 def get_url(bot, trigger, match):
     latest = get_info()
-    numbered_result(bot, int(match.group(5)), latest, False)
+    numbered_result(bot, int(match.group(5)), latest)
