@@ -196,8 +196,7 @@ def fight_command(bot, trigger):
 def flower_command(bot, trigger):
     if not trigger.group(2):
         bot.say(u'{0}: (◕◡◕)ノ✿'.format(trigger.nick))
-    elif trigger.group(2).lower() == 'alan':
-        bot.say(u'...')
+    elif 'alan' in trigger.group(2).lower():
         return
     else:
         bot.say(u'{0}: (◕◡◕)ノ✿'.format(clean(trigger.group(2).strip())))
@@ -209,6 +208,8 @@ def flower_command(bot, trigger):
 def pretty_command(bot, trigger):
     if not trigger.group(2):
         bot.say(u'{0}: (◕◡◕✿)'.format(trigger.nick))
+    elif 'alan' in trigger.group(2).lower():
+        return
     else:
         bot.say(u'{0}: (◕◡◕✿)'.format(clean(trigger.group(2).strip())))
     stats['pretty'] += 1
@@ -359,7 +360,7 @@ continues = ["And, if you think you got nasty taunting this time, you ain't hear
 @commands('taunt')
 @commands('insult')
 def taunt_command(bot, trigger):
-    if randint(0,2) == 0:
+    if randint(0,4) == 0:
         taunt = 'Haw haw!'
         followup = 0
     else:

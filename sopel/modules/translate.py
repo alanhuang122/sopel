@@ -49,9 +49,6 @@ def lookup(string):
 
     return None
 
-
-
-
 @commands('translate', 'tr')
 @example('.tr :de omelette du fromage')
 def tl(bot, trigger):
