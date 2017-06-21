@@ -148,6 +148,8 @@ class Sopel(irc.Bot):
         self.lockers = {}
         self.warns = {}
 
+        self.dead = False
+
         # Set up block lists
         # Default to empty
         if not self.config.core.nick_blocks:
@@ -357,6 +359,8 @@ class Sopel(irc.Bot):
                 if not self.warns[recipient_id]:
                     self.write(('PRIVMSG', recipient), "Too many messages. Wait a minute.")
                     self.warns[recipient_id] = True
+                return
+            if self.dead:
                 return
 
             self.write(('PRIVMSG', recipient), text)
