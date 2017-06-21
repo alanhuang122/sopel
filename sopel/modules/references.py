@@ -29,3 +29,5 @@ def reference(bot, trigger):
         
         pt = PreTrigger(bot.nick, string)
         bot.dispatch(pt)
+    else:
+        bot.say("Not found")
