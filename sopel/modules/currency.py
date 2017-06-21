@@ -3,9 +3,10 @@
 # Licensed under the Eiffel Forum License 2
 from __future__ import unicode_literals, absolute_import, print_function, division
 
-import re
+import json
+import xmltodict
+import re, requests
 
-from requests import get
 from sopel.module import commands, example, NOLIMIT
 
 # The Canadian central bank has better exchange rate data than the Fed, the
@@ -24,17 +25,22 @@ def get_rate(code):
     if code == 'CAD':
         return 1, 'Canadian Dollar'
     elif code == 'BTC':
-        btc_rate = get('https://apiv2.bitcoinaverage.com/indices/global/ticker/BTCCAD')
-        rates = btc_rate.json()
-        return 1 / rates['averages']['day'], 'Bitcoin—24hr average'
-
-    data = get("http://www.bankofcanada.ca/valet/observations/FX{}CAD/json".format(code))
-    name = data.json()['seriesDetail']['FX{}CAD'.format(code)]['description']
-    name = name.split(" to Canadian")[0]
-    json = data.json()['observations']
-    for element in reversed(json):
-        if 'v' in element['FX{}CAD'.format(code)]:
-            return 1 / float(element['FX{}CAD'.format(code)]['v']), name
+        rates = requests.get('https://api.bitcoinaverage.com/ticker/all', verify=False).json()
+        return 1 / rates['CAD']['24h_avg'], 'Bitcoin—24hr average'
+    data = requests.get(base_url.format(code))
+    if data.status_code == 404:
+        return False, False
+    namespaces = {
+        'http://www.cbwiki.net/wiki/index.php/Specification_1.1': 'cb',
+        'http://purl.org/rss/1.0/': None,
+        'http://www.w3.org/1999/02/22-rdf-syntax-ns#': 'rdf'
+    }
+    xml = xmltodict.parse(data.text, process_namespaces=True, namespaces=namespaces).get('rdf:RDF')
+    namestring = xml.get('channel').get('title').get('#text')
+    name = namestring[len('Bank of Canada noon rate: '):]
+    name = re.sub(r'\s*\(noon\)\s*', '', name)
+    rate = xml.get('item').get('cb:statistics').get('cb:exchangeRate').get('cb:value').get('#text')
+    return float(rate), name
 
 
 @commands('cur', 'currency', 'exchange')
@@ -69,8 +75,9 @@ def display(bot, amount, of, to):
         if not to_name:
             bot.reply("Unknown currency: %s" % to)
             return
-    except Exception:
+    except Exception as e:
         bot.reply("Something went wrong while I was getting the exchange rate.")
+        print(e)
         return NOLIMIT
 
     result = amount / of_rate * to_rate

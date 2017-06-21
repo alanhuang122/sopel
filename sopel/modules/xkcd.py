@@ -19,7 +19,7 @@ def get_info(number=None):
 
 def google(query, key):
     url = 'https://www.googleapis.com/customsearch/v1'
-    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:hytymhiw4na', 'q' : query}).json()
+    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:hytymhiw4na', 'q' : query}, verify=False).json()
     if 'items' not in data:
         return None
     results = data['items']
@@ -60,7 +60,7 @@ def xkcd(bot, trigger):
             if (query.lower() == "latest" or query.lower() == "newest" or query.lower() == "today"):
                 requested = latest
             else:
-                number = google(query, bot.config.cse.key)
+                number = google(query, bot.config.google.api_key)
                 if not number:
                     bot.say('Could not find any comics for that query.')
                     return

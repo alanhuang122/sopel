@@ -24,7 +24,7 @@ def save():
     return
 
 
-@commands('stats')
+@commands('estats')
 def stats_command(bot, trigger):
     if not trigger.group(2):
         slist = sorted(stats.items(), key=operator.itemgetter(1),reverse=True)
@@ -228,12 +228,11 @@ def party_command(bot, trigger):
 
 @commands('why')
 def explain_command(bot, trigger):
-    if trigger.sender.lower() == '#fallenlondon' and randint(0, 1):
-        bot.say(u'Who knowzz?')
+
+    if trigger.nick == 'phy1729' or trigger.nick == 'Alan':
+        bot.reply(u'because fuck you, that\'s why')
     else:
-        if trigger.nick == 'phy1729' or trigger.nick == 'Alan':
-            bot.reply(u'because fuck you, that\'s why')
-        elif randint(1,5) == 1:
+        if randint(1,5) == 1:
             bot.say("THERE IS AS YET INSUFFICIENT DATA FOR A MEANINGFUL ANSWER")
         else:
             bot.reply(u'because fuck you, that\'s why')

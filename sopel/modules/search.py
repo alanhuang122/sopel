@@ -21,7 +21,7 @@ else:
 
 def google(query, key):
     url = 'https://www.googleapis.com/customsearch/v1'
-    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:jb4yson7hu0', 'q' : query}).json()
+    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:jb4yson7hu0', 'q' : query}, verify=False).json()
     if 'items' not in data:
         return None
     results = data['items']
@@ -61,7 +61,7 @@ def gs(bot, trigger):
     query = trigger.group(2)
     if not query:
         return bot.reply('What do you want me to search for?')
-    result = google(query, bot.config.cse.key)
+    result = google(query, bot.config.google.api_key)
     if result:
         bot.say(result)
 

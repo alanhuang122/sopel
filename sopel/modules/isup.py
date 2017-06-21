@@ -6,8 +6,7 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 import requests
 from sopel.module import commands
 
-
-@commands('isup')
+@commands('isup', 'ping')
 def isup(bot, trigger):
     """Checks if a website is up or down."""
     site = trigger.group(2)
@@ -25,7 +24,7 @@ def isup(bot, trigger):
         site += ".com"
 
     try:
-        response = requests.get(site)
+        response = requests.get(site, verify=False)
     except Exception:
         bot.say(site + ' looks down from here.')
         return

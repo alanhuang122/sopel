@@ -4,7 +4,7 @@
 from sopel.module import commands
 import imp
 
-emoticons = imp.load_source('emoticons', '/home/ec2-user/.sopel/modules')
+emoticons = imp.load_source('emoticons', '/home/alan/.sopel/modules')
 
 @commands('horoscope')
 def horoscope_command(bot, trigger):
