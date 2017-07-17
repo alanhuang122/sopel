@@ -55,27 +55,32 @@ def tl(bot, trigger):
     global languages
     """Translates a phrase using Google Translate. Defaults to English."""
     command = trigger.group(2)
-    match = re.match(r'.*\b(to (.+?))\b.*', command)
     if not command:
         bot.reply('What am I translating?')
-
-    targetlang = 'en'
-    string = command
-    test = command.split(None, 1)
-    if test[0].startswith(':'):
-        targetlang = test[0][1:]  #strips initial colon from string
-        string = test[1]
-        if targetlang not in ' '.join(x['language'] for x in languages):
-            bot.say('Unrecognized/unsupported target language.')
-            return
-    elif match:
-        targetlang = lookup(match.group(2))
-        if targetlang is None:
-            targetlang = 'en'
-        else:
-            string = re.sub(match.group(1), '', command)
-
+    s = None
+    t = 'en'
+    parts = command.rsplit(None, 4)
+    print(parts)
+    if len(parts) > 4:
+        if parts[3] == 'from':
+            s = lookup(parts[4])
+            parts = parts[:-2]
+        elif parts[3] == 'to':
+            t = lookup(parts[4])
+            parts = parts[:-2]
+    if len(parts) > 2:
+        if parts[1] == 'from':
+            s = lookup(parts[2])
+            parts = parts[:-2]
+        elif parts[1] == 'to':
+            t = lookup(parts[2])
+            parts = parts[:-2]
     client = translate.Client()
-    translation = client.translate(string, target_language=targetlang)
+    if s:
+        print('3')
+        translation = client.translate(' '.join(parts), target_language=t, source_language=s)
+    else:
+        print('2')
+        translation = client.translate(' '.join(parts), target_language=t)
 
-    bot.reply(u'"{0}" ({1} to {2})'.format(re.sub('&#39;','\'',translation['translatedText']), translation['detectedSourceLanguage'], targetlang))
+    bot.reply(u'"{0}" ({1} to {2})'.format(re.sub('&#39;','\'',translation['translatedText']), s if s is not None else translation['detectedSourceLanguage'], t))
