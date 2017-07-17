@@ -19,7 +19,7 @@ def get_info(number=None):
 
 def google(query, key):
     url = 'https://www.googleapis.com/customsearch/v1'
-    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:hytymhiw4na', 'q' : query}, verify=False).json()
+    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:hytymhiw4na', 'q' : query}).json()
     if 'items' not in data:
         return None
     results = data['items']

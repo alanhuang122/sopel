@@ -8,10 +8,10 @@ import re
 import requests
 from sopel import web
 from sopel.module import commands, example
+from sopel.trigger import PreTrigger
 import json
 import sys
 
-from sopel.trigger import PreTrigger
 from sopel.modules.url import find_title
 
 if sys.version_info.major < 3:
@@ -21,7 +21,7 @@ else:
 
 def google(query, key):
     url = 'https://www.googleapis.com/customsearch/v1'
-    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:jb4yson7hu0', 'q' : query}, verify=False).json()
+    data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:jb4yson7hu0', 'q' : query}).json()
     if 'items' not in data:
         return None
     results = data['items']
@@ -64,7 +64,6 @@ def gs(bot, trigger):
     result = google(query, bot.config.google.api_key)
     if result:
         bot.say(result)
-
         parts = trigger.raw.split(None)
         parts = parts[:3]
         parts.append(':{0}'.format(result))
@@ -95,7 +94,8 @@ def duck(bot, trigger):
     uri = duck_search(query)
 
     if uri:
-        bot.reply(uri)
+        bot.say(uri)
+        bot.say(find_title(result))
         if 'last_seen_url' in bot.memory:
             bot.memory['last_seen_url'][trigger.sender] = uri
     else:

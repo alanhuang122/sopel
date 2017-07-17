@@ -24,7 +24,7 @@ def isup(bot, trigger):
         site += ".com"
 
     try:
-        response = requests.get(site, verify=False)
+        response = requests.get(site)
     except Exception:
         bot.say(site + ' looks down from here.')
         return

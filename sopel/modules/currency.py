@@ -25,7 +25,7 @@ def get_rate(code):
     if code == 'CAD':
         return 1, 'Canadian Dollar'
     elif code == 'BTC':
-        rates = requests.get('https://api.bitcoinaverage.com/ticker/all', verify=False).json()
+        rates = requests.get('https://api.bitcoinaverage.com/ticker/all').json()
         return 1 / rates['CAD']['24h_avg'], 'Bitcoin—24hr average'
     data = requests.get(base_url.format(code))
     if data.status_code == 404:
