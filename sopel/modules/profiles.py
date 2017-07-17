@@ -78,10 +78,6 @@ def drugs_command(bot, trigger):
 def box_command(bot, trigger):
     bot.say('Gazzien ' + worker_command('Mr Forms', 1).split(' ', 2)[2].rsplit(' ', 4)[0] + ' Surprise Packages <3')
 
-@commands('changed')
-def changed_command(bot, trigger):
-    bot.say(worker_command('Phryne Amarantyne', 2))
-
 @commands('ushabti')
 def shabti_command(bot,trigger):
     bot.say('Vavakx ' + worker_command('Vavakx  Nonexus',1).split(' ',3)[3])
