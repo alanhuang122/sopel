@@ -31,3 +31,6 @@ sopel.egg-info/*
 
 # macOS
 *.DS_Store
+
+formatting.py
+webhook.py
