@@ -62,7 +62,7 @@ def quote(bot, trigger):
     # parse and execute command
     raw_args = trigger.group(2)
     output = ''
-    if raw_args is None or raw_args == '':
+    if raw_args is None or raw_args.strip() == '':
         # display random quote as default action
         output = dataprovider.get_random()
     else:
