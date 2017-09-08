@@ -18,7 +18,6 @@ if sys.version_info.major >= 3:
 uri = 'https://en.wikipedia.org/wiki/List_of_Internet_top-level_domains'
 r_tag = re.compile(r'<(?!!)[^>]+>')
 
-
 @commands('tld')
 @example('.tld ru')
 def gettld(bot, trigger):
