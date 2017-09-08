@@ -95,7 +95,7 @@ def duck(bot, trigger):
 
     if uri:
         bot.say(uri)
-        bot.say(find_title(result))
+        bot.say(find_title(uri))
         if 'last_seen_url' in bot.memory:
             bot.memory['last_seen_url'][trigger.sender] = uri
     else:
