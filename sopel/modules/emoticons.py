@@ -337,7 +337,15 @@ def five_command(bot, trigger):
     save()
     return
 
-taunts = ["I don't want to talk to you no more, you empty-headed animal food trough wiper!",
+taunts = ["Haw haw!",
+          "Wololo.",
+          "All hail, king of the losers!",
+          "Sure, blame it on your ISP.",
+          "My granny could scrap better than that.",
+          "Ahh, you are such a fool.",
+          "Not a wise decision, but a decision nonetheless."]
+
+mp_taunts = ["I don't want to talk to you no more, you empty-headed animal food trough wiper!",
           "I fart in your general direction!",
           "Your mother was a hamster and your father smelt of elderberries!",
           "You don't frighten us, English pig-dogs!",
@@ -360,10 +368,10 @@ continues = ["And, if you think you got nasty taunting this time, you ain't hear
 @commands('insult')
 def taunt_command(bot, trigger):
     if randint(0,4) == 0:
-        taunt = 'Haw haw!'
+        taunt = choice(taunts)
         followup = 0
     else:
-        taunt = choice(taunts)
+        taunt = choice(mp_taunts)
         followup = randint(0,1)
 
     if not trigger.group(2):
@@ -375,8 +383,6 @@ def taunt_command(bot, trigger):
         if followup == 1:
             bot.say("{0}: {1}".format(clean(trigger.group(2).strip()), choice(continues)))
     
-    if 'taunt' not in stats:
-        stats['taunt'] = 0
     stats['taunt'] += 1
     save()
     return
