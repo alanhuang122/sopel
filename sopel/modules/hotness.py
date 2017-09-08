@@ -39,7 +39,7 @@ def kinsey_set(bot, trigger):
             val = int(trigger.group(2))
             assert val < 7 and val > -1
         except:
-            bot.say('Enter a valid value [0-6]')
+            bot.say('Enter a valid value [0-6] or X')
             return
     bot.db.set_nick_value(trigger.nick, 'gay', val)
     bot.say('Value set.')
