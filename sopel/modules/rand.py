@@ -256,7 +256,7 @@ def roll(bot, trigger):
     try:
         result = eval_equation(eval_str)
     except Exception as e:
-        bot.reply("SyntaxError, eval(%s), %s" % (eval_str, e))
+        bot.reply("SyntaxError, eval(%s), %s. Did you mean .dict?" % (eval_str, e))
         return
 
     bot.reply("You roll %s: %s = %d" % (
