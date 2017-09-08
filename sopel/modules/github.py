@@ -1,49 +1,14 @@
 # coding=utf8
-"""
-github.py - Sopel Github Module
-Copyright 2015 Max Gurela
-
- _______ __ __   __           __
-|     __|__|  |_|  |--.--.--.|  |--.
-|    |  |  |   _|     |  |  ||  _  |
-|_______|__|____|__|__|_____||_____|
-
-"""
 
 from __future__ import unicode_literals
-from sopel import web, tools
-from sopel.module import commands, rule, OP, NOLIMIT, example, require_chanmsg
-from sopel.formatting import bold, color
+from sopel.module import commands, rule, NOLIMIT
 from sopel.tools.time import get_timezone, format_time
-from sopel.config.types import StaticSection, ValidatedAttribute
-
-import github
-import formatting
-from formatting import shorten_url
-import webhook
-from webhook import setup_webhook, shutdown_webhook
 
 import operator, requests
-from collections import deque
-
-import sys
-if sys.version_info.major < 3:
-    from urllib import urlencode
-    from urllib2 import HTTPError
-else:
-    from urllib.parse import urlencode
-    from urllib.error import HTTPError
 import json
 import re
 import datetime
-
-'''
- _______           __         __
-|   |   |.-----.--|  |.--.--.|  |.-----.
-|       ||  _  |  _  ||  |  ||  ||  -__|
-|__|_|__||_____|_____||_____||__||_____|
-
-'''
+from requests import HTTPError
 
 issueURL = (r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?')
 commitURL = (r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:commit)/([A-z0-9\-]+)')
@@ -52,60 +17,11 @@ commitRegex = re.compile(commitURL)
 repoRegex = re.compile('github\.com/([^ /]+?)/([^ /]+)/?(?!\S)')
 sopel_instance = None
 
-
-class GithubSection(StaticSection):
-    client_id = ValidatedAttribute('client_id', default=None)
-    secret    = ValidatedAttribute('secret', default=None)
-    webhook   = ValidatedAttribute('webhook', bool, default=False)
-    webhook_host = ValidatedAttribute('webhook_host', default='0.0.0.0')
-    webhook_port = ValidatedAttribute('webhook_port', default='3333')
-    external_url = ValidatedAttribute('external_url', default='http://your_ip_or_domain_here:3333')
-
-
-def configure(config):
-    config.define_section('github', GithubSection, validate=False)
-    config.github.configure_setting('client_id', 'Github API Client ID')
-    config.github.configure_setting('secret',    'Github API Client Secret')
-    config.github.configure_setting('webhook',   'Enable webhook listener functionality')
-    if config.github.webhook:
-        config.github.configure_setting('webhook_host', 'Listen IP for incoming webhooks (0.0.0.0 for all IPs)')
-        config.github.configure_setting('webhook_port', 'Listen port for incoming webhooks')
-        config.github.configure_setting('external_url', 'Callback URL for webhook activation, should be your externally facing domain or IP. You must include the port unless you are reverse proxying.')
-
-
-def setup(sopel):
-    sopel.config.define_section('github', GithubSection)
-    if not sopel.memory.contains('url_callbacks'):
-        sopel.memory['url_callbacks'] = tools.SopelMemory()
-    sopel.memory['url_callbacks'][regex] = issue_info
-    sopel.memory['url_callbacks'][repoRegex] = data_url
-    sopel.memory['url_callbacks'][commitRegex] = commit_info
-
-    if sopel.config.github.webhook:
-        setup_webhook(sopel)
-
-
-def shutdown(sopel):
-    del sopel.memory['url_callbacks'][regex]
-    del sopel.memory['url_callbacks'][repoRegex]
-    del sopel.memory['url_callbacks'][commitRegex]
-    shutdown_webhook(sopel)
-
-'''
- _______ ______ _____        ______                    __
-|   |   |   __ \     |_     |   __ \.---.-.----.-----.|__|.-----.-----.
-|   |   |      <       |    |    __/|  _  |   _|__ --||  ||     |  _  |
-|_______|___|__|_______|    |___|   |___._|__| |_____||__||__|__|___  |
-                                                                |_____|
-'''
-
-
 def fetch_api_endpoint(bot, url):
     oauth = ''
-    if bot.config.github.client_id and bot.config.github.secret:
-        oauth = '?client_id=%s&client_secret=%s' % (bot.config.github.client_id, bot.config.github.secret)
+#    if bot.config.github.client_id and bot.config.github.secret:
+#        oauth = '?client_id=%s&client_secret=%s' % (bot.config.github.client_id, bot.config.github.secret)
     return requests.get(url + oauth).text
-
 
 @rule('.*%s.*' % issueURL)
 def issue_info(bot, trigger, match=None):
@@ -135,7 +51,7 @@ def issue_info(bot, trigger, match=None):
         body = 'No description provided.'
 
     response = [
-        bold('[Github]'),
+        '[Github]',
         ' [',
         match.group(1),
         ' #',
@@ -147,7 +63,7 @@ def issue_info(bot, trigger, match=None):
 
     if ('title' in data):
         response.append(data['title'])
-        response.append(bold(' | '))
+        response.append(' | ')
     response.append(body)
 
     bot.say(''.join(response))
@@ -177,14 +93,14 @@ def commit_info(bot, trigger, match=None):
         body = 'No commit message provided.'
 
     response = [
-        bold('[Github]'),
+        '[Github]',
         ' [',
         match.group(1),
         '] ',
         data['author']['login'],
         ': ',
         body,
-        bold(' | '),
+        ' | ',
         str(data['stats']['total']),
         ' changes in ',
         str(len(data['files'])),
@@ -226,7 +142,7 @@ def get_data(bot, trigger, URL):
     return data
 
 
-@rule(r'https?://github\.com/([^ /]+?)/([^ /]+)/?(?!\S)')
+@rule(r'.*https?://github\.com/([^ /]+?)/([^ /]+)/?(?!\S).*')
 def data_url(bot, trigger):
     URL = 'https://api.github.com/repos/%s/%s' % (trigger.group(1).strip(), trigger.group(2).strip())
     fmt_response(bot, trigger, URL, True)
@@ -315,94 +231,3 @@ def fmt_response(bot, trigger, URL, from_regex=False):
     bot.say(''.join(response))
 
 
-def configure_repo_messages(bot, trigger):
-    '''
-    .gh-hook <repo> [enable|disable] - Enable/disable displaying webhooks from repo in current channel (You must be a channel OP)
-    Repo notation is just <user/org>/<repo>, not the whole URL.
-    '''
-    allowed = bot.privileges[trigger.sender].get(trigger.nick, 0) >= OP
-    if not allowed and not trigger.admin:
-        return bot.msg(trigger.sender, 'You must be a channel operator to use this command!')
-
-    if not trigger.group(2):
-        return bot.say(configure_repo_messages.__doc__.strip())
-
-    channel = trigger.sender.lower()
-    repo_name = trigger.group(3).lower()
-
-    if not '/' in repo_name or 'http://' in repo_name or 'https://' in repo_name:
-        return bot.say('Invalid repo formatting, see ".help gh-hook" for an example')
-
-    enabled = True if not trigger.group(4) or trigger.group(4).lower() == 'enable' else False
-
-    auth_data = {
-        'client_id': bot.config.github.client_id,
-        'scope': 'write:repo_hook',
-        'state': '{}:{}'.format(repo_name, channel)}
-    auth_url = 'https://github.com/login/oauth/authorize?{}'.format(urlencode(auth_data))
-
-    conn = bot.db.connect()
-    c = conn.cursor()
-
-    c.execute('SELECT * FROM gh_hooks WHERE channel = ? AND repo_name = ?', (channel, repo_name))
-    result = c.fetchone()
-    if not result:
-        c.execute('''INSERT INTO gh_hooks (channel, repo_name, enabled) VALUES (?, ?, ?)''', (channel, repo_name, enabled))
-        bot.say("Successfully enabled listening for {repo}'s events in {chan}.".format(chan=channel, repo=repo_name))
-        bot.say('Great! Please allow me to create my webhook by authorizing via this link: ' + shorten_url(auth_url))
-        bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with .gh-hook-color')
-    else:
-        c.execute('''UPDATE gh_hooks SET enabled = ? WHERE channel = ? AND repo_name = ?''', (enabled, channel, repo_name))
-        bot.say("Successfully {state} the subscription to {repo}'s events".format(state='enabled' if enabled else 'disabled', repo=repo_name))
-        if enabled:
-            bot.say('Great! Please allow me to create my webhook by authorizing via this link: ' + shorten_url(auth_url))
-            bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with .gh-hook-color')
-    conn.commit()
-    conn.close()
-
-
-def configure_repo_colors(bot, trigger):
-    '''
-    .gh-hook-color <repo> <repo color> <name color> <branch color> <tag color> <hash color> <url color> - Set custom colors for the webhook messages (Uses mIRC color indicies)
-    '''
-    allowed = bot.privileges[trigger.sender].get(trigger.nick, 0) >= OP
-    if not allowed and not trigger.admin:
-        return bot.msg(trigger.sender, 'You must be a channel operator to use this command!')
-
-    if not trigger.group(2):
-        return bot.say(configure_repo_colors.__doc__.strip())
-
-    channel = trigger.sender.lower()
-    repo_name = trigger.group(3).lower()
-    colors = []
-    try:
-        colors = [int(c) % 16 for c in trigger.group(2).replace(trigger.group(3), '', 1).split()]
-    except:
-        return bot.say('You must provide exactly 6 colors that are integers and are space separated. See ".help gh-hook-color" for more information.')
-
-    if len(colors) != 6:
-        return bot.say('You must provide exactly 6 colors! See ".help gh-hook-color" for more information.')
-
-    conn = bot.db.connect()
-    c = conn.cursor()
-
-    c.execute('SELECT * FROM gh_hooks WHERE channel = ? AND repo_name = ?', (channel, repo_name))
-    result = c.fetchone()
-    if not result:
-        return bot.say('Please use ".gh-hook {} enable" before attempting to configure colors!'.format(repo_name))
-    else:
-        combined = colors
-        combined.append(channel)
-        combined.append(repo_name)
-        c.execute('''UPDATE gh_hooks SET repo_color = ?, name_color = ?, branch_color = ?, tag_color = ?,
-                     hash_color = ?, url_color = ? WHERE channel = ? AND repo_name = ?''', combined)
-        conn.commit()
-        c.execute('SELECT * FROM gh_hooks WHERE channel = ? AND repo_name = ?', (channel, repo_name))
-        row = c.fetchone()
-        bot.say("[{}] Example name: {} tag: {} commit: {} branch: {} url: {}".format(
-                formatting.fmt_repo(repo_name, row),
-                formatting.fmt_name(trigger.nick, row),
-                formatting.fmt_tag('tag', row),
-                formatting.fmt_hash('c0mm17', row),
-                formatting.fmt_branch('master', row),
-                formatting.fmt_url('http://git.io/', row)))
