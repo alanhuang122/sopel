@@ -132,7 +132,7 @@ def title_auto(bot, trigger):
     bot.memory['last_seen_url'][trigger.sender] = urls[-1]
 
     for title, domain in results[:4]:
-        message = '[ %s ] - %s' % (title, domain)
+        message = u'[ %s ] - %s' % (title, domain)
         # Guard against responding to other instances of this bot.
         if message != trigger:
             bot.say(message)
@@ -185,46 +185,15 @@ def check_callbacks(bot, trigger, url, run=True):
         matched = True
     return matched
 
-
+import lxml.html
 def find_title(url, verify=True):
     """Return the title for the given URL."""
-    response = requests.get(url, stream=True, verify=verify, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'})
+    response = requests.get(url, verify=verify, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'})
     try:
-        content = ''
-        for byte in response.iter_content(chunk_size=512, decode_unicode=True):
-            if not isinstance(byte, bytes):
-                content += byte
-            else:
-                break
-            if '</title>' in content or len(content) > max_bytes:
-                break
-    except UnicodeDecodeError:
-        return  # Fail silently when data can't be decoded
-    finally:
-        # need to close the connexion because we have not read all the data
-        response.close()
-    except requests.exceptions.ConnectionError:
+        t = lxml.html.fromstring(response.text)
+        return t.find(".//title").text.strip()
+    except:
         return None
-
-    # Some cleanup that I don't really grok, but was in the original, so
-    # we'll keep it (with the compiled regexes made global) for now.
-    content = title_tag_data.sub(r'<\1title>', content)
-    content = quoted_title.sub('', content)
-
-    start = content.find('<title>')
-    end = content.find('</title>')
-    if start == -1 or end == -1:
-        return
-    title = web.decode(content[start + 7:end])
-    title = title.strip()[:200]
-
-    title = ' '.join(title.split())  # cleanly remove multiple spaces
-
-    # More cryptic regex substitutions. This one looks to be myano's invention.
-    title = re_dcc.sub('', title)
-
-    return title or None
-
 
 def get_hostname(url):
     idx = 7
