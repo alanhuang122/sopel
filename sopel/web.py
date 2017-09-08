@@ -64,92 +64,7 @@ class MockHttpResponse(httplib.HTTPResponse):
     def geturl(self):
         return self.url
 
-
-# HTTP GET
-@deprecated
-def get(uri, timeout=20, headers=None, return_headers=False,
-        limit_bytes=None, verify_ssl=True, dont_decode=False):
-    """Execute an HTTP GET query on `uri`, and return the result. Deprecated.
-
-    `timeout` is an optional argument, which represents how much time we should
-    wait before throwing a timeout exception. It defaults to 20, but can be set
-    to higher values if you are communicating with a slow web application.
-    `headers` is a dict of HTTP headers to send with the request.  If
-    `return_headers` is True, return a tuple of (bytes, headers)
-
-    `limit_bytes` is ignored.
-
-    """
-    if not uri.startswith('http'):
-        uri = "http://" + uri
-    if headers is None:
-        headers = default_headers
-    else:
-        tmp = default_headers.copy()
-        tmp.update(headers)
-        headers = tmp
-    u = requests.get(uri, timeout=timeout, headers=headers, verify=verify_ssl)
-    bytes = u.content
-    u.close()
-    headers = u.headers
-    if not dont_decode:
-        bytes = u.text
-    if not return_headers:
-        return bytes
-    else:
-        headers['_http_status'] = u.status_code
-        return (bytes, headers)
-
-
-# Get HTTP headers
-@deprecated
-def head(uri, timeout=20, headers=None, verify_ssl=True):
-    """Execute an HTTP GET query on `uri`, and return the headers. Deprecated.
-
-    `timeout` is an optional argument, which represents how much time we should
-    wait before throwing a timeout exception. It defaults to 20, but can be set
-    to higher values if you are communicating with a slow web application.
-
-    """
-    if not uri.startswith('http'):
-        uri = "http://" + uri
-    if headers is None:
-        headers = default_headers
-    else:
-        tmp = default_headers.copy()
-        tmp.update(headers)
-        headers = tmp
-    u = requests.get(uri, timeout=timeout, headers=headers, verify=verify_ssl)
-    info = u.headers
-    u.close()
-    return info
-
-
-# HTTP POST
-@deprecated
-def post(uri, query, limit_bytes=None, timeout=20, verify_ssl=True, return_headers=False):
-    """Execute an HTTP POST query. Deprecated.
-
-    `uri` is the target URI, and `query` is the POST data. `headers` is a dict
-    of HTTP headers to send with the request.
-
-    `limit_bytes` is ignored.
-
-    """
-    if not uri.startswith('http'):
-        uri = "http://" + uri
-    u = requests.post(uri, timeout=timeout, verify=verify_ssl, data=query)
-    bytes = u.raw.read(limit_bytes)
-    headers = u.headers
-    u.close()
-    if not return_headers:
-        return bytes
-    else:
-        headers['_http_status'] = u.status_code
-        return (bytes, headers)
-
 r_entity = re.compile(r'&([^;\s]+);')
-
 
 def entity(match):
     value = match.group(1).lower()
@@ -165,30 +80,7 @@ def entity(match):
 def decode(html):
     return r_entity.sub(entity, html)
 
-
-# For internal use in web.py, (modules can use this if they need a urllib
-# object they can execute read() on) Both handles redirects and makes sure
-# input URI is UTF-8
-@deprecated
-def get_urllib_object(uri, timeout, headers=None, verify_ssl=True, data=None):
-    """Return an HTTPResponse object for `uri` and `timeout` and `headers`. Deprecated
-
-    """
-
-    if headers is None:
-        headers = default_headers
-    else:
-        tmp = default_headers.copy()
         tmp.update(headers)
-        headers = tmp
-    if data is not None:
-        response = requests.post(uri, timeout=timeout, verify=verify_ssl,
-                                 data=data, headers=headers)
-    else:
-        response = requests.get(uri, timeout=timeout, verify=verify_ssl,
-                                headers=headers)
-    return MockHttpResponse(response)
-
 
 # Identical to urllib2.quote
 def quote(string, safe='/'):
@@ -235,3 +127,167 @@ if sys.version_info.major < 3:
     urlencode = urllib.urlencode
 else:
     urlencode = urllib.parse.urlencode
+"""
+web.py - Web Facilities
+Copyright 2009-2013, Michael Yanovich (yanovich.net)
+Copyright 2012, Dimitri Molenaars (Tyrope.nl)
+Copyright 2012, Elad Alfassa (elad@fedoraproject.org)
+Copyright 2008-2013, Sean B. Palmer (inamidst.com)
+
+More info:
+ * Willie: https://willie.dftba.net
+ * jenni: https://github.com/myano/jenni/
+ * Phenny: http://inamidst.com/phenny/
+"""
+
+import urllib2
+from htmlentitydefs import name2codepoint
+from sopel.modules import unicode as uc
+
+r_entity = re.compile(r'&([^;\s]+);')
+
+
+class Grab(urllib.URLopener):
+    def __init__(self, *args):
+        self.version = 'Mozilla/5.0 (Windows NT 6.1; rv:24.0) Gecko/20100101 Firefox/24.0'
+        urllib.URLopener.__init__(self, *args)
+
+    def http_error_default(self, url, fp, errcode, errmsg, headers):
+        return urllib.addinfourl(fp, [headers, errcode], "http:" + url)
+urllib._urlopener = Grab()
+
+
+def get(uri):
+    if not uri.startswith('http'):
+        return
+    u = urllib.urlopen(uri)
+    bytes = u.read()
+    u.close()
+    return bytes
+
+def head(uri):
+    if not uri.startswith('http'):
+        return
+    u = urllib.urlopen(uri)
+    info = u.info()
+    u.close()
+    return info
+
+def head_info(uri):
+    if not uri.startswith('http'):
+        return
+    output = dict()
+
+    u = urllib.urlopen(uri)
+    if hasattr(u, 'geturl'):
+        output['geturl'] = u.geturl()
+    if hasattr(u, 'code'):
+        output['code'] = u.code
+    if hasattr(u, 'url'):
+        output['url'] = u.url
+    if hasattr(u, 'headers'):
+        output['headers'] = u.headers
+    if hasattr(u, 'info'):
+        output['info'] = u.info()
+
+    u.close()
+    return output
+
+def post(uri, query):
+    if not uri.startswith('http'):
+        return
+    data = urllib.urlencode(query)
+    u = urllib.urlopen(uri, data)
+    bytes = u.read()
+    u.close()
+    return bytes
+
+def entity(match):
+    value = match.group(1).lower()
+    if value.startswith('#x'):
+        return unichr(int(value[2:], 16))
+    elif value.startswith('#'):
+        return unichr(int(value[1:]))
+    elif value in name2codepoint:
+        return unichr(name2codepoint[value])
+    return '[' + value + ']'
+
+
+def decode(html):
+    return r_entity.sub(entity, html)
+
+def entity_replace(txt):
+    return r_entity.sub(ep, txt)
+
+def ep(m):
+    entity = m.group()
+    if entity.startswith('&#x'):
+        cp = int(entity[3:-1], 16)
+        meep = unichr(cp)
+    elif entity.startswith('&#'):
+        cp = int(entity[2:-1])
+        meep = unichr(cp)
+    else:
+        entity_stripped = entity[1:-1]
+        try:
+            char = name2codepoint[entity_stripped]
+            meep = unichr(char)
+        except:
+            if entity_stripped in HTML_ENTITIES:
+                meep = HTML_ENTITIES[entity_stripped]
+            else:
+                meep = str()
+    try:
+        return uc.decode(meep)
+    except:
+        return uc.decode(uc.encode(meep))
+
+
+def remove_xml_tags(txt):
+    r_tag = re.compile(r'<(?!!)[^>]+>')
+    return re.sub(r_tag, '', txt)
+
+
+def get_urllib_object(uri, timeout):
+    '''Return a urllib2 object for `uri` and `timeout`. This is better than
+    using urrlib2 directly, for it handles redirects, makes sure URI is utf8,
+    and is shorter and easier to use.
+    Modules may use this if they need a urllib2 object to execute .read() on.
+    For more information, refer to the urllib2 documentation.'''
+    redirects = 0
+    try:
+        uri = uri.encode("utf-8")
+    except:
+        pass
+    while True:
+        req = urllib2.Request(uri, headers={'Accept': '*/*', 'User-Agent': 'Mozilla/5.0 (Jenni)'})
+        try:
+            u = urllib2.urlopen(req, None, timeout)
+        except urllib2.HTTPError, e:
+            return e.fp
+        except:
+            raise
+        info = u.info()
+        if not isinstance(info, list):
+            status = '200'
+        else:
+            status = str(info[1])
+            try: info = info[0]
+            except: pass
+        if status.startswith('3'):
+            uri = urlparse.urljoin(uri, info['Location'])
+        else: break
+        redirects += 1
+        if redirects >= 50:
+            return "Too many re-directs."
+    return u
+
+def urlencode(data):
+    '''Identical to urllib.urlencode. Use this if you already importing web
+    in your module and don't want to import urllib just to use the urlencode
+    function.'''
+    return urllib.urlencode(data)
+
+
+if __name__ == "__main__":
+    main()
