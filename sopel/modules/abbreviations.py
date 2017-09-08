@@ -15,7 +15,7 @@ def lookup_command(bot, trigger):
         return
     key = trigger.group(2).strip().upper()
     match = process.extractOne(key,data.keys(),scorer=fuzz.token_set_ratio)
-    if match[1] < 80:
-        bot.say('I don\'t think I have that acronym.')
+    if match[1] < 85:
+        bot.say('I don\'t think I have that acronym. Try .ud?')
         return
     bot.say(data[match[0]])
