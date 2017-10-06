@@ -9,17 +9,68 @@ http://sopel.chat
 from __future__ import unicode_literals, absolute_import, print_function, division
 
 import requests
+from bs4 import BeautifulSoup as Soup
 from sopel.module import commands, example
 import re
-import sys
-if sys.version_info.major >= 3:
-    unicode = str
 
 uri = 'https://en.wikipedia.org/wiki/List_of_Internet_top-level_domains'
-r_tag = re.compile(r'<(?!!)[^>]+>')
+
+bad_cols = ['Restrictions', 'Notes']
+
+def search_row(string, row, headers):
+    parts = [t.text for t in row.find_all('td')]
+    for x in xrange(min(len(headers), len(parts))):
+        if headers[x] not in bad_cols:
+            if string in parts[x]:
+                return True
+    return False
 
 @commands('tld')
-@example('.tld ru')
+@example('.tld uk')
+def get_tld(bot, trigger):
+    tld = trigger.group(2)
+    if tld[0] != '.' and not tld.startswith('xn--'):
+        tld = '.{}'.format(tld)
+    page = requests.get(uri)
+    s = Soup(page.text, 'lxml')
+    tables = s.find_all('table', class_='wikitable')
+    for t in tables:
+        if tld in unicode(t):
+            table = t
+            break
+    if not table:
+        bot.say('TLD {} not found')
+        return
+    title = table.find_previous_sibling(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']).text
+    title = title[:-6].strip() # strip out [edit]
+    headers = [t.text for t in table.tr.find_all('th')]
+    rows = table.find_all('tr')
+    for r in rows:
+        if search_row(tld, r, headers):
+            row = r
+            break
+    parts = [t.text for t in row.find_all('td')]
+    headers = headers[:len(parts)]
+    for x in xrange(len(headers)):
+        if headers[x] in bad_cols:
+            headers.append(headers[x])
+            headers.remove(headers[x])
+            parts.append(parts[x])
+            parts.remove(parts[x])
+            break
+            # moving long columns to end of lists
+            # there will only ever be one "bad column"
+    strings = []
+    for x in xrange(min(len(headers), len(parts))):
+        if len(re.sub(r'\[.+?\]', '', parts[x])) > 1:
+            strings.append('{}: {}'.format(headers[x], parts[x].strip()))
+    string = re.sub(r'\[.+?\]', '', '{}: {}'.format(title, ' | '.join(strings)))
+    string = re.sub('\n', ' ', string)
+    bot.say(string)
+
+
+#@commands('tld')
+#@example('.tld ru')
 def gettld(bot, trigger):
     """Show information about the given Top Level Domain."""
     page = requests.get(uri).text
