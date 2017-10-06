@@ -43,21 +43,71 @@ def configure(config):
 def setup(bot):
     bot.config.define_section('clock', TimeSection)
 
-
+import googlemaps
 @commands('t', 'time')
 @example('.t America/New_York')
 def f_time(bot, trigger):
-    """Returns the current time."""
+    """Returns the current time. Optionally takes a location."""
     if trigger.group(2):
-        zone = get_timezone(bot.db, bot.config, trigger.group(2).strip(), None, None)
-        if not zone:
-            bot.say('Could not find timezone %s.' % trigger.group(2).strip())
-            return
-    else:
-        zone = get_timezone(bot.db, bot.config, None, trigger.nick,
-                            trigger.sender)
+        target = trigger.group(2).strip()
+        #TODO check timestamp
+        if bot.db.get_nick_value(target, 'seen_timestamp'):
+            zone = bot.db.get_nick_value(target, 'timezone')
+            if not zone:
+                bot.say('{} has not set a time zone.'.format(target))
+                return
+        else:
+            gmaps = googlemaps.Client(key=bot.config.google.api_key, timeout=5)
+            try:
+                location = gmaps.geocode(trigger.group(2).strip())
+                location = location[0]
+            except:
+                bot.say("I couldn't find any results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
+                return
+            if 'partial_match' in location:
+                print('partial match for {}: {}'.format(target, f_loc(location['address_components'])))
+                bot.say("I couldn't find exact results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
+            coords = (location['geometry']['location']['lat'], location['geometry']['location']['lng'])
+            zone = gmaps.timezone(coords)['timeZoneId']
+            #zone = get_timezone(bot.db, bot.config, trigger.group(2).strip(), None, None)
+            if not zone:
+                bot.say('Could not find timezone for %s.' % trigger.group(2).strip())
+                return
     time = format_time(bot.db, bot.config, zone, trigger.nick, trigger.sender)
+    try:
+        time = 'Location time: {} - ({})'.format(time, f_loc(location['address_components']))
+    except:
+        time = 'Time for {}: '.format(trigger.group(2)) + time
     bot.say(time)
+
+def f_loc(address_components):
+    for c in address_components:
+        if 'locality' in c['types']:
+            city = c['long_name']
+        elif 'administrative_area_level_1' in c['types']:
+            state = c['long_name']
+        elif 'administrative_area_level_2' in c['types']:
+            county = c['long_name']
+        elif 'country' in c['types']:
+            country = c['long_name']
+    parts = []
+    try:
+        parts.append(city)
+    except:
+        pass
+    try:
+        parts.append(county)
+    except:
+        pass
+    try:
+        parts.append(state)
+    except:
+        pass
+    try:
+        parts.append(country)
+    except:
+        pass
+    return ', '.join(parts)
 
 
 @commands('settz', 'settimezone')
