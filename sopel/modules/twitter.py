@@ -1,10 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals, absolute_import, division, print_function
 
-import json, re
-
-import oauth2 as oauth
-
 from sopel import module
 from sopel.config.types import StaticSection, ValidatedAttribute, NO_DEFAULT
 from sopel.logger import get_logger
@@ -32,13 +28,8 @@ def setup(bot):
     auth.set_access_token(bot.config.twitter.auth_token, bot.config.twitter.auth_secret)
     client = tweepy.API(auth)
 
-import time
-from time import mktime
-from datetime import datetime
 from sopel.tools.time import get_timezone, format_time
 from HTMLParser import HTMLParser
-from bs4 import BeautifulSoup as Soup
-import requests
 
 h = HTMLParser()
 
@@ -67,11 +58,19 @@ def get_url(bot, trigger, match):
                 content.full_text = content.full_text.replace(url['url'], '')
                 break
     try:
+        m_count = len(content.extended_entities['media'])
         for m in content.entities['media']:
             content.full_text = content.full_text.replace(m['url'], '')
     except:
         pass
     message += (' {content.user.name}: {content.full_text}').format(content=content)
+    try:
+        if m_count > 1:
+            message += ' ({0} images attached)'.format(m_count)
+        else:
+            message += ' (1 image attached)'
+    except:
+        pass
     message = message.strip()
 #    all_urls = ((u['url'], u['expanded_url']) for u in all_urls)
 #    all_urls = sorted(all_urls, key=lambda pair: len(pair[1]))
