@@ -101,7 +101,7 @@ def say_result(bot, result, say_link=True):
     bot.say(message)
 
 
-@url('(^| )((http|https)://)?(www\.)?xkcd.com/(\d+)')
+@url('(^| )((http|https)://)?(www\.|m\.)?xkcd.com/(\d+)')
 def get_url(bot, trigger, match):
     latest = get_info()
     numbered_result(bot, int(match.group(5)), latest)
