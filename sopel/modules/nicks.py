@@ -13,6 +13,9 @@ def equal(a, b):
 @example('.whois Alan')
 def lookup_command(bot, trigger):
     """Returns the IGN of a user whose nick is in the pronoun sheet: https://goo.gl/q6CJQg"""
+    if not trigger.group(2):
+        bot.say('Pronoun doc: https://goo.gl/q6CJQg')
+        return
     url = 'http://docs.google.com/feeds/download/spreadsheets/Export?key=1l_fLXnNA-jeKFuh-o6wLBxNf_YX3Tyci-brqvkYSfaQ&exportFormat=csv'
     reader = csv.reader(urllib2.urlopen(url), dialect='excel')
     string = None
@@ -27,7 +30,7 @@ def lookup_command(bot, trigger):
         return
     bot.say(string)
 
-@commands('rwho')
+#@commands('rwho')
 def rwho_command(bot,trigger):
     """Returns the IGN of a user whose nick is in the pronoun sheet: https://goo.gl/q6CJQg"""
     url = 'http://docs.google.com/feeds/download/spreadsheets/Export?key=1l_fLXnNA-jeKFuh-o6wLBxNf_YX3Tyci-brqvkYSfaQ&exportFormat=csv'
