@@ -1,7 +1,7 @@
 # 2016.12.24 03:31:56 CST
 #Embedded file name: modules/profiles.py
-from sopel.module import commands, example
-import requests, csv, urllib2
+from sopel.module import commands
+import requests
 from requests.utils import quote
 from bs4 import BeautifulSoup
 

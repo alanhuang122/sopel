@@ -13,9 +13,6 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 import re
 from sopel.tools import Identifier, SopelMemory
 from sopel.module import rule, priority
-from sopel.formatting import bold
-from time import sleep
-from threading import Thread
 
 def setup(bot):
     bot.memory['find_lines'] = SopelMemory()
@@ -73,7 +70,7 @@ def findandreplace(bot, trigger):
     if trigger.is_privmsg:
         return
 
-    if 'but w/e' == ' '.join(trigger.raw.split()[-2:]) or '  ' == trigger.raw[-2:]:
+    if ' '.join(trigger.raw.split()[-2:]) == 'but w/e' or trigger.raw[-2:] == '  ':
         return
 
     # Correcting other person vs self.

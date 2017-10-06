@@ -71,7 +71,7 @@ def part(bot, trigger):
 @sopel.module.require_owner
 @sopel.module.commands('quit')
 @sopel.module.priority('low')
-def quit(bot, trigger):
+def quit_command(bot, trigger):
     """Quit from the server. This is an owner-only command."""
     quit_message = trigger.group(2)
     if not quit_message:

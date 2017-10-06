@@ -1,5 +1,5 @@
 from random import randint
-from sopel.module import commands, example
+from sopel.module import commands
 
 @commands('hot', 'hotness')
 def hot_command(bot, trigger):

@@ -4,7 +4,6 @@ from __future__ import unicode_literals, division
 
 from sopel.module import rule, commands, example
 from sopel.config.types import StaticSection, ValidatedAttribute, NO_DEFAULT
-from sopel.formatting import color, colors
 from sopel import tools
 import datetime
 import sys

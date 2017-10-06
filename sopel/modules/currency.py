@@ -3,7 +3,8 @@
 # Licensed under the Eiffel Forum License 2
 from __future__ import unicode_literals, absolute_import, print_function, division
 
-import re, requests
+import re
+import requests
 
 from sopel.module import commands, example, NOLIMIT
 
@@ -23,11 +24,11 @@ def get_rate(code):
     if code == 'CAD':
         return 1, 'Canadian Dollar'
     elif code == 'BTC':
-        btc_rate = get('https://apiv2.bitcoinaverage.com/indices/global/ticker/BTCCAD')
+        btc_rate = requests.get('https://apiv2.bitcoinaverage.com/indices/global/ticker/BTCCAD')
         rates = btc_rate.json()
         return 1 / rates['averages']['day'], 'Bitcoin—24hr average'
 
-    data = get("http://www.bankofcanada.ca/valet/observations/FX{}CAD/json".format(code))
+    data = requests.get("http://www.bankofcanada.ca/valet/observations/FX{}CAD/json".format(code))
     name = data.json()['seriesDetail']['FX{}CAD'.format(code)]['description']
     name = name.split(" to Canadian")[0]
     json = data.json()['observations']
@@ -82,15 +83,13 @@ def display(bot, amount, of, to):
 def bitcoin(bot, trigger):
     #if 2 args, 1st is number and 2nd is currency. If 1 arg, it's either the number or the currency.
     to = trigger.group(4)
-    amount = trigger.group(3)
-    if not to:
-        to = trigger.group(3) or 'USD'
-        amount = 1
-
     try:
-        amount = float(amount)
+        amount = trigger.group(3)
     except:
         bot.reply("Sorry, I didn't understand the input.")
         return NOLIMIT
+    if not to:
+        to = trigger.group(3) or 'USD'
+        amount = 1
 
     display(bot, amount, 'BTC', to)

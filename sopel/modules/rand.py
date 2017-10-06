@@ -11,7 +11,10 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 from sopel.module import commands, example, priority
 import random
 import sys
+import re
+import operator
 
+from sopel.tools.calculation import eval_equation
 
 @commands('rand')
 @example('.rand 2', r'random\(0, 2\) = (0|1|2)', re=True, repeat=10)
@@ -42,13 +45,6 @@ def rand(bot, trigger):
 
     number = random.randint(low, high)
     bot.reply("random(%d, %d) = %d" % (low, high, number))
-
-import re
-import operator
-
-import sopel.module
-from sopel.tools.calculation import eval_equation
-
 
 class DicePouch:
     def __init__(self, num_of_die, type_of_die, addition):

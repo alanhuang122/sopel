@@ -14,12 +14,12 @@ import collections
 import json
 
 import requests
+import cPickle, os
 
 from sopel.logger import get_logger
 from sopel.module import commands, rule, example, priority
 
 logger = get_logger(__name__)
-import cPickle, os
 
 @rule('$nick' '(?i)(help|doc) +([A-Za-z]+)(?:\?+)?$')
 @example('.help tell')

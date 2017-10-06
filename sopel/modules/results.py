@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup as Soup
 
 @commands('results', 'resultsa')
 def results_command(bot, trigger):
+    """Latest results from The Guardian from the 2017 UK General Election"""
     seats = {}
     diff = {}
-    """Latest results from The Guardian from the 2017 UK General Election"""
     URL = 'https://www.theguardian.com/politics/ng-interactive/2017/jun/08/live-uk-election-results-in-full-2017'
     soup = Soup(requests.get(URL).text, 'html.parser')
     tories = soup.find_all('li', 'ge-sop__party ge-sop__party--con')[0].find_all('p', 'ge-sop__party__seats')[0]

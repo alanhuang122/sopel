@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 #coding: latin-1
 
-from sopel.module import commands, example, url
+from sopel.module import commands, url
 from bs4 import BeautifulSoup
 import urllib2
 
@@ -28,4 +28,3 @@ def lookup(bot, string):
     tag = soup.find_all(string="Description")[0].parent.parent
     description = tag.next_sibling.next_sibling
     bot.say('{0} | {1}'.format(unicode(description.get_text().replace("\n"," ")),string))
-

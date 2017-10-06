@@ -1,5 +1,4 @@
 from sopel.module import commands, example
-import sopel
 import requests
 import json
 

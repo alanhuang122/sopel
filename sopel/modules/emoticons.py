@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #coding: utf-8
 
-from sopel.module import commands, example
+from sopel.module import commands
 import json
 from random import randint, choice
 import operator
@@ -316,7 +316,7 @@ def treat_command(bot, trigger):
 @commands('praise')
 def praise_command(bot, trigger):
     if not trigger.group(2):
-        bot.reply(u'\[T]/ \[T]/'.format(trigger.nick))
+        bot.reply(u'\[T]/ \[T]/')
     else:
         bot.say(u'{0}: \[T]/ \[T]/'.format(clean(trigger.group(2).strip())))
     if 'praise' not in stats:
@@ -328,7 +328,7 @@ def praise_command(bot, trigger):
 @commands('hf')
 def five_command(bot, trigger):
     if not trigger.group(2):
-        bot.reply(u'ヘ( ^o^)ノ＼(^_^ )'.format(trigger.nick))
+        bot.reply(u'ヘ( ^o^)ノ＼(^_^ )')
     else:
         bot.say(u'{0}: ヘ( ^o^)ノ＼(^_^ )'.format(clean(trigger.group(2).strip())))
     if 'hf' not in stats:

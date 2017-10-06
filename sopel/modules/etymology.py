@@ -16,7 +16,8 @@ except ImportError:
     # pep8 dictates a blank line here...
     def unescape(s):
         return HTMLParser.unescape.__func__(HTMLParser, s)
-import re, requests
+import re
+import requests
 from sopel.module import commands, example, NOLIMIT
 
 etyuri = 'http://etymonline.com/?term=%s'

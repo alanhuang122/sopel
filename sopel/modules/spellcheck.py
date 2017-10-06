@@ -1,6 +1,6 @@
 # coding=utf-8
 
-import aspell, re, operator, string
+import aspell, re, string
 from sopel.module import commands
 
 def setup(bot):
@@ -13,7 +13,7 @@ def clean(s):
 
 @commands('add')
 def add_command(bot, trigger):
-    if(trigger.owner):
+    if trigger.owner:
         c = aspell.Speller('lang', 'en')
         c.addtoPersonal(trigger.group(2))
         c.saveAllwords()

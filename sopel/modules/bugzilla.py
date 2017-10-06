@@ -6,7 +6,8 @@ Licensed under the Eiffel Forum License 2.
 """
 from __future__ import unicode_literals, absolute_import, print_function, division
 
-import re, requests
+import re
+import requests
 
 import xmltodict
 

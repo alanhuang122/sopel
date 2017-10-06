@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 #coding: latin-1
 
-from sopel.module import commands, example
+from sopel.module import commands
 
 @commands('issue')
 def issue_command(bot, trigger):

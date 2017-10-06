@@ -48,7 +48,7 @@ def kick(bot, trigger):
         bot.write(['KICK', channel, nick], reason)
 
 
-def configureHostMask(mask):
+def configure_host_mask(mask):
     if mask == '*!*@*':
         return mask
     if re.match('^[^.@!/]+$', mask) is not None:
@@ -93,7 +93,7 @@ def ban(bot, trigger):
             return
         channel = opt
         banmask = text[2]
-    banmask = configureHostMask(banmask)
+    banmask = configure_host_mask(banmask)
     if banmask == '':
         return
     bot.write(['MODE', channel, '+b', banmask])
@@ -121,7 +121,7 @@ def unban(bot, trigger):
             return
         channel = opt
         banmask = text[2]
-    banmask = configureHostMask(banmask)
+    banmask = configure_host_mask(banmask)
     if banmask == '':
         return
     bot.write(['MODE', channel, '-b', banmask])
@@ -149,7 +149,7 @@ def quiet(bot, trigger):
             return
         quietmask = text[2]
         channel = opt
-    quietmask = configureHostMask(quietmask)
+    quietmask = configure_host_mask(quietmask)
     if quietmask == '':
         return
     bot.write(['MODE', channel, '+q', quietmask])
@@ -177,7 +177,7 @@ def unquiet(bot, trigger):
             return
         quietmask = text[2]
         channel = opt
-    quietmask = configureHostMask(quietmask)
+    quietmask = configure_host_mask(quietmask)
     if quietmask == '':
         return
     bot.write(['MODE', channel, '-q', quietmask])
@@ -212,7 +212,7 @@ def kickban(bot, trigger):
         mask = text[3]
         reasonidx = 4
     reason = ' '.join(text[reasonidx:])
-    mask = configureHostMask(mask)
+    mask = configure_host_mask(mask)
     if mask == '':
         return
     bot.write(['MODE', channel, '+b', mask])
@@ -222,7 +222,7 @@ def kickban(bot, trigger):
 @require_chanmsg
 @require_privilege(OP, 'You are not a channel operator.')
 @commands('topic')
-def topic(bot, trigger):
+def topic_command(bot, trigger):
     """
     This gives ops the ability to change the topic.
     The bot must be a Channel Operator for this command to work.

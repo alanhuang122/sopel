@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #coding: utf-8
 
-from sopel.module import commands, example
+from sopel.module import commands
 import requests, re
 from bs4 import BeautifulSoup as Soup
 

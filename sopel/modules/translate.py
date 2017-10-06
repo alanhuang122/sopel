@@ -8,8 +8,7 @@ Licensed under the Eiffel Forum License 2.
 http://sopel.chat
 """
 from __future__ import unicode_literals, absolute_import, print_function, division
-from sopel import web
-from sopel.module import rule, commands, priority, example
+from sopel.module import commands, example
 import os, sys, re
 from google.cloud import translate
 

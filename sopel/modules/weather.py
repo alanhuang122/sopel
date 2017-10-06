@@ -17,9 +17,8 @@ import re
 import urllib
 from sopel import web
 from sopel.modules import unicode as uc
-from sopel.module import commands, example
+from sopel.module import commands
 
-import geopy
 import geopy.geocoders as geo
 
 iata = json.load(open('/home/alan/.sopel/iata.json'))

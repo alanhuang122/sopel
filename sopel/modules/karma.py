@@ -1,8 +1,5 @@
 from __future__ import unicode_literals, absolute_import, print_function, division
-import re
 from sopel.module import commands, example, NOLIMIT, rule
-import sopel.tools
-from random import randint
  
 @rule('\+1 (\w*)')
 @example('+1 nick')
@@ -98,7 +95,7 @@ def tellKarma(bot, trigger):
     """Outputs user's number of karma points."""
     if not trigger.group(2):
         nick = trigger.nick.strip()
-        reply = "You have "
+        reply = " have "
     else:
         nick = trigger.group(2).strip()
         reply = nick + " has "
@@ -106,7 +103,7 @@ def tellKarma(bot, trigger):
     currentKarma = bot.db.get_nick_value(nick, 'karma')
     if not currentKarma:
         currentKarma = '0'
-    bot.say("%s has %s karma points." %(nick, currentKarma))
+    bot.say("{}{}{} karma points.".format(nick, reply, currentKarma))
 
 @commands('top')
 @example('.top 5')
@@ -132,4 +129,3 @@ def topKarma(bot, trigger):
         reply += (topKarma[x]['name'] + ": " + str(topKarma[x]['karma']) + ", ")
     reply = reply[:-2]
     bot.say(reply)
-

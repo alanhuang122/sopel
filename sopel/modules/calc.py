@@ -8,7 +8,8 @@ http://sopel.chat
 """
 from __future__ import unicode_literals, absolute_import, print_function, division
 from collections import deque
-import math, requests
+import math
+import requests
 from sopel import web
 from sopel.module import commands, example
 from sopel.tools.calculation import eval_equation
@@ -47,7 +48,7 @@ def rpn(bot, trigger):
                     stack.append(float(symbol))
         except ValueError:
             if symbol not in operators:
-                bot.say("Unknown symbol: ".format(symbol))
+                bot.say("Unknown symbol: {}".format(symbol))
                 return
 
             if symbol == '!':

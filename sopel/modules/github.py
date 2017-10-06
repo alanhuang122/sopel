@@ -27,7 +27,7 @@ def fetch_api_endpoint(bot, url):
 def issue_info(bot, trigger, match=None):
     match = match or trigger
     URL = 'https://api.github.com/repos/%s/issues/%s' % (match.group(1), match.group(2))
-    if (match.group(3)):
+    if match.group(3):
         URL = 'https://api.github.com/repos/%s/issues/comments/%s' % (match.group(1), match.group(3))
 
     try:
@@ -43,7 +43,7 @@ def issue_info(bot, trigger, match=None):
             body = ' '.join(data['body'].split('\n')[:2]) + '...'
         else:
             body = data['body'].split('\n')[0]
-    except (KeyError):
+    except KeyError:
         bot.say('[Github] API says this is an invalid issue. Please report this if you know it\'s a correct link!')
         return NOLIMIT
 
@@ -61,7 +61,7 @@ def issue_info(bot, trigger, match=None):
         ': '
     ]
 
-    if ('title' in data):
+    if 'title' in data:
         response.append(data['title'])
         response.append(' | ')
     response.append(body)
@@ -85,7 +85,7 @@ def commit_info(bot, trigger, match=None):
             body = data['commit']['message'].split('\n')[0] + '...'
         else:
             body = data['commit']['message'].split('\n')[0]
-    except (KeyError):
+    except KeyError:
         bot.say('[Github] API says this is an invalid commit. Please report this if you know it\'s a correct link!')
         return NOLIMIT
 
@@ -152,10 +152,6 @@ def data_url(bot, trigger):
 def github_repo(bot, trigger, match=None):
     match = match or trigger
     repo = match.group(2) or match.group(1)
-
-    if repo.lower() == 'version':
-        return bot.say('[idlerpg] Version {} by {}, report issues at {}'.format(
-            github.__version__, github.__author__, github.__repo__))
 
     if repo.lower() == 'status':
         current = requests.get('https://status.github.com/api/status.json').json()
@@ -229,5 +225,3 @@ def fmt_response(bot, trigger, URL, from_regex=False):
         response.extend([' | ', data['html_url']])
 
     bot.say(''.join(response))
-
-

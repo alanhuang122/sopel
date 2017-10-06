@@ -7,7 +7,9 @@ About: http://sopel.chat
 from __future__ import unicode_literals, absolute_import, print_function, division
 
 import random
-from sopel.module import rule, priority, thread, commands
+from time import sleep
+from datetime import datetime
+from sopel.module import rule, priority, thread
 
 
 @rule(r'(?i)(hi|hello|hey),? $nickname[.! \t]*$')
@@ -28,7 +30,7 @@ def rude(bot, trigger):
 def interjection(bot, trigger):
     bot.say(trigger.nick + '!')
 
-@rule(r'(?i)(pats|pets) $nickname[. \t]*$')
+#@rule(r'(?i)(pats|pets) $nickname[. \t]*$')
 @rule(r'(?i)(good bot)[. \t!]*$')
 def praise(bot, trigger):
     evil = random.randint(0,4)
@@ -62,8 +64,6 @@ def poke(bot, trigger):
     response = random.choice(('?', 'Hmm?'))
     bot.say(response)
 
-from time import sleep
-from datetime import datetime
 @rule(r'(?i)murders $nickname (\d+)(s|m|h)$')
 def kill(bot, trigger):
     if trigger.owner:

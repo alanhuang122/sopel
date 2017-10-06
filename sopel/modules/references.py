@@ -6,7 +6,6 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 
 from sopel.module import commands
 from sopel.trigger import PreTrigger
-from sopel.modules.url import process_urls
 import os
 
 dir = '/home/alan/references/links/'

@@ -1,13 +1,9 @@
 # 2016.12.24 03:29:00 CST
 #Embedded file name: modules/advent.py
-from sopel.module import commands, example, interval
-import re, json, os, time
-from datetime import date, datetime
+import re, json, requests, string
+from sopel.module import commands, example
+from datetime import datetime
 from itertools import cycle
-import pytz
-import urllib2
-import requests
-import string
 
 def calculateTimeDiff():
     time = datetime.utcnow()
@@ -37,7 +33,7 @@ def advent_command(bot, trigger):
         return
     except TypeError:
         val = 0
-    
+
     if val > day:
         if val > 25:
             bot.say('No advent codes after the 25th.')

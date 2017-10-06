@@ -1,11 +1,13 @@
 #!/usr/local/bin/python
 #coding: latin-1
 
-from sopel.module import commands, example
-import random, requests
+from sopel.module import commands
+import random
+import requests
 
 @commands('cat')
 def cat_command(bot, trigger):
+    """Get a cat picture."""
     if random.randint(0,2) == 0:
         if random.randint(0,1) == 0:
             bot.say("meow~")
@@ -13,7 +15,6 @@ def cat_command(bot, trigger):
         else:
             bot.say(":3c")
             return
-    """Get a cat picture."""
     URL = "http://thecatapi.com/api/images/get?api_key=MTU0MDA0"
     count = 0
     while True:

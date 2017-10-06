@@ -1,6 +1,6 @@
 # 2016.12.24 03:32:20 CST
 #Embedded file name: modules/posix.py
-from sopel.module import commands, example
+from sopel.module import commands
 
 @commands('posix')
 def posix_command(bot, trigger):

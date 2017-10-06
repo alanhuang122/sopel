@@ -2,8 +2,7 @@
 #coding: latin-1
 
 from sopel import web
-from sopel.module import commands, example
-from bs4 import BeautifulSoup
+from sopel.module import commands
 import urllib2, json, re, requests
 
 # Most of this code was ripped from url.py in sopel's source. Don't kill me.

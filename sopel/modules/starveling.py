@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 #coding: latin-1
 
-from sopel.module import commands, example
+from sopel.module import commands
 import random
 
 phrases = ["Starveling Kitty! Starveling Kitty! Ruled the roofs of five stolen cities!",

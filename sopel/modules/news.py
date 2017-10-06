@@ -1,10 +1,9 @@
 #!/usr/local/bin/python
 #coding: latin-1
 
-from sopel.formatting import *
 from sopel.module import commands, example, interval
 import json, urllib2, time
-from fuzzywuzzy import fuzz, process
+from fuzzywuzzy import process
 from collections import OrderedDict
 import xml.etree.ElementTree as ET
 
@@ -25,7 +24,6 @@ def update_news(bot):
         return
 
     length_limit = 420
-    trimmed = False
     headline_count = 0
     headlines = u""
     for key in data['articles']:
@@ -52,7 +50,7 @@ You can get more information about a headline with .news #"""
             return
         get_details(bot, index)
         return
-    except (TypeError, ValueError) as e:
+    except (TypeError, ValueError):
         pass
 
     sources = {'AP' : 'associated-press',
@@ -133,10 +131,10 @@ You can get more information about a headline with .news #"""
         params = params.rsplit(None,1)[0]
 
     match = process.extractOne(params, sources.keys())
-    if(match[1] < 80):
+    if match[1] < 80:
         bot.say("I'm not sure I have that source. Closest match: {0} ({1}% confidence)".format(names[sources[match[0]]], match[1]))
         return
-    elif(match[1] < 90):
+    elif match[1] < 90:
         bot.say("Not certain about source; using {0}".format(match[0]))
 
     if sources[match[0]] is 'npr':

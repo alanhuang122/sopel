@@ -1,7 +1,8 @@
 # 2016.12.24 03:29:54 CST
 #Embedded file name: modules/courses.py
 from sopel.module import commands, example
-import urllib2, re
+import urllib2
+import re
 
 def chunkstring(string, length):
     return (string[0 + i:length + i] for i in range(0, len(string), length))
