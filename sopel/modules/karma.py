@@ -1,6 +1,7 @@
 from __future__ import unicode_literals, absolute_import, print_function, division
-from sopel.module import commands, example, NOLIMIT, rule
- 
+from sopel.module import commands, example, NOLIMIT, rule, require_chanmsg
+
+@require_chanmsg(message='Sorry, because of recent abuse, changing karma is not allowed in PMs.')
 @rule('\+1 (\w*)')
 @example('+1 nick')
 def plusincreaseKarma(bot, trigger):
@@ -23,6 +24,7 @@ def plusincreaseKarma(bot, trigger):
     bot.db.set_nick_value(name, 'karma', currentKarma)
 #    bot.reply("One karma point given to " + trigger.group(1))
 
+@require_chanmsg(message='Sorry, because of recent abuse, changing karma is not allowed in PMs.')
 @rule('\-1 (\w*)')
 @example('-1 nick')
 def minusreduceKarma(bot, trigger):
@@ -45,6 +47,7 @@ def minusreduceKarma(bot, trigger):
     bot.db.set_nick_value(name, 'karma', currentKarma)
 #    bot.reply("One karma point taken from " + trigger.group(1))
 
+@require_chanmsg(message='Sorry, because of recent abuse, changing karma is not allowed in PMs.')
 @rule('^(\w*)\+\+$')
 @example('nick++')
 def increaseKarma(bot, trigger):
@@ -67,6 +70,7 @@ def increaseKarma(bot, trigger):
     bot.db.set_nick_value(name, 'karma', currentKarma)
  #   bot.reply("One karma point given to " + trigger.group(1))
 
+@require_chanmsg(message='Sorry, because of recent abuse, changing karma is not allowed in PMs.')
 @rule('^(\w*)\-\-$')
 @example('nick--')
 def reduceKarma(bot, trigger):
@@ -94,11 +98,11 @@ def reduceKarma(bot, trigger):
 def tellKarma(bot, trigger):
     """Outputs user's number of karma points."""
     if not trigger.group(2):
-        nick = trigger.nick.strip()
+        nick = 'You'
         reply = " have "
     else:
         nick = trigger.group(2).strip()
-        reply = nick + " has "
+        reply = " has "
 
     currentKarma = bot.db.get_nick_value(nick, 'karma')
     if not currentKarma:
