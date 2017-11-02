@@ -152,10 +152,8 @@ class Sopel(irc.Bot):
 
         # Set up block lists
         # Default to empty
-        if not self.config.core.nick_blocks:
-            self.config.core.nick_blocks = []
-        if not self.config.core.host_blocks:
-            self.config.core.host_blocks = []
+        if not self.config.core.hostmask_blocks:
+            self.config.core.hostmask_blocks = []
         self.setup()
 
     # Backwards-compatibility aliases to attributes made private in 6.2. Remove
@@ -302,6 +300,7 @@ class Sopel(irc.Bot):
         message will contain the entire remainder, which may be truncated by
         the server.
         """
+        text = re.sub("(?i)salaxalans", "Salad", text)
         # We're arbitrarily saying that the max is 400 bytes of text when
         # messages will be split. Otherwise, we'd have to acocunt for the bot's
         # hostmask, which is hard.
@@ -515,11 +514,13 @@ class Sopel(irc.Bot):
         args = pretrigger.args
         event, args, text = pretrigger.event, args, args[-1] if args else ''
 
-        if self.config.core.nick_blocks or self.config.core.host_blocks:
-            nick_blocked = self._nick_blocked(pretrigger.nick)
-            host_blocked = self._host_blocked(pretrigger.host)
+        if self.config.core.hostmask_blocks:
+            hostmask_blocked = self._hostmask_blocked(pretrigger.hostmask)
         else:
-            nick_blocked = host_blocked = None
+            hostmask_blocked = None
+
+        if hostmask_blocked:
+            return
 
         list_of_blocked_functions = []
         for priority in ('high', 'medium', 'low'):
@@ -537,7 +538,7 @@ class Sopel(irc.Bot):
                 for func in funcs:
                     if (not trigger.admin and
                             not func.unblockable and
-                            (nick_blocked or host_blocked)):
+                            hostmask_blocked):
                         function_name = "%s.%s" % (
                             func.__module__, func.__name__
                         )
@@ -557,12 +558,8 @@ class Sopel(irc.Bot):
                         self.call(func, wrapper, trigger)
 
         if list_of_blocked_functions:
-            if nick_blocked and host_blocked:
-                block_type = 'both'
-            elif nick_blocked:
-                block_type = 'nick'
-            else:
-                block_type = 'host'
+            if hostmask_blocked:
+                block_type = 'hostmask'
             LOGGER.info(
                 "[%s]%s prevented from using %s.",
                 block_type,
@@ -570,25 +567,16 @@ class Sopel(irc.Bot):
                 ', '.join(list_of_blocked_functions)
             )
 
-    def _host_blocked(self, host):
-        bad_masks = self.config.core.host_blocks
-        for bad_mask in bad_masks:
-            bad_mask = bad_mask.strip()
-            if not bad_mask:
+    def _hostmask_blocked(self, hostmask):
+        bad_hostmasks = self.config.core.hostmask_blocks
+        for bad_hostmask in bad_hostmasks:
+            bad_hostmask = bad_hostmask.strip()
+            if not bad_hostmask:
                 continue
-            if (re.match(bad_mask + '$', host, re.IGNORECASE) or
-                    bad_mask == host):
-                return True
-        return False
-
-    def _nick_blocked(self, nick):
-        bad_nicks = self.config.core.nick_blocks
-        for bad_nick in bad_nicks:
-            bad_nick = bad_nick.strip()
-            if not bad_nick:
-                continue
-            if (re.match(bad_nick + '$', nick, re.IGNORECASE) or
-                    Identifier(bad_nick) == nick):
+            bad_hostmask = re.sub(r'\.', r'\.', bad_hostmask)
+            bad_hostmask = re.sub(r'\*', r'.*', bad_hostmask)
+            if re.match(bad_hostmask, hostmask, re.IGNORECASE):
+                print('hostmask {} blocked'.format(hostmask))
                 return True
         return False
 

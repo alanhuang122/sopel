@@ -112,7 +112,7 @@ class CoreSection(StaticSection):
     host = ValidatedAttribute('host', default='irc.dftba.net')
     """The server to connect to."""
 
-    host_blocks = ListAttribute('host_blocks')
+    hostmask_blocks = ListAttribute('hostmask_blocks')
     """A list of hostmasks which Sopel should ignore.
 
     Regular expression syntax is used"""
@@ -140,11 +140,6 @@ class CoreSection(StaticSection):
 
     nick = ValidatedAttribute('nick', Identifier, default=Identifier('Sopel'))
     """The nickname for the bot"""
-
-    nick_blocks = ListAttribute('nick_blocks')
-    """A list of nicks which Sopel should ignore.
-
-    Regular expression syntax is used."""
 
     not_configured = ValidatedAttribute('not_configured', bool, default=False)
     """For package maintainers. Not used in normal configurations.
