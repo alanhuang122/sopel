@@ -9,5 +9,5 @@ def issue_command(bot, trigger):
     if trigger.group(2):
         bot.say("Issue \"{0}\" filed to /dev/null".format(trigger.group(2)))
         with open('/home/alan/.sopel/issues', 'a') as file:
-            file.write(trigger.raw)
+            file.write('{}\n'.format(trigger.raw))
             file.close()
