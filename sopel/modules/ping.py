@@ -30,7 +30,7 @@ def rude(bot, trigger):
 def interjection(bot, trigger):
     bot.say(trigger.nick + '!')
 
-#@rule(r'(?i)(pats|pets) $nickname[. \t]*$')
+@rule(r'(?i)(pats|pets) $nickname[. \t]*$')
 @rule(r'(?i)(good bot)[. \t!]*$')
 def praise(bot, trigger):
     evil = random.randint(0,4)
@@ -81,3 +81,12 @@ def kill(bot, trigger):
         print('Alive again')
     else:
         print('{0} tried to murder me...'.format(trigger.nick))
+
+@rule(r'(?i).*?hooboo.*?')
+def hooboo(bot, trigger):
+    bot.say('Don\'t call me "hooboo" >:c')
+
+@rule(r'.*')
+def log_PMs(bot, trigger):
+    if trigger.is_privmsg:
+        print('received privmsg: {}'.format(trigger.raw))
