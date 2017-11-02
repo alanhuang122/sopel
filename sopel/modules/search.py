@@ -65,7 +65,7 @@ def gs(bot, trigger):
     if result:
         bot.say(result)
         parts = trigger.raw.split(None)
-        parts = parts[:3]
+        parts = parts[:4]
         parts.append(':{0}'.format(result))
         string = ' '.join(parts)
         print(string)
