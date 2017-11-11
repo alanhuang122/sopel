@@ -30,7 +30,7 @@ def update_news(bot):
         if headline_count < 5:
             if len(headlines) + len(key['title']) + 2 > length_limit:
                 break
-            headlines += u"\"{0}\" {1} ".format(key['title'],bold('|'))
+            headlines += u"\"{0}\" {1} ".format(key['title'],'|')
             headline_count += 1
 
     bot.say(u"It's {1}:00 CST. Latest headlines from Reuters: {0}".format(headlines[0:-3], time.localtime()[3]), bot.config.news.target_channel)
@@ -165,7 +165,7 @@ You can get more information about a headline with .news #"""
             elif len(headlines) + len(key['title']) + 2 > length_limit and continuing:
                 bot.say(u"{0}".format(headlines[0:-4]))
                 headlines = u''
-            headlines += u"\"{0}\" {1} ".format(key['title'], bold('|'))
+            headlines += u"\"{0}\" {1} ".format(key['title'], '|')
             headline_count += 1
 
     bot.say(u"{0}".format(headlines[0:-3]))
@@ -229,7 +229,7 @@ def get_headlines_npr(bot, count):
             elif len(headlines) + len(key['title']['$text']) + 2 > length_limit and continuing:
                 bot.say(u"{0}".format(headlines[0:-2]))
                 headlines = u''
-            headlines += u"\"{0}\" {1} ".format(key['title']['$text'], bold('|'))
+            headlines += u"\"{0}\" {1} ".format(key['title']['$text'], '|')
             headline_count += 1
 
     bot.say(u"{0}".format(headlines[0:-3]))
@@ -278,7 +278,7 @@ def get_headlines_fox(bot, count):
         if headline_count < count:
             if len(headlines) + len(article.text) + 2 > length_limit:
                 break
-            headlines += u'\"{0}\"; {1} '.format(article.text, bold('|'))
+            headlines += u'\"{0}\"; {1} '.format(article.text, '|')
             headline_count += 1
 
     bot.say(u'Headlines from Fox News: {0}'.format(headlines[0:-3]))
