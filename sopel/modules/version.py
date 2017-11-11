@@ -39,16 +39,17 @@ def source(bot, trigger):
 @sopel.module.commands('version')
 def version(bot, trigger):
     """Display the latest commit version, if Sopel is running in a git repo."""
+    url = "https://github.com/alanhuang122/sopel"
     release = sopel.__version__
     sha = git_info()
     if not sha:
         msg = 'Sopel v. ' + release
         if release[-4:] == '-git':
-            msg += ' at unknown commit.'
+            msg += ' at unknown commit. ({})'.format(url)
         bot.reply(msg)
         return
 
-    bot.reply("Sopel v. {} at commit: {}".format(sopel.__version__, sha))
+    bot.reply("Sopel v. {} at commit: {} ({})".format(sopel.__version__, sha, url))
 
 
 @sopel.module.intent('VERSION')
