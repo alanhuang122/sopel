@@ -22,7 +22,7 @@ def reference(bot, trigger):
         bot.say(link)
 
         parts = trigger.raw.split(None)
-        parts = parts[:3]
+        parts = parts[:4]
         parts.append(':{0}'.format(link))
         string = ' '.join(parts)
         print(string)
