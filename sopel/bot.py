@@ -568,6 +568,8 @@ class Sopel(irc.Bot):
             )
 
     def _hostmask_blocked(self, hostmask):
+        if not hostmask:
+            return False
         bad_hostmasks = self.config.core.hostmask_blocks
         for bad_hostmask in bad_hostmasks:
             bad_hostmask = bad_hostmask.strip()

@@ -570,7 +570,7 @@ def blocks(bot, trigger):
         'huh': "I could not figure out what you wanted to do.",
     }
 
-    masks = set(s for s in bot.config.core.hostmask_blocks if s != '')
+    masks = set(s.lower() for s in bot.config.core.hostmask_blocks if s != '')
     text = trigger.group().split()
 
     if len(text) == 2 and text[1] == "list":
