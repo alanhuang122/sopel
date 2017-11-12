@@ -100,7 +100,7 @@ def wa_query(app_id, query, units='metric'):
     try:
         input, output = texts[0], texts[1]
     except IndexError:
-        return 'No text-representable result found; see http://wolframalpha.com/input/?i={}'.format(web.quote(query))
+        return 'No text-representable result found; see https://wolframalpha.com/input/?i={}'.format(web.quote(query))
 
     if not output:
         return input

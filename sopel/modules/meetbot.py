@@ -12,7 +12,7 @@ import os
 from sopel.config.types import (
     StaticSection, FilenameAttribute, ValidatedAttribute
 )
-from sopel.web import quote
+from requests.utils import quote
 from sopel.modules.url import find_title
 from sopel.module import example, commands, rule, priority
 from sopel.tools import Ddict, Identifier

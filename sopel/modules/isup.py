@@ -1,6 +1,6 @@
 # coding=utf-8
 """Simple website status check with isup.me"""
-# Author: Elsie Powell http://embolalia.com
+# Author: Elsie Powell https://embolalia.com
 from __future__ import unicode_literals, absolute_import, print_function, division
 
 import requests
@@ -24,12 +24,20 @@ def isup(bot, trigger):
         site += ".com"
 
     try:
+        site = site.replace('http', 'https', 1)
         response = requests.get(site)
+    except requests.exceptions.SSLError:
+        try:
+            site = site.replace('https', 'http', 1)
+            response = requests.get(site)
+        except Exception:
+            bot.say(response.request.url + ' looks down from here.')
+            return
     except Exception:
-        bot.say(site + ' looks down from here.')
+        bot.say(response.request.url + ' looks down from here.')
         return
 
     if response:
-        bot.say(site + ' looks fine to me.')
+        bot.say(response.request.url + ' looks fine to me.')
     else:
-        bot.say(site + ' is down from here.')
+        bot.say(response.request.url + ' is down from here.')

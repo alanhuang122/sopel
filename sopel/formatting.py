@@ -10,7 +10,7 @@ import sys
 if sys.version_info.major >= 3:
     unicode = str
 
-# Color names are as specified at http://www.mirc.com/colors.html
+# Color names are as specified at https://www.mirc.com/colors.html
 
 CONTROL_NORMAL = '\x0f'
 """The control code to reset formatting"""

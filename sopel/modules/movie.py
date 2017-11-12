@@ -13,10 +13,10 @@ from sopel.logger import get_logger
 
 LOGGER = get_logger(__name__)
 
-
-@sopel.module.commands('movie', 'imdb')
-@sopel.module.example('.movie ThisTitleDoesNotExist', '[MOVIE] Movie not found!')
-@sopel.module.example('.movie Citizen Kane', '[MOVIE] Title: Citizen Kane | Year: 1941 | Rating: 8.4 | Genre: Drama, Mystery | IMDB Link: http://imdb.com/title/tt0033467')
+#TODO needs fixing
+#@sopel.module.commands('movie', 'imdb')
+#@sopel.module.example('.movie ThisTitleDoesNotExist', '[MOVIE] Movie not found!')
+#@sopel.module.example('.movie Citizen Kane', '[MOVIE] Title: Citizen Kane | Year: 1941 | Rating: 8.4 | Genre: Drama, Mystery | IMDB Link: http://imdb.com/title/tt0033467')
 def movie(bot, trigger):
     """
     Returns some information about a movie, like Title, Year, Rating, Genre and IMDB Link.

@@ -1,7 +1,7 @@
 # coding=utf-8
 # Copyright 2008, Sean B. Palmer, inamidst.com
 # Copyright © 2012, Elad Alfassa <elad@fedoraproject.org>
-# Copyright 2012-2015, Elsie Powell, http://embolalia.com
+# Copyright 2012-2015, Elsie Powell, https://embolalia.com
 #
 # Licensed under the Eiffel Forum License 2.
 

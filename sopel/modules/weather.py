@@ -60,7 +60,7 @@ class GrumbleError(object):
 
 def local(icao, hour, minute):
     '''Grab local time based on ICAO code'''
-    uri = ('http://www.flightstats.com/' +
+    uri = ('https://www.flightstats.com/' +
              'go/Airport/airportDetails.do?airportCode=%s')
     try: bytes = web.get(uri % icao)
     except AttributeError:

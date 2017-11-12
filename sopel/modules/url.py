@@ -82,7 +82,7 @@ def setup(bot=None):
 
 
 @commands('title')
-@example('.title http://google.com', '[ Google ] - google.com')
+@example('.title https://google.com', '[ Google ] - google.com')
 def title_command(bot, trigger):
     """
     Show the title or URL information for the given URL, or the last URL seen

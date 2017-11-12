@@ -80,8 +80,8 @@ def _find_geoip_db(bot):
     elif urlretrieve:
         LOGGER.warning('Downloading GeoIP database')
         bot.say('Downloading GeoIP database, please wait...')
-        geolite_city_url = 'http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz'
-        geolite_ASN_url = 'http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz'
+        geolite_city_url = 'https://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz'
+        geolite_ASN_url = 'https://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz'
         geolite_city_filepath = os.path.join(bot.config.core.homedir, 'GeoLiteCity.dat.gz')
         geolite_ASN_filepath = os.path.join(bot.config.core.homedir, 'GeoIPASNum.dat.gz')
         urlretrieve(geolite_city_url, geolite_city_filepath)

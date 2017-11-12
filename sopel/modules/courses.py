@@ -15,7 +15,7 @@ def course_command(bot, trigger):
     course = trigger.group(2)
     course = course.replace(' ', '')
     course = course.lower()
-    url = 'http://catalog.utdallas.edu/2016/undergraduate/courses/{}'.format(course)
+    url = 'https://catalog.utdallas.edu/2016/undergraduate/courses/{}'.format(course)
     data = urllib2.urlopen(url)
     string = None
     for line in data:

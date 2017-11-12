@@ -4,7 +4,7 @@ remind.py - Sopel Reminder Module
 Copyright 2011, Sean B. Palmer, inamidst.com
 Licensed under the Eiffel Forum License 2.
 
-http://sopel.chat
+https://sopel.chat
 """
 from __future__ import unicode_literals, absolute_import, print_function, division
 
@@ -164,7 +164,7 @@ def at(bot, trigger):
     """
     Reminds you at the given time - Takes hh:mm:ss$tz yyyy-mm-dd message.
     $tz is any timezone Sopel takes elsewhere. The best choices are those
-    from the tzdb; a list is available at http://sopel.chat/tz .
+    from the tzdb; a list is available at https://sopel.chat/tz .
     Seconds and timezone are optional, defaulting to 00 and UTC, respectively.
     Year, month, and day are also optional - if not specified, will default to
     next occurrence of time given.

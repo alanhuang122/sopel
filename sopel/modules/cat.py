@@ -15,7 +15,7 @@ def cat_command(bot, trigger):
         else:
             bot.say(":3c")
             return
-    URL = "http://thecatapi.com/api/images/get?api_key=MTU0MDA0"
+    URL = "https://thecatapi.com/api/images/get?api_key=MTU0MDA0"
     count = 0
     while True:
         try:

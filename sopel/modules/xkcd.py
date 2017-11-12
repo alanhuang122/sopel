@@ -10,9 +10,9 @@ from sopel.module import commands, url
 
 def get_info(number=None):
     if number:
-        url = 'http://xkcd.com/{}/info.0.json'.format(number)
+        url = 'https://xkcd.com/{}/info.0.json'.format(number)
     else:
-        url = 'http://xkcd.com/info.0.json'
+        url = 'https://xkcd.com/info.0.json'
     data = requests.get(url).json()
     data['url'] = 'https://xkcd.com/' + str(data['num'])
     return data

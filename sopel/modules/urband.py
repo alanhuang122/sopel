@@ -12,7 +12,7 @@ def urbandict(bot, trigger):
         return bot.say(urbandict.__doc__.strip())
 
     try:
-        data = requests.get("http://api.urbandictionary.com/v0/define?term={0}".format(word))
+        data = requests.get("https://api.urbandictionary.com/v0/define?term={0}".format(word))
         data = json.loads(data.text)
     except Exception, e:
         print(e)
@@ -22,7 +22,7 @@ def urbandict(bot, trigger):
         return bot.say("No results found for {0}".format(word))
 
     result = data['list'][0]
-    url = 'http://www.urbandictionary.com/define.php?term={0}'.format(word)
+    url = 'https://www.urbandictionary.com/define.php?term={0}'.format(word)
 
     response = "{0} - {1}".format(result['definition'].strip()[:256], url)
     bot.say(response)
