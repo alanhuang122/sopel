@@ -1,9 +1,10 @@
 #!/usr/local/bin/python
 #coding: latin-1
 
-from sopel import web
 from sopel.module import commands
-import urllib2, json, re, requests
+import urllib2, json, re, requests, idna
+from urlparse import urlparse, urlunparse
+import lxml.html
 
 # Most of this code was ripped from url.py in sopel's source. Don't kill me.
 
@@ -15,7 +16,6 @@ re_dcc = re.compile(r'(?i)dcc\ssend')
 # just keep downloading until there's no more memory. 640k ought to be enough
 # for anybody.
 max_bytes = 655360
-
 
 def title_auto(bot, trigger):
     """
@@ -58,7 +58,9 @@ def process_urls(bot, trigger, urls):
         if not url.startswith(bot.config.url.exclusion_char):
             # Magic stuff to account for international domain names
             try:
-                url = web.iri_to_uri(url)
+                parts = urlparse(url)
+                parts._replace(netloc=idna.encode(parts.netloc))
+                url = urlunparse(parts)
             except:
                 pass
             title = find_title(url, verify=bot.config.core.verify_ssl)
@@ -77,41 +79,31 @@ def process_urls(bot, trigger, urls):
     return results
 
 def find_title(url, verify=True):
-    """Return the title for the given URL."""
-    response = requests.get(url, stream=True, verify=verify, headers={'User-Agent':'Sopel'})
+    response = requests.get(url, verify=verify, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'})
     try:
-        content = ''
-        for byte in response.iter_content(chunk_size=512, decode_unicode=True):
-            if not isinstance(byte, bytes):
-                content += byte
-            else:
-                break
-            if '</title>' in content or len(content) > max_bytes:
-                break
-    except UnicodeDecodeError:
-        return  # Fail silently when data can't be decoded
-    finally:
-        # need to close the connexion because we have not read all the data
-        response.close()
+        if isinstance(response.text, unicode):
+            t = lxml.html.fromstring(response.text.encode('utf-8'))
+        else:
+            t = lxml.html.fromstring(response.text)
+        return t.find(".//title").text.strip()
+    except Exception as e:
+        print(e)
+        return None
 
-    # Some cleanup that I don't really grok, but was in the original, so
-    # we'll keep it (with the compiled regexes made global) for now.
-    content = title_tag_data.sub(r'<\1title>', content)
-    content = quoted_title.sub('', content)
+r_entity = re.compile(r'&([^;\s]+);')
 
-    start = content.find('<title>')
-    end = content.find('</title>')
-    if start == -1 or end == -1:
-        return
-    title = web.decode(content[start + 7:end])
-    title = title.strip()[:200]
+def entity(match):
+    value = match.group(1).lower()
+    if value.startswith('#x'):
+        return unichr(int(value[2:], 16))
+    elif value.startswith('#'):
+        return unichr(int(value[1:]))
+    elif value in name2codepoint:
+        return unichr(name2codepoint[value])
+    return '[' + value + ']'
 
-    title = ' '.join(title.split())  # cleanly remove multiple spaces
-
-    # More cryptic regex substitutions. This one looks to be myano's invention.
-    title = re_dcc.sub('', title)
-
-    return title or None
+def decode(html):
+    return r_entity.sub(entity, html)
 
 @commands('shorten', 'tiny')
 def url_command(bot, trigger):

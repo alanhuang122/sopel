@@ -10,7 +10,7 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 from collections import deque
 import math
 import requests
-from sopel import web
+from requests.utils import quote
 from sopel.module import commands, example
 from sopel.tools.calculation import eval_equation
 import sys
@@ -131,7 +131,7 @@ def py(bot, trigger):
 
     query = trigger.group(2)
     uri = BASE_TUMBOLIA_URI + 'py/'
-    answer = requests.get(uri + web.quote(query)).text
+    answer = requests.get(uri + quote(query)).text
     if answer:
         # bot.say can potentially lead to 3rd party commands triggering.
         bot.reply(answer)

@@ -9,7 +9,7 @@ Updated and packaged for PyPI by dgw (@dgw)
 from __future__ import unicode_literals
 from sopel.config.types import StaticSection, ChoiceAttribute, ValidatedAttribute
 from sopel.module import commands, example
-from sopel import web
+from requests.utils import quote
 import wolframalpha
 
 
@@ -100,7 +100,7 @@ def wa_query(app_id, query, units='metric'):
     try:
         input, output = texts[0], texts[1]
     except IndexError:
-        return 'No text-representable result found; see https://wolframalpha.com/input/?i={}'.format(web.quote(query))
+        return 'No text-representable result found; see https://wolframalpha.com/input/?i={}'.format(quote(query))
 
     if not output:
         return input

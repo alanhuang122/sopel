@@ -6,7 +6,6 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 
 import re
 import requests
-from sopel import web
 from sopel.module import commands, example
 from sopel.trigger import PreTrigger
 import json
@@ -19,13 +18,30 @@ if sys.version_info.major < 3:
 else:
     from urllib.parse import quote_plus
 
+r_entity = re.compile(r'&([^;\s]+);')
+
+
+def entity(match):
+    value = match.group(1).lower()
+    if value.startswith('#x'):
+        return unichr(int(value[2:], 16))
+    elif value.startswith('#'):
+        return unichr(int(value[1:]))
+    elif value in name2codepoint:
+        return unichr(name2codepoint[value])
+    return '[' + value + ']'
+
+
+def decode(html):
+    return r_entity.sub(entity, html)
+
 def google(query, key):
     url = 'https://www.googleapis.com/customsearch/v1'
     data = requests.get(url, params={'key' : key, 'cx': '005137987755203522487:jb4yson7hu0', 'q' : query}).json()
     if 'items' not in data:
         return None
     results = data['items']
-    return web.decode(results[0]['link'])
+    return decode(results[0]['link'])
 
 r_duck = re.compile(r'nofollow" class="[^"]+" href="(?!https?:\/\/r\.search\.yahoo)(.*?)">')
 
@@ -37,7 +53,7 @@ def duck_search(query):
         bytes = bytes.split('web-result')[1]
     m = r_duck.search(bytes)
     if m:
-        return web.decode(m.group(1))
+        return decode(m.group(1))
 
 def duck_api(query):
     if '!bang' in query.lower():

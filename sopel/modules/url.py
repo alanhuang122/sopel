@@ -7,10 +7,11 @@
 # Licensed under the Eiffel Forum License 2.
 from __future__ import unicode_literals, absolute_import, print_function, division
 
-import re
-from sopel import web, tools
+import re, idna
+from sopel import tools
 from sopel.module import commands, rule, example
 from sopel.config.types import ValidatedAttribute, ListAttribute, StaticSection
+from urlparse import urlparse, urlunparse
 
 import requests
 
@@ -145,14 +146,16 @@ def process_urls(bot, trigger, urls):
     Return a list of (title, hostname) tuples for each URL which is not handled by
     another module.
     """
-
     results = []
     for url in urls:
         if not url.startswith(bot.config.url.exclusion_char):
             # Magic stuff to account for international domain names
             try:
-                url = web.iri_to_uri(url)
-            except:
+                parts = urlparse(url)
+                parts._replace(netloc=idna.encode(parts.netloc))
+                url = urlunparse(parts)
+            except Exception as e:
+                print(e)
                 pass
             # First, check that the URL we got doesn't match
             matched = check_callbacks(bot, trigger, url, False) 
@@ -189,8 +192,14 @@ import lxml.html
 def find_title(url, verify=True):
     """Return the title for the given URL."""
     response = requests.get(url, verify=verify, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'})
+    if 'text/plain' in response.headers['Content-Type']:
+        print('Content-Type for url {} is text/plain; skipping'.format(url))
+        return None
     try:
-        t = lxml.html.fromstring(response.text)
+        if isinstance(response.text, unicode):
+            t = lxml.html.fromstring(response.text.encode('utf-8'))
+        else:
+            t = lxml.html.fromstring(response.text)
         return t.find(".//title").text.strip()
     except:
         return None

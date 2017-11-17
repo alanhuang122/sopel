@@ -15,7 +15,7 @@ import datetime
 import json
 import re
 import urllib
-from sopel import web
+import requests
 from sopel.modules import unicode as uc
 from sopel.module import commands
 
@@ -62,10 +62,10 @@ def local(icao, hour, minute):
     '''Grab local time based on ICAO code'''
     uri = ('https://www.flightstats.com/' +
              'go/Airport/airportDetails.do?airportCode=%s')
-    try: bytes = web.get(uri % icao)
+    try: data = requests.get(uri % icao)
     except AttributeError:
         raise GrumbleError('A WEBSITE HAS GONE DOWN WTF STUPID WEB')
-    m = r_from.search(bytes)
+    m = r_from.search(data.text)
     if m:
         offset = m.group(1)
         lhour = int(hour) + int(offset)
@@ -105,10 +105,10 @@ def get_metar(icao_code):
     uri = 'http://tgftp.nws.noaa.gov/data/observations/metar/stations/{}.TXT'
 
     try:
-        page = web.get(uri.format(icao_code))
+        page = requests.get(uri.format(icao_code))
     except AttributeError:
         raise GrumbleError('OH CRAP NOAA HAS GONE DOWN THE WEB IS BROKEN')
-    if 'Not Found' in page:
+    if 'Not Found' in page.text:
         return False, icao_code + ': no such ICAO code, or no NOAA data.'
 
     return True, page
@@ -677,13 +677,13 @@ def forecast(jenni, input):
     ## do some error checking
     try:
         ## if this fails, we got bigger problems
-        page = web.get(url)
+        page = requests.get(url)
     except:
         return jenni.say('Could not acess https://api.darksky.net/')
 
     ## we want some tasty JSON
     try:
-        data = json.loads(page)
+        data = json.loads(page.text)
     except:
         return jenni.say('The server did not return anything that was readable as JSON.')
 
@@ -812,14 +812,14 @@ def forecastio_current_weather(jenni, input):
     ## do some error checking
     try:
         ## if the Internet is working this should work, \o/
-        page = web.get(url)
+        page = requests.get(url)
     except:
         ## well, crap, check your Internet, and if you can access darksky.net
         return jenni.say('Could not acess https://api.darksky.net/')
 
     try:
         ## we want tasty JSON
-        data = json.loads(page)
+        data = json.loads(page.text)
     except:
         ## that wasn't tasty
         return jenni.say('The server did not return anything that was readable as JSON.')
