@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 @rule('$nick' '(?i)(help|doc) +([A-Za-z]+)(?:\?+)?$')
 @example('.help tell')
-@commands('help', 'commands', 'man')
+@commands('help', 'commands')
 @priority('low')
 def help(bot, trigger):
     """Shows a command's documentation, and possibly an example."""
