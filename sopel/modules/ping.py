@@ -10,6 +10,7 @@ import random
 from time import sleep
 from datetime import datetime
 from sopel.module import rule, priority, thread
+from unidecode import unidecode
 
 
 @rule(r'(?i)(hi|hello|hey),? $nickname[.! \t]*$')
@@ -82,9 +83,21 @@ def kill(bot, trigger):
     else:
         print('{0} tried to murder me...'.format(trigger.nick))
 
-@rule(r'(?i).*?hooboo.*?')
+@rule(r'.*')
 def hooboo(bot, trigger):
-    bot.say('Don\'t call me "hooboo" >:c')
+    try:
+        string = trigger.group(0)
+    except IndexError:
+        return
+    if 'hooboo' in string:
+        bot.say('Don\'t call me "hooboo" >:c')
+        return
+    else:
+        converted = unidecode(string)
+        converted = converted.replace('0', 'o')
+        if 'hooboo' in converted:
+            bot.say('Don\'t call me "hooboo", you sneaky bugger >:c!!!')
+            return
 
 @rule(r'.*')
 def log_PMs(bot, trigger):
