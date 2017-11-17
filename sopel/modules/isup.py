@@ -31,13 +31,13 @@ def isup(bot, trigger):
             site = site.replace('https', 'http', 1)
             response = requests.get(site)
         except Exception:
-            bot.say(response.request.url + ' looks down from here.')
+            bot.say(site + ' looks down from here.')
             return
     except Exception:
-        bot.say(response.request.url + ' looks down from here.')
+        bot.say(site + ' looks down from here.')
         return
 
     if response:
         bot.say(response.request.url + ' looks fine to me.')
     else:
-        bot.say(response.request.url + ' is down from here.')
+        bot.say(site + ' is down from here.')
