@@ -196,12 +196,10 @@ def find_title(url, verify=True):
         print('Content-Type for url {} is text/plain; skipping'.format(url))
         return None
     try:
-        if isinstance(response.text, unicode):
-            t = lxml.html.fromstring(response.text.encode('utf-8'))
-        else:
-            t = lxml.html.fromstring(response.text)
+        t = lxml.html.fromstring(response.content)
         return t.find(".//title").text.strip()
-    except:
+    except Exception as e:
+        print(e)
         return None
 
 def get_hostname(url):
