@@ -5,13 +5,18 @@ from sopel.module import commands, example
 from datetime import datetime
 from base64 import b64decode
 from Crypto.Cipher import AES
+from HTMLParser import HTMLParser
 
 data = {}
 codes = {}
+h = HTMLParser()
+
 def setup(bot):
     update()
     global data
+    global codes
     data = json.load(open('/home/alan/fallenlondon/qualities.json'))
+    codes = json.load(open('/home/alan/fallenlondon/codes.json'))
 
 def calculateTimeDiff():
     time = datetime.utcnow()
@@ -29,7 +34,7 @@ def advent_command(bot, trigger):
     now = datetime.utcnow()
     if now < start:
         diff = start-now
-        bot.say('No advent codes for another {} days {} hours {:02d} minutes {:02d} seconds.'.format(diff.days, diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
+        bot.say('No advent codes for another {} days, {} hours, {:02d} minutes, and {:02d} seconds.'.format(diff.days, diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
         return
     if datetime.utcnow().hour < 12:
         day = datetime.utcnow().day - 1
@@ -64,7 +69,6 @@ def advent_command(bot, trigger):
         return
 
     cache = json.load(open('/home/alan/.sopel/advent_cache.json'))
-    codes = json.load(open('/home/alan/fallenlondon/codes.json'))
 
     if val == 0 or val == current['ReleaseDay'] or not trigger.group(2):
         # get latest code
@@ -132,8 +136,6 @@ def code_command(bot, trigger):
         bot.say('Give me an access code.')
         return
 
-    codes = json.load(open('/home/alan/fallenlondon/codes.json'))
-
     try:
         code = codes[trigger.group(2).lower()]
     except KeyError:
@@ -150,9 +152,9 @@ def code_command(bot, trigger):
 
     code = AccessCode(code)
 
-    bot.say(u'Access code {}: {}'.format(code.name, code.message1))
-    bot.say(u'{} (Effects: {})'.format(code.message2, code.list_effects()))
-    
+    bot.say(u'Access code {}: {}'.format(render(code.name), render(code.message1)))
+    bot.say(u'{} (Effects: {})'.format(render(code.message2), code.list_effects()))
+
 def get_snippet(url):
     data = requests.get(url)
     lines = data.text.split('\n')
@@ -308,12 +310,14 @@ class AccessCode:
         except:
             self.name = u'(no name)'
         try:
-            self.message1 = jdata['InitialMessage']
-        except:
+            self.message1 = h.unescape(jdata['InitialMessage'])
+        except Exception as e:
+            print e
             self.message1 = u'(no message)'
         try:
-            self.message2 = jdata['CompletedMessage']
-        except:
+            self.message2 = h.unescape(jdata['CompletedMessage'])
+        except Exception as e:
+            print e
             self.message2 = u'(no message)'
         self.effects = []
         for e in jdata['QualitiesAffected']:
@@ -333,3 +337,16 @@ class AccessCode:
     def list_effects(self):
         if self.effects != []:
             return u'[{}]'.format(u', '.join([unicode(e) for e in self.effects]))
+
+def render(string):
+    string = re.sub(r'<.{,2}?br.{,2}?>',u' ', string)
+    string = re.sub(r'<.{,2}?[pP].{,2}?>',u' ', string)
+    string = string.replace('<em>', '\x1d')
+    string = string.replace('<i>', '\x1d')
+    string = string.replace('</em>', '\x1d')
+    string = string.replace('</i>', '\x1d')
+    string = string.replace('<strong>', '\x02')
+    string = string.replace('</strong>', '*\x02')
+    string = string.replace('<b>', '\x02')
+    string = string.replace('</b>', '*\x02')
+    return string
