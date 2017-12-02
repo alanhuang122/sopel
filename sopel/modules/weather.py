@@ -74,7 +74,7 @@ def local(icao, hour, minute):
                   str(minute) + 'Z')
     return str(hour) + ':' + str(minute) + 'Z'
 
-
+import operator
 def code(jenni, search):
     '''Find ICAO code in the provided database.py (findest the nearest one)'''
     icao = json.load(open('/home/alan/.sopel/icao.json'))
@@ -86,17 +86,17 @@ def code(jenni, search):
         if name == '?': 
             del icao
             return False
-        sumOfSquares = (99999999999999999999999999999, 'ICAO')
+        sumOfSquares = []
         for icao_code in icao:
             lat = float(icao[icao_code]['lat'])
             lon = float(icao[icao_code]['lon'])
             latDiff = abs(float(latitude) - float(lat))
             lonDiff = abs(float(longitude) - float(lon))
             diff = (latDiff * latDiff) + (lonDiff * lonDiff)
-            if diff < sumOfSquares[0]:
-                sumOfSquares = (diff, icao_code)
+            if diff < 1:
+                sumOfSquares.append((diff, icao_code))
         del icao
-        return sumOfSquares[1]
+        return sorted(sumOfSquares, key=operator.itemgetter(0))
 
 
 def get_metar(icao_code):
@@ -120,12 +120,12 @@ def get_icao(jenni, inc, command='weather'):
     if not inc:
         return False, 'Try .%s London, for example?' % (command)
 
-    icao_code = code(jenni, inc)
+    icao_codes = code(jenni, inc)
 
-    if not icao_code:
+    if not icao_codes:
         return False, 'No ICAO code found, sorry.'
 
-    return True, icao_code
+    return True, icao_codes
 
 @commands('metar')
 def show_metar(jenni, input):
@@ -135,14 +135,14 @@ def show_metar(jenni, input):
     if not txt:
         return jenni.say('Try .metar London, for example?')
 
-    status, icao_code = get_icao(jenni, txt, 'metar')
+    status, icao_codes = get_icao(jenni, txt, 'metar')
     if not status:
-        return jenni.say(icao_code)
-
-    status, metar = get_metar(icao_code)
-    if not status:
-        return jenni.say(metar)
-
+        return jenni.say(icao_codes)
+    
+    for code in icao_codes:
+        status, metar = get_metar(code)
+        if status:
+            break
     return jenni.say(metar)
 
 def speed_desc(speed):
@@ -202,21 +202,19 @@ def wind_dir(degrees):
 
 @commands('weather')
 def weather(bot, input):
-    status, icao = get_icao(bot, input.group(2))
-    result, _ = get_metar(icao)
-    if result:
-        f_weather(bot, input)
-    else:
-        weather_wunderground(bot, input)
+    #status, icao = get_icao(bot, input.group(2))
+    #for code in icao:
+    #    result, _ = get_metar(code[1])
+    #    if result:
+    #        f_weather(bot, input, code[1])
+    #        return
+    #else:
+    weather_wunderground(bot, input)
 
-def f_weather(jenni, input):
+def f_weather(jenni, input, icao_code):
     text = input.group(2)
 
-    status, icao_code = get_icao(jenni, text)
-    print 'status:', status
     print 'icao_code:', icao_code
-    if not status:
-        return jenni.say(icao_code)
 
     status, page = get_metar(icao_code)
     print 'status:', status
@@ -224,7 +222,7 @@ def f_weather(jenni, input):
     if not status:
         return jenni.say(page)
 
-    metar = page.splitlines().pop()
+    metar = page.text.splitlines().pop()
     metar = metar.split(' ')
 
     if len(metar[0]) == 4:
