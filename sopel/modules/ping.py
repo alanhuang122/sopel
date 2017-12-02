@@ -40,11 +40,11 @@ def praise(bot, trigger):
     else:
         bot.say('^_^')
 
-@rule(r'(?i)(kisses) $nickname[ \t.]*$')
+#@rule(r'(?i)(kisses) $nickname[ \t.]*$')
 def kiss(bot, trigger):
     bot.say('o///o')
 
-@rule(r'(?i)(hugs) $nickname[ \t.]*$')
+#@rule(r'(?i)(hugs) $nickname[ \t.]*$')
 def affection(bot, trigger):
     bot.say('<3')
 
@@ -83,7 +83,7 @@ def kill(bot, trigger):
     else:
         print('{0} tried to murder me...'.format(trigger.nick))
 
-@rule(r'.*')
+#@rule(r'.*')
 def hooboo(bot, trigger):
     try:
         string = trigger.group(0)

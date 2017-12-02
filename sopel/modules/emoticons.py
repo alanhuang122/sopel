@@ -196,7 +196,7 @@ def fight_command(bot, trigger):
 def flower_command(bot, trigger):
     if not trigger.group(2):
         bot.say(u'{0}: (◕◡◕)ノ✿'.format(trigger.nick))
-    elif 'alan' in trigger.group(2).lower():
+    elif 'alan' in trigger.group(2).lower() and 'salaxalans' not in trigger.group(2).lower():
         return
     else:
         bot.say(u'{0}: (◕◡◕)ノ✿'.format(clean(trigger.group(2).strip())))
@@ -208,7 +208,7 @@ def flower_command(bot, trigger):
 def pretty_command(bot, trigger):
     if not trigger.group(2):
         bot.say(u'{0}: (◕◡◕✿)'.format(trigger.nick))
-    elif 'alan' in trigger.group(2).lower():
+    elif 'alan' in trigger.group(2).lower() and 'salaxalans' not in trigger.group(2).lower():
         return
     else:
         bot.say(u'{0}: (◕◡◕✿)'.format(clean(trigger.group(2).strip())))

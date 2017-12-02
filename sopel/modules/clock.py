@@ -4,17 +4,10 @@
 # Licensed under the Eiffel Forum License 2.
 from __future__ import unicode_literals, absolute_import, print_function, division
 
-try:
-    import pytz
-except ImportError:
-    pytz = None
-
+import pytz, googlemaps
 from sopel.module import commands, example, OP
-from sopel.tools.time import (
-    get_timezone, format_time, validate_format, validate_timezone
-)
+from sopel.tools.time import get_timezone, format_time, validate_format, validate_timezone
 from sopel.config.types import StaticSection, ValidatedAttribute
-
 
 class TimeSection(StaticSection):
     tz = ValidatedAttribute(
@@ -31,7 +24,6 @@ class TimeSection(StaticSection):
     )
     """Default time format (see http://strftime.net)"""
 
-
 def configure(config):
     config.define_section('clock', TimeSection)
     config.clock.configure_setting(
@@ -39,11 +31,11 @@ def configure(config):
     config.clock.configure_setting(
         'time_format', 'Preferred time format (http://strftime.net)')
 
-
 def setup(bot):
+    global gmaps
     bot.config.define_section('clock', TimeSection)
+    gmaps = googlemaps.Client(key=bot.config.google.api_key, timeout=5)
 
-import googlemaps
 @commands('t', 'time')
 @example('.t America/New_York')
 def f_time(bot, trigger):
@@ -57,7 +49,6 @@ def f_time(bot, trigger):
                 bot.say('{} has not set a time zone.'.format(target))
                 return
         else:
-            gmaps = googlemaps.Client(key=bot.config.google.api_key, timeout=5)
             try:
                 location = gmaps.geocode(trigger.group(2).strip())
                 location = location[0]
@@ -109,34 +100,29 @@ def f_loc(address_components):
         pass
     return ', '.join(parts)
 
-
 @commands('settz', 'settimezone')
 @example('.settz America/New_York')
 def update_user(bot, trigger):
     """
-    Set your preferred time zone. Most timezones will work, but it's best to
-    use one from https://sopel.chat/tz
+    Set your preferred time zone. 
     """
-    if not pytz:
-        bot.reply("Sorry, I don't have timezone support installed.")
-    else:
-        tz = trigger.group(2)
-        if not tz:
-            bot.reply("What timezone do you want to set? Try one from "
-                      "https://sopel.chat/tz")
-            return
-        if tz not in pytz.all_timezones:
-            bot.reply("I don't know that time zone. Try one from "
-                      "https://sopel.chat/tz")
-            return
-
-        bot.db.set_nick_value(trigger.nick, 'timezone', tz)
-        if len(tz) < 7:
-            bot.say("Okay, {}, but you should use one from https://sopel.chat/tz "
-                    "if you use DST.".format(trigger.nick))
-        else:
-            bot.reply('I now have you in the %s time zone.' % tz)
-
+    target = trigger.group(2).strip()
+    try:
+        location = gmaps.geocode(target)
+        location = location[0]
+    except:
+        bot.say("I couldn't find any results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
+        return
+    if 'partial_match' in location:
+        print('partial match for {}: {}'.format(target, f_loc(location['address_components'])))
+        bot.say("I couldn't find exact results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
+    coords = (location['geometry']['location']['lat'], location['geometry']['location']['lng'])
+    zone = gmaps.timezone(coords)['timeZoneId']
+    #zone = get_timezone(bot.db, bot.config, trigger.group(2).strip(), None, None)
+    if not zone:
+        bot.say('Could not find timezone for %s.' % trigger.group(2).strip())
+    bot.db.set_nick_value(trigger.nick, 'timezone', zone)
+    bot.reply('I now have you in the %s time zone.' % zone)
 
 @commands('gettz', 'gettimezone')
 @example('.gettz [nick]')
@@ -144,21 +130,17 @@ def get_user_tz(bot, trigger):
     """
     Gets a user's preferred time zone, will show yours if no user specified
     """
-    if not pytz:
-        bot.reply("Sorry, I don't have timezone support installed.")
+    nick = trigger.group(2)
+    if not nick:
+        nick = trigger.nick
+
+    nick = nick.strip()
+
+    tz = bot.db.get_nick_value(nick, 'timezone')
+    if tz:
+        bot.say('%s\'s time zone is %s.' % (nick, tz))
     else:
-        nick = trigger.group(2)
-        if not nick:
-            nick = trigger.nick
-
-        nick = nick.strip()
-
-        tz = bot.db.get_nick_value(nick, 'timezone')
-        if tz:
-            bot.say('%s\'s time zone is %s.' % (nick, tz))
-        else:
-            bot.say('%s has not set their time zone' % nick)
-
+        bot.say('%s has not set their time zone' % nick)
 
 @commands('settimeformat', 'settf')
 @example('.settf %Y-%m-%dT%T%z')
@@ -193,7 +175,6 @@ def update_user_format(bot, trigger):
               "timezone is wrong, you might try the settz command)"
               % timef)
 
-
 @commands('gettimeformat', 'gettf')
 @example('.gettf [nick]')
 def get_user_format(bot, trigger):
@@ -213,7 +194,6 @@ def get_user_format(bot, trigger):
         bot.say("%s's time format: %s." % (nick, format))
     else:
         bot.say("%s hasn't set a custom time format" % nick)
-
 
 @commands('setchanneltz', 'setctz')
 @example('.setctz America/New_York')
@@ -244,7 +224,6 @@ def update_channel(bot, trigger):
             bot.reply(
                 'I now have {} in the {} time zone.'.format(trigger.sender, tz))
 
-
 @commands('getchanneltz', 'getctz')
 @example('.getctz [channel]')
 def get_channel_tz(bot, trigger):
@@ -266,7 +245,6 @@ def get_channel_tz(bot, trigger):
             bot.say('%s\'s timezone: %s' % (channel, timezone))
         else:
             bot.say('%s has no preferred timezone' % channel)
-
 
 @commands('setchanneltimeformat', 'setctf')
 @example('.setctf %Y-%m-%dT%T%z')
@@ -305,7 +283,6 @@ def update_channel_format(bot, trigger):
               " is wrong, you might try the settz and channeltz "
               "commands)" % timef)
 
-
 @commands('getchanneltimeformat', 'getctf')
 @example('.getctf [channel]')
 def get_channel_format(bot, trigger):
@@ -313,7 +290,6 @@ def get_channel_format(bot, trigger):
     Gets the channel's preferred time format, will return current channel's if
     no channel name is given
     """
-
     channel = trigger.group(2)
     if not channel:
         channel = trigger.sender

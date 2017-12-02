@@ -1,7 +1,7 @@
 # 2016.12.24 03:31:56 CST
 #Embedded file name: modules/profiles.py
 from sopel.module import commands
-import requests
+import requests, re
 from requests.utils import quote
 from bs4 import BeautifulSoup
 
@@ -37,7 +37,8 @@ def profile_command(bot, trigger):
     if data.history:
         bot.say('Couldn\'t find that profile.')
         return
-    bot.say(url)
+    name = re.search(r'class="character-name">(.+?)</a>', data.text).group(1)
+    bot.say(quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(name), safe=':/'), alias=False)
 
 
 def worker_command(user, index):

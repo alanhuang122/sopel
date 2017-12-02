@@ -283,7 +283,7 @@ class Sopel(irc.Bot):
         # Deprecated, but way too much of a pain to remove.
         self.say(text, recipient, max_messages)
 
-    def say(self, text, recipient, max_messages=1):
+    def say(self, text, recipient, max_messages=1, alias=True):
         """Send ``text`` as a PRIVMSG to ``recipient``.
 
         In the context of a triggered callable, the ``recipient`` defaults to
@@ -300,7 +300,8 @@ class Sopel(irc.Bot):
         message will contain the entire remainder, which may be truncated by
         the server.
         """
-        text = re.sub("(?i)salaxalans", "Salad", text)
+        if alias:
+            text = re.sub("(?i)salaxalans", "Salad", text)
         # We're arbitrarily saying that the max is 400 bytes of text when
         # messages will be split. Otherwise, we'd have to acocunt for the bot's
         # hostmask, which is hard.
@@ -351,7 +352,7 @@ class Sopel(irc.Bot):
             if recipient_id not in self.lockers:
                 self.lockers[recipient_id] = Locker(60,5)
 
-            if not self.lockers[recipient_id].check():
+            if not self.lockers[recipient_id].check() and recipient_id != '#alantest':
                 if recipient_id not in self.warns:
                     self.warns[recipient_id] = False
 
@@ -433,10 +434,10 @@ class Sopel(irc.Bot):
         def __setattr__(self, attr, value):
             return setattr(self._bot, attr, value)
 
-        def say(self, message, destination=None, max_messages=1):
+        def say(self, message, destination=None, max_messages=1, alias=True):
             if destination is None:
                 destination = self._trigger.sender
-            self._bot.say(message, destination, max_messages)
+            self._bot.say(message, destination, max_messages, alias)
 
         def action(self, message, destination=None):
             if destination is None:

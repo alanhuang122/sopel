@@ -11,6 +11,8 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 from sopel.module import commands, example
 import os, sys, re
 from google.cloud import translate
+from HTMLParser import HTMLParser
+h = HTMLParser()
 
 if sys.version_info.major >= 3:
     unicode = str
@@ -45,7 +47,6 @@ def lookup(string):
     for entry in languages:
         if string.lower() == entry['language'].lower() or string.lower() == entry['name'].lower():
             return entry['language']
-
     return None
 
 @commands('translate', 'tr')
@@ -61,25 +62,28 @@ def tl(bot, trigger):
     parts = command.rsplit(None, 4)
     print(parts)
     if len(parts) > 4:
-        if parts[3] == 'from':
-            s = lookup(parts[4])
+        if parts[-2] == 'from':
+            s = lookup(parts[-1])
+            print(s)
             parts = parts[:-2]
-        elif parts[3] == 'to':
-            t = lookup(parts[4])
+        elif parts[-2] == 'to':
+            t = lookup(parts[-1])
+            print(t)
             parts = parts[:-2]
     if len(parts) > 2:
-        if parts[1] == 'from':
-            s = lookup(parts[2])
+        if parts[-2] == 'from':
+            s = lookup(parts[-1])
+            print(s)
             parts = parts[:-2]
-        elif parts[1] == 'to':
-            t = lookup(parts[2])
+        elif parts[-2] == 'to':
+            t = lookup(parts[-1])
             parts = parts[:-2]
     client = translate.Client()
     if s:
-        print('3')
+        print('source {} target {}'.format(s,t))
         translation = client.translate(' '.join(parts), target_language=t, source_language=s)
     else:
-        print('2')
+        print('target {}'.format(t))
         translation = client.translate(' '.join(parts), target_language=t)
 
-    bot.reply(u'"{0}" ({1} to {2})'.format(re.sub('&#39;','\'',translation['translatedText']), s if s is not None else translation['detectedSourceLanguage'], t))
+    bot.reply(u'{0} ({1} to {2})'.format(h.unescape(translation['translatedText']), s if s is not None else translation['detectedSourceLanguage'], t))

@@ -24,5 +24,5 @@ def urbandict(bot, trigger):
     result = data['list'][0]
     url = 'https://www.urbandictionary.com/define.php?term={0}'.format(word)
 
-    response = "{0} - {1}".format(result['definition'].strip()[:256], url)
+    response = "{0} - {1}".format(result['definition'].strip()[:256].replace('\n', ' '), url)
     bot.say(response)
