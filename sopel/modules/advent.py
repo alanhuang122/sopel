@@ -1,7 +1,8 @@
 # 2016.12.24 03:29:00 CST
 #Embedded file name: modules/advent.py
-import re, json, requests
-from sopel.module import commands, example
+import re, json, requests, threading, cPickle
+from time import sleep
+from sopel.module import commands, rule, example, require_owner
 from datetime import datetime
 from base64 import b64decode
 from Crypto.Cipher import AES
@@ -10,13 +11,133 @@ from HTMLParser import HTMLParser
 data = {}
 codes = {}
 h = HTMLParser()
+timer = None
+start = None
+end = None
 
 def setup(bot):
     update()
     global data
     global codes
-    data = json.load(open('/home/alan/fallenlondon/qualities.json'))
-    codes = json.load(open('/home/alan/fallenlondon/codes.json'))
+    data = cPickle.load(open('/home/alan/fallenlondon/qualities.dat'))
+    codes = cPickle.load(open('/home/alan/fallenlondon/codes.dat'))
+    time = datetime.utcnow()
+    if time.hour < 12:
+        diff = time.replace(hour=12, minute=0, second=0, microsecond=0) - time
+    else:
+        try:
+            diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
+        except:
+            diff = time.replace(month=time.month+1, day=1, hour=12, minute=0, second=0, microsecond=0) - time
+    print('[advent] scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
+    global start
+    global end
+    start = datetime.utcnow()
+    end = datetime.utcnow() + diff
+    global timer
+    timer = threading.Timer(diff.seconds, timed_advent, [bot])
+    timer.start()
+
+@rule('^\.when$')
+def when_command(bot, trigger):
+    diff = end - datetime.utcnow()
+    bot.say('timer started {}, ending at {}, now {}, remaining {}'
+            .format(start.strftime('%c'), 
+                    end.strftime('%c'), 
+                    datetime.utcnow().strftime('%c'), 
+                    '{0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60)), '#alantest')
+    return
+
+@rule('^\.testadvent$')
+@require_owner()
+def testadvent(bot,trigger):
+    timed_advent(bot)
+
+def timed_advent(bot):
+    time = datetime.utcnow()
+    diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
+
+    global timer
+    global start
+    global end
+    if time.month < 12:
+        print('[advent] timer triggered but is not December yet - scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
+        start = time
+        end = time + diff
+        timer = threading.Timer(diff.seconds, timed_advent, [bot])
+        timer.start()
+        return
+
+    day = time.day
+
+    if day > 25:
+        print('[advent] merry christmas; no more advent codes; rip timer')
+        return
+    try:
+        cache = cPickle.load(open('/home/alan/.sopel/advent_cache.dat'))
+    except IOError:
+        cache = {}
+        cPickle.dump({}, open('/home/alan/.sopel/advent_cache.dat', 'w'))
+
+    print('[advent] looking for page')
+    while True:
+        sleep(1)
+        try:
+            page = requests.get('http://fallenlondon.storynexus.com/advent')
+            current = json.loads(re.search('openableDoor ?= ?(.+?);', page.text).group(1))
+            if current['ReleaseDay'] == day:
+                break
+        except:
+            continue
+    
+    codename = current['AccessCodeName'].lower()
+    url = 'http://fallenlondon.storynexus.com/a/{0}'.format(current['AccessCodeName'])
+    req = requests.post('https://www.googleapis.com/urlshortener/v1/url?key={0}&fields=id'.format(bot.config.google.api_key), data=json.dumps({'longUrl': url}), headers={'Content-Type': 'application/json'})
+    response = req.json()
+    
+    best = None
+
+    try:
+        code = codes[codename]
+    except KeyError:
+        update()
+        try:
+            code = codes[codename]
+        except KeyError:
+            cstring = codename.lstrip('0123456789')
+            for k in codes.keys():
+                if cstring in k:
+                    year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
+                    if not best:
+                        best = (year, k)
+                    elif year > best[0]:
+                        best = (year, k)
+
+            if not best:
+                bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], get_snippet(url), response['id']), '#fallenlondon')
+                print('[advent|ERROR]: could not get code {}'.format(codename))
+                return
+            else:
+                code = codes[best[1]]
+                disclaimer = ' (note: effect from last year; may not be accurate)'
+    
+    code = AccessCode(code)
+    effects = code.list_effects()
+    
+    bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], code.message1, response['id']), '#fallenlondon')
+    bot.say(u'{} (Effects: {}){}'.format(code.message2, effects, disclaimer if best else ''), '#fallenlondon')
+
+    cache[current['ReleaseDay']] = {'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
+    cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
+    
+    time = datetime.utcnow()
+    diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
+
+    print('[advent] scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
+    start = datetime.utcnow()
+    end = datetime.utcnow() + diff
+    timer = threading.Timer(diff.seconds, timed_advent, [bot])
+    timer.start()
 
 def calculateTimeDiff():
     time = datetime.utcnow()
@@ -42,6 +163,9 @@ def advent_command(bot, trigger):
         day = datetime.utcnow().day
     try:
         val = int(trigger.group(2))
+        if val < -25:
+            bot.say("Ok, now you're just fucking with me.")
+            return
         if val < 0:
             val = day + val
             if val <= 0:
@@ -68,7 +192,11 @@ def advent_command(bot, trigger):
             bot.say("Ok, now you're just fucking with me.")
         return
 
-    cache = json.load(open('/home/alan/.sopel/advent_cache.json'))
+    try:
+        cache = cPickle.load(open('/home/alan/.sopel/advent_cache.dat'))
+    except IOError:
+        cache = {}
+        cPickle.dump({}, open('/home/alan/.sopel/advent_cache.dat', 'w'))
 
     if val == 0 or val == current['ReleaseDay'] or not trigger.group(2):
         # get latest code
@@ -81,6 +209,8 @@ def advent_command(bot, trigger):
         req = requests.post('https://www.googleapis.com/urlshortener/v1/url?key={0}&fields=id'.format(bot.config.google.api_key), data=json.dumps({'longUrl': url}), headers={'Content-Type': 'application/json'})
         response = req.json()
         
+        best = None
+
         try:
             code = codes[codename]
         except KeyError:
@@ -88,20 +218,32 @@ def advent_command(bot, trigger):
             try:
                 code = codes[codename]
             except KeyError:
-                bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], get_snippet(url), response['id']))
-                bot.say('Next code in {}'.format(calculateTimeDiff()))
-                print('[advent|ERROR]: could not get code {}'.format(codename))
-                return
+                cstring = codename.lstrip('0123456789')
+                for k in codes.keys():
+                    if cstring in k:
+                        year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
+                        if not best:
+                            best = (year, k)
+                        elif year > best[0]:
+                            best = (year, k)
+
+                if not best:
+                    bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], get_snippet(url), response['id']), '#fallenlondon')
+                    print('[advent|ERROR]: could not get code {}'.format(codename))
+                    return
+                else:
+                    code = codes[best[1]]
+                    disclaimer = ' (note: effect from last year; may not be accurate)'
         
         code = AccessCode(code)
         effects = code.list_effects()
         
         bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], code.message1, response['id']))
-        bot.say(u'{} (Effects: {})'.format(code.message2, effects))
+        bot.say(u'{} (Effects: {}){}'.format(code.message2, effects, disclaimer if best else ''))
         bot.say('Next code in {}'.format(calculateTimeDiff()))
     
         cache[current['ReleaseDay']] = {'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
-        json.dump(cache, open('/home/alan/.sopel/advent_cache.json', 'w'))
+        cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
         
         return
 
@@ -170,13 +312,13 @@ def get_snippet(url):
 def update():
     global codes
     try:
-        with open('/home/alan/fallenlondon/revs.json') as f:
-            old = json.load(f)
+        with open('/home/alan/fallenlondon/revs.dat') as f:
+            old = cPickle.load(f)
     except:
         old = {}
     try:
-        with open('/home/alan/fallenlondon/codes.json') as f:
-            codes = json.load(f)
+        with open('/home/alan/fallenlondon/codes.dat') as f:
+            codes = cPickle.load(f)
     except:
         codes = {}
 
@@ -197,10 +339,10 @@ def update():
             code = acquire(row[0])
             codes[code['Name'].lower()] = code
 
-    with open('/home/alan/fallenlondon/revs.json', 'w') as f:
-        json.dump(revs, f)
-    with open('/home/alan/fallenlondon/codes.json', 'w') as f:
-        json.dump(codes, f)
+    with open('/home/alan/fallenlondon/revs.dat', 'w') as f:
+        cPickle.dump(revs, f)
+    with open('/home/alan/fallenlondon/codes.dat', 'w') as f:
+        cPickle.dump(codes, f)
 
 def first(text,key):
     ecb = AES.new(key, AES.MODE_ECB)
