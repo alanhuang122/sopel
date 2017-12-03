@@ -35,6 +35,8 @@ def setup(bot):
     start = datetime.utcnow()
     end = datetime.utcnow() + diff
     global timer
+    if timer:
+        timer.cancel()
     timer = threading.Timer(diff.seconds, timed_advent, [bot])
     timer.start()
 
@@ -54,12 +56,14 @@ def testadvent(bot,trigger):
     timed_advent(bot)
 
 def timed_advent(bot):
-    time = datetime.utcnow()
-    diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
-
     global timer
     global start
     global end
+    
+    timer.cancel()
+    time = datetime.utcnow()
+    diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
+
     if time.month < 12:
         print('[advent] timer triggered but is not December yet - scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
         start = time
@@ -250,7 +254,7 @@ def advent_command(bot, trigger):
     for entry in expired:
         if entry['ReleaseDay'] == val:
             try:
-                data = cache[str(val)]
+                data = cache[val]
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
@@ -261,7 +265,7 @@ def advent_command(bot, trigger):
     for entry in opened:
         if entry['ReleaseDay'] == val:
             try:
-                data = cache[str(val)]
+                data = cache[val]
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
