@@ -54,14 +54,12 @@ def testadvent(bot,trigger):
     timed_advent(bot)
 
 def timed_advent(bot):
-    global timer
-    global start
-    global end
-    
-    timer.cancel()
     time = datetime.utcnow()
     diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
 
+    global timer
+    global start
+    global end
     if time.month < 12:
         print('[advent] timer triggered but is not December yet - scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
         start = time
@@ -94,6 +92,8 @@ def timed_advent(bot):
     
     codename = current['AccessCodeName'].lower()
     url = 'http://fallenlondon.storynexus.com/a/{0}'.format(current['AccessCodeName'])
+    req = requests.post('https://www.googleapis.com/urlshortener/v1/url?key={0}&fields=id'.format(bot.config.google.api_key), data=json.dumps({'longUrl': url}), headers={'Content-Type': 'application/json'})
+    response = req.json()
     
     best = None
 
@@ -114,7 +114,7 @@ def timed_advent(bot):
                         best = (year, k)
 
             if not best:
-                bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], get_snippet(url), url), '#fallenlondon')
+                bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], get_snippet(url), response['id']), '#fallenlondon')
                 print('[advent|ERROR]: could not get code {}'.format(codename))
                 return
             else:
@@ -124,10 +124,10 @@ def timed_advent(bot):
     code = AccessCode(code)
     effects = code.list_effects()
     
-    bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], code.message1, url), '#fallenlondon')
-    bot.say(u'{} Effects: {}{}'.format(code.message2, effects, disclaimer if best else ''), '#fallenlondon')
+    bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], code.message1, response['id']), '#fallenlondon')
+    bot.say(u'{} (Effects: {}){}'.format(code.message2, effects, disclaimer if best else ''), '#fallenlondon')
 
-    cache[current['ReleaseDay']] = {'initial': code.message1, 'url': url, 'finished': code.message2, 'effects': code.list_effects()}
+    cache[current['ReleaseDay']] = {'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
     cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
     
     time = datetime.utcnow()
@@ -206,6 +206,8 @@ def advent_command(bot, trigger):
 
         codename = current['AccessCodeName'].lower()
         url = 'http://fallenlondon.storynexus.com/a/{0}'.format(current['AccessCodeName'])
+        req = requests.post('https://www.googleapis.com/urlshortener/v1/url?key={0}&fields=id'.format(bot.config.google.api_key), data=json.dumps({'longUrl': url}), headers={'Content-Type': 'application/json'})
+        response = req.json()
         
         best = None
 
@@ -226,7 +228,7 @@ def advent_command(bot, trigger):
                             best = (year, k)
 
                 if not best:
-                    bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], get_snippet(url), url), '#fallenlondon')
+                    bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], get_snippet(url), response['id']), '#fallenlondon')
                     print('[advent|ERROR]: could not get code {}'.format(codename))
                     return
                 else:
@@ -236,11 +238,11 @@ def advent_command(bot, trigger):
         code = AccessCode(code)
         effects = code.list_effects()
         
-        bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], code.message1, url))
-        bot.say(u'{} Effects: {}{}'.format(code.message2, effects, disclaimer if best else ''))
+        bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], code.message1, response['id']))
+        bot.say(u'{} (Effects: {}){}'.format(code.message2, effects, disclaimer if best else ''))
         bot.say('Next code in {}'.format(calculateTimeDiff()))
     
-        cache[current['ReleaseDay']] = {'initial': code.message1, 'url': url, 'finished': code.message2, 'effects': code.list_effects()}
+        cache[current['ReleaseDay']] = {'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
         cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
         
         return
@@ -248,7 +250,7 @@ def advent_command(bot, trigger):
     for entry in expired:
         if entry['ReleaseDay'] == val:
             try:
-                data = cache[val]
+                data = cache[str(val)]
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
@@ -259,7 +261,7 @@ def advent_command(bot, trigger):
     for entry in opened:
         if entry['ReleaseDay'] == val:
             try:
-                data = cache[val]
+                data = cache[str(val)]
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
