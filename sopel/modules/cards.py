@@ -14,9 +14,9 @@ def setup(bot):
 
 @commands('cards')
 def cards_command(bot, trigger):
-    '''Lists of Christmas Card recipients! Commands: .cards list [stat (optional)] [1-5 (optional)] - get names | .cards add <username> <stat> - add name to list | .cards del <username> <stat> - remove name from list | .cards find <username> - find all lists user is part of | Stats: [Watchful, Shadowy, Dangerous, Persuasive]'''
+    '''Lists of Christmas Card recipients! Commands: .cards list [stat (optional)] [1-7 (optional)] - get names | .cards add <username> <stat> - add name to list | .cards del <username> <stat> - remove name from list | .cards find <username> - find all lists user is part of | Stats: [Watchful, Shadowy, Dangerous, Persuasive]'''
     if not trigger.group(2) or trigger.group(2).lower() == 'help':
-        bot.say('Lists of Christmas Card recipients! Commands: .cards list [stat (optional)] [1-5 (optional)] - get names | .cards add <username> <stat> - add name to list | .cards del <username> <stat> - remove name from list | .cards find <username> - find all lists user is part of | Stats: [Watchful, Shadowy, Dangerous, Persuasive]')
+        bot.say('Lists of Christmas Card recipients! Commands: .cards list [stat (optional)] [1-7 (optional)] - get names | .cards add <username> <stat> - add name to list | .cards del <username> <stat> - remove name from list | .cards find <username> - find all lists user is part of | Stats: [Watchful, Shadowy, Dangerous, Persuasive]')
         return
     global data
     try:
@@ -94,7 +94,7 @@ def cards_command(bot, trigger):
         if len(parts) == 0:
             lists = []
             for key in data.keys():
-                msg = get_list(key, 5)
+                msg = get_list(key, 7)
                 lists.append(msg)
             msg = ' | '.join(lists)
             bot.say(msg, alias=False)
@@ -105,7 +105,7 @@ def cards_command(bot, trigger):
                     key = k
                     break
             if key:
-                msg = get_list(key, 5)
+                msg = get_list(key, 7)
                 bot.say(msg, alias=False)
                 return
             else:
@@ -114,8 +114,8 @@ def cards_command(bot, trigger):
                     if limit < 1:
                         bot.say('Invalid limit')
                         return
-                    if limit > 5:
-                        limit = 5
+                    if limit > 7:
+                        limit = 7
                     lists = []
                     for key in data.keys():
                         msg = get_list(key, limit)
@@ -123,15 +123,15 @@ def cards_command(bot, trigger):
                     msg = ' | '.join(lists)
                     bot.say(msg, alias=False)
                 except:
-                    bot.say("Invalid syntax - format is .cards list [stat (optional)] [1-5 (optional)]")
+                    bot.say("Invalid syntax - format is .cards list [stat (optional)] [1-7 (optional)]")
                     return
         elif len(parts) == 2:
             limit = int(parts[1])
             if limit < 1:
                 bot.say('Invalid limit')
                 return
-            if limit > 5:
-                limit = 5
+            if limit > 7:
+                limit = 7
             
             key = ''
             for k in data.keys():
