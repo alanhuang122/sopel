@@ -107,6 +107,13 @@ def update_user(bot, trigger):
     Set your preferred time zone. 
     """
     target = trigger.group(2).strip()
+    if target in pytz.all_timezones:
+        bot.db.set_nick_value(trigger.nick, 'timezone', target)
+        if len(target) < 7:
+            bot.say("Okay, your time zone is now {}, but you should use a location if you do daylight savings.".format(target))
+        else:
+            bot.reply('I now have you in the %s time zone.' % target)
+        return
     try:
         location = gmaps.geocode(target)
         location = location[0]
