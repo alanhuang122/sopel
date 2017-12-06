@@ -40,14 +40,114 @@ def setup(bot):
     timer = threading.Timer(diff.seconds, timed_advent, [bot])
     timer.start()
 
-@rule('^\.when$')
+@commands('verify')
+def verify_command(bot, trigger):
+    if datetime.utcnow().hour < 12:
+        day = datetime.utcnow().day - 1
+    else:
+        day = datetime.utcnow().day
+    try:
+        val = int(trigger.group(2))
+        if val < 0:
+            return
+    except ValueError:
+        return
+    except TypeError:
+        val = 0
+
+    page = requests.get('http://fallenlondon.storynexus.com/advent')
+    #page = requests.get('https://alanhuang.name/advent.html')
+    current = json.loads(re.search('openableDoor ?= ?(.+?);', page.text).group(1))
+    expired = json.loads(re.search('expiredDoors ?= ?(.+?);', page.text).group(1))
+    opened = json.loads(re.search('openedDoors ?= ?(.+?);', page.text).group(1))
+    futures = [x['ReleaseDay'] for x in json.loads(re.search('futureDoors ?= ?(.+?);', page.text).group(1))]
+
+    if val > current['ReleaseDay']:
+        return
+    
+    best = None
+
+    if val == 0 or val == current['ReleaseDay'] or not trigger.group(2):
+        # get latest code
+        if day > 25:
+            return
+
+        codename = current['AccessCodeName'].lower()
+
+        try:
+            code = codes[codename]
+            return
+        except KeyError:
+            update()
+            try:
+                code = codes[codename]
+                return
+            except KeyError:
+                cstring = codename.lstrip('0123456789')
+                for k in codes.keys():
+                    if cstring in k:
+                        year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
+                        if not best:
+                            best = (year, k)
+                        elif year > best[0]:
+                            best = (year, k)
+
+                if not best:
+                    return
+                else:
+                    codes[codename] = codes[best[1]].copy()
+                    codes[codename].pop('TimesUsed', None)
+                    codes[codename].pop('ExpiresAt', None)
+                    codes[codename]['Name'] = codename
+                    codes[codename]['Id'] = 9999990 + current['ReleaseDay']
+                    codes[codename]['Tag'] = 'ADVENT 2017 - Manual'
+    '''    
+    for entry in opened:
+        if entry['ReleaseDay'] == val:
+            codename = entry['AccessCodeName']
+            try:
+                code = codes[codename]
+                return
+            except KeyError:
+                update()
+                try:
+                    code = codes[codename]
+                    return
+                except KeyError:
+                    cstring = codename.lstrip('0123456789')
+                    for k in codes.keys():
+                        if cstring in k:
+                            year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
+                            if not best:
+                                best = (year, k)
+                            elif year > best[0]:
+                                best = (year, k)
+
+                    if not best:
+                        return
+                    else:
+                        codes[codename] = codes[best[1]].copy()
+                        codes[codename].pop('TimesUsed', None)
+                        codes[codename].pop('ExpiresAt', None)
+                        codes[codename]['Name'] = codename
+                        codes[codename]['Id'] = 9999990 + entry['ReleaseDay']
+                        codes[codename]['Tag'] = 'ADVENT 2017 - Manual'
+    '''
+    with open('/home/alan/fallenlondon/codes.dat', 'w') as f:
+        cPickle.dump(codes, f)
+
+@commands('when')
+def when_command(bot, trigger):
+            return
+
+@commands('when')
 def when_command(bot, trigger):
     diff = end - datetime.utcnow()
     bot.say('timer started {}, ending at {}, now {}, remaining {}'
             .format(start.strftime('%c'), 
                     end.strftime('%c'), 
                     datetime.utcnow().strftime('%c'), 
-                    '{0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60)), '#alantest')
+                    '{0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60)))
     return
 
 @rule('^\.testadvent$')
@@ -118,7 +218,7 @@ def timed_advent(bot):
                         best = (year, k)
 
             if not best:
-                bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], get_snippet(url), response['id']), '#fallenlondon')
+                bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], get_snippet(url), response['id']), '#fallenlondon')
                 print('[advent|ERROR]: could not get code {}'.format(codename))
                 return
             else:
@@ -128,10 +228,10 @@ def timed_advent(bot):
     code = AccessCode(code)
     effects = code.list_effects()
     
-    bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], code.message1, response['id']), '#fallenlondon')
-    bot.say(u'{} (Effects: {}){}'.format(code.message2, effects, disclaimer if best else ''), '#fallenlondon')
+    bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], code.message1, response['id']), '#fallenlondon')
+    bot.say(u'{} Effects: {}{}'.format(code.message2, effects, disclaimer if best else ''), '#fallenlondon')
 
-    cache[current['ReleaseDay']] = {'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
+    cache[current['ReleaseDay']] = {'name': current['AccessCodeName'], 'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
     cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
     
     time = datetime.utcnow()
@@ -242,11 +342,11 @@ def advent_command(bot, trigger):
         code = AccessCode(code)
         effects = code.list_effects()
         
-        bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], code.message1, response['id']))
-        bot.say(u'{} (Effects: {}){}'.format(code.message2, effects, disclaimer if best else ''))
+        bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], code.message1, response['id']))
+        bot.say(u'{} Effects: {}{}'.format(code.message2, effects, disclaimer if best else ''))
         bot.say('Next code in {}'.format(calculateTimeDiff()))
     
-        cache[current['ReleaseDay']] = {'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
+        cache[current['ReleaseDay']] = {'name': current['AccessCodeName'],'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
         cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
         
         return
@@ -258,8 +358,8 @@ def advent_command(bot, trigger):
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
-            bot.say(u'[EXPIRED] Advent Day {0}: {1} {2}'.format(val, data['initial'], data['url']))
-            bot.say(u'{} (Effects: {})'.format(data['finished'], data['effects']))
+            bot.say(u'[EXPIRED] Advent Day {} - {}: {}'.format(val, data['name'], data['initial']))
+            bot.say(u'{} Effects: {}'.format(data['finished'], data['effects']))
             return
 
     for entry in opened:
@@ -269,8 +369,8 @@ def advent_command(bot, trigger):
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
-            bot.say(u'Advent Day {0}: {1} {2}'.format(val, data['initial'], data['url']))
-            bot.say(u'{} (Effects: {})'.format(data['finished'], data['effects']))
+            bot.say(u'Advent Day {} - {}: {} {}'.format(val, data['name'], data['initial'], data['url']))
+            bot.say(u'{} Effects: {}'.format(data['finished'], data['effects']))
             return
 
     bot.say("I couldn't find anything for day {0} :<".format(val))
@@ -299,7 +399,7 @@ def code_command(bot, trigger):
     code = AccessCode(code)
 
     bot.say(u'Access code {}: {}'.format(render(code.name), render(code.message1)))
-    bot.say(u'{} (Effects: {})'.format(render(code.message2), code.list_effects()))
+    bot.say(u'{} Effects: {}'.format(render(code.message2), code.list_effects()))
 
 def get_snippet(url):
     data = requests.get(url)
