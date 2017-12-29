@@ -198,6 +198,8 @@ def flower_command(bot, trigger):
         bot.say(u'{0}: (◕◡◕)ノ✿'.format(trigger.nick))
     elif 'alan' in trigger.group(2).lower() and 'salaxalans' not in trigger.group(2).lower():
         return
+    elif bot.nick.lower() in trigger.group(2).lower():
+        bot.say(u'(◕◡◕✿)')
     else:
         bot.say(u'{0}: (◕◡◕)ノ✿'.format(clean(trigger.group(2).strip())))
     stats['flower'] += 1
@@ -334,6 +336,18 @@ def five_command(bot, trigger):
     if 'hf' not in stats:
         stats['hf'] = 0
     stats['hf'] += 1
+    save()
+    return
+
+@commands('eldritchstare')
+def eld_stare_command(bot, trigger):
+    if not trigger.group(2):
+        bot.reply(u'ꙮ_ꙮ')
+    else:
+        bot.say(u'{0}: ꙮ_ꙮ'.format(clean(trigger.group(2).strip())))
+    if 'eldritchstare' not in stats:
+        stats['eldritchstare'] = 0
+    stats['eldritchstare'] += 1
     save()
     return
 
