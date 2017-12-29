@@ -93,7 +93,7 @@ def _say_result(bot, trigger, id_, include_link=True):
 
     message = (
         '[YouTube] '
-        '{title} | Length: {length} | Uploader: {uploader} | Views: {views:,} | Uploaded: {uploaded}'
+        '{title} | {length} | Uploader: {uploader} | Views: {views:,} | Uploaded: {uploaded}'
     )
 
     snippet = result['snippet']
@@ -101,11 +101,12 @@ def _say_result(bot, trigger, id_, include_link=True):
     statistics = result['statistics']
     duration = _parse_duration(details['duration'])
     uploaded = _parse_published_at(bot, trigger, snippet['publishedAt'])
+    live = snippet['liveBroadcastContent'] == 'live'
 
     message = message.format(
         title=snippet['title'],
         uploader=snippet['channelTitle'],
-        length=duration,
+        length='Live' if live else 'Length: {}'.format(duration),
         uploaded=uploaded,
         views=int(statistics['viewCount']),
     )
