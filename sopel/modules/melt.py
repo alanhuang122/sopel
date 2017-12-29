@@ -1,44 +1,43 @@
 from Crypto.Cipher import AES
 from base64 import b64decode
-import urllib2
+import requests
 import json
-import sopel.module
+from sopel.module import commands
 
-def setup(bot):
-    getMelt(bot.config.melt.database,bot.config.melt.key,b64decode(bot.config.melt.iv))
-
-def first(text,key,iv):
-    ecb = AES.new(key, AES.MODE_ECB, iv)
+def first(text,key):
+    ecb = AES.new(key, AES.MODE_ECB)
     return ecb.decrypt(b64decode(text))[:16]
-    
+
 def second(text,key,iv):
     ecb = AES.new(key, AES.MODE_CBC, iv)
     return ecb.decrypt(b64decode(text))[16:].replace('\x0c','')
-    
-def decrypt(text,key,iv):
-    return first(text,key,iv)+second(text,key,iv)
 
-def getEntry(database,key,iv):
-    response = urllib2.urlopen(database+"livingstories:142")
-    entry = json.loads(response.read())
-    return decrypt(entry.get('body'),key,iv)
+def decrypt(text):
+    key = 'eyJUaXRsZSI6Ildo'
+    iv = b64decode('7ENDyFzB5uxEtjFCpRpj3Q==')
+    return first(text,key)+second(text,key,iv)
+
+def get(id):
+    data = requests.get('http://couchbase-fallenlondon.storynexus.com:4984/sync_gateway_json/{}'.format(id), headers={'Host': 'couchbase-fallenlondon.storynexus.com:4984', 'User-Agent': None, 'Accept-Encoding': None, 'Connection': None}).json()
+    return decrypt(data['body'])
+
+def clean(s):
+    temp = s.rsplit('}', 1)
+    return '{}}}'.format(temp[0])
+
+def acquire(id):
+    return json.loads(unicode(clean(get(id)), 'utf-8'))
+
+def get_rate():
+    j = acquire('livingstories:142')
+    for q in j['QualitiesAffected']:
+        if q.get("AssociatedQuality").get("Id") == 106573:
+            return q.get("ChangeByAdvanced")
     
-def getQualitiesAffected(database,key,iv):
-    text = r'{0}'.format(getEntry(database,key,iv))
-    text = "".join([text.rsplit("}",1)[0],"}"])
-    entry = json.loads(text)
-    return entry.get('QualitiesAffected')
-    
-def getMelt(database,key,iv):
-    qualities = getQualitiesAffected(database,key,iv)
-    for qual in qualities:
-        if qual.get("AssociatedQuality").get("Id") == 106573:
-            return qual.get("ChangeByAdvanced")
-    
-@sopel.module.commands('melt')
+@commands('melt')
 def melt(bot,trigger):
-    rate=getMelt(bot.config.melt.database,bot.config.melt.key,b64decode(bot.config.melt.iv))
-    if rate == None:
+    rate = get_rate()
+    if not rate:
         bot.say("No melt rate")
         return
     bot.say("Current Melt Rate: "+rate)
