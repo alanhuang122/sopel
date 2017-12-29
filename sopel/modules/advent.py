@@ -138,10 +138,6 @@ def verify_command(bot, trigger):
 
 @commands('when')
 def when_command(bot, trigger):
-            return
-
-@commands('when')
-def when_command(bot, trigger):
     diff = end - datetime.utcnow()
     bot.say('timer started {}, ending at {}, now {}, remaining {}'
             .format(start.strftime('%c'), 
@@ -213,23 +209,27 @@ def timed_advent(bot):
                 if cstring in k:
                     year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
                     if not best:
-                        best = (year, k)
+                        best = [year, k]
                     elif year > best[0]:
-                        best = (year, k)
+                        best = [year, k]
 
             if not best:
-                bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], get_snippet(url), response['id']), '#fallenlondon')
+                bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(get_snippet(url)), response['id']), '#fallenlondon')
                 print('[advent|ERROR]: could not get code {}'.format(codename))
                 return
             else:
+                if best[0] == 0:
+                    best[0] = "past year"
+                elif best[0] == 2016:
+                    best[0] = "last year"
                 code = codes[best[1]]
-                disclaimer = ' (note: effect from last year; may not be accurate)'
+                disclaimer = ' (note: effect from {}; may not be accurate)'.format(best[0])
     
     code = AccessCode(code)
     effects = code.list_effects()
     
-    bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], code.message1, response['id']), '#fallenlondon')
-    bot.say(u'{} Effects: {}{}'.format(code.message2, effects, disclaimer if best else ''), '#fallenlondon')
+    bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(code.message1), response['id']), '#fallenlondon')
+    bot.say(u'{} Effects: {}{}'.format(render(code.message2), effects, disclaimer if best else ''), '#fallenlondon')
 
     cache[current['ReleaseDay']] = {'name': current['AccessCodeName'], 'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
     cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
@@ -287,14 +287,17 @@ def advent_command(bot, trigger):
     opened = json.loads(re.search('openedDoors ?= ?(.+?);', page.text).group(1))
     futures = [x['ReleaseDay'] for x in json.loads(re.search('futureDoors ?= ?(.+?);', page.text).group(1))]
 
-    if val > current['ReleaseDay']:
-        if val > 25 and val < 32:
-            bot.say('No advent codes after the 25th.')
-        elif val < 26:
-            bot.say('Not released yet...')
-        else:
-            bot.say("Ok, now you're just fucking with me.")
-        return
+    try:
+        if val > current['ReleaseDay']:
+            if val > 25 and val < 32:
+                bot.say('No advent codes after the 25th.')
+            elif val < 26:
+                bot.say('Not released yet...')
+            else:
+                bot.say("Ok, now you're just fucking with me.")
+            return
+    except TypeError:
+        pass
 
     try:
         cache = cPickle.load(open('/home/alan/.sopel/advent_cache.dat'))
@@ -302,54 +305,61 @@ def advent_command(bot, trigger):
         cache = {}
         cPickle.dump({}, open('/home/alan/.sopel/advent_cache.dat', 'w'))
 
-    if val == 0 or val == current['ReleaseDay'] or not trigger.group(2):
-        # get latest code
-        if day > 25:
-            bot.say("No more advent codes. Will return in 2018!")
-            return
+    try:
+        if not trigger.group(2) or val == 0 or val == current['ReleaseDay']:
+            # get latest code
+            if day > 25:
+                bot.say("No more advent codes. Will return in 2018!")
+                return
 
-        codename = current['AccessCodeName'].lower()
-        url = 'http://fallenlondon.storynexus.com/a/{0}'.format(current['AccessCodeName'])
-        req = requests.post('https://www.googleapis.com/urlshortener/v1/url?key={0}&fields=id'.format(bot.config.google.api_key), data=json.dumps({'longUrl': url}), headers={'Content-Type': 'application/json'})
-        response = req.json()
-        
-        best = None
+            codename = current['AccessCodeName'].lower()
+            url = 'http://fallenlondon.storynexus.com/a/{0}'.format(current['AccessCodeName'])
+            req = requests.post('https://www.googleapis.com/urlshortener/v1/url?key={0}&fields=id'.format(bot.config.google.api_key), data=json.dumps({'longUrl': url}), headers={'Content-Type': 'application/json'})
+            response = req.json()
+            
+            best = None
 
-        try:
-            code = codes[codename]
-        except KeyError:
-            update()
             try:
                 code = codes[codename]
             except KeyError:
-                cstring = codename.lstrip('0123456789')
-                for k in codes.keys():
-                    if cstring in k:
-                        year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
-                        if not best:
-                            best = (year, k)
-                        elif year > best[0]:
-                            best = (year, k)
+                update()
+                try:
+                    code = codes[codename]
+                except KeyError:
+                    cstring = codename.lstrip('0123456789')
+                    for k in codes.keys():
+                        if cstring in k:
+                            year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
+                            if not best:
+                                best = [year, k]
+                            elif year > best[0]:
+                                best = [year, k]
 
-                if not best:
-                    bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], get_snippet(url), response['id']), '#fallenlondon')
-                    print('[advent|ERROR]: could not get code {}'.format(codename))
-                    return
-                else:
-                    code = codes[best[1]]
-                    disclaimer = ' (note: effect from last year; may not be accurate)'
+                    if not best:
+                        bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], render(get_snippet(url)), response['id']), '#fallenlondon')
+                        print('[advent|ERROR]: could not get code {}'.format(codename))
+                        return
+                    else:
+                        if best[0] == 0:
+                            best[0] = "past year"
+                        elif best[0] == 2016:
+                            best[0] = "last year"
+                        code = codes[best[1]]
+                        disclaimer = ' (note: effect from {}; may not be accurate)'.format(best[0])
+            
+            code = AccessCode(code)
+            effects = code.list_effects()
+            
+            bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(code.message1), response['id']))
+            bot.say(u'{} Effects: {}{}'.format(render(code.message2), effects, disclaimer if best else ''))
+            bot.say('Next code in {}'.format(calculateTimeDiff()) if day < 25 else 'No more codes! Merry Christmas; see you in 2018!')
         
-        code = AccessCode(code)
-        effects = code.list_effects()
+            cache[current['ReleaseDay']] = {'name': current['AccessCodeName'],'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
+            cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
         
-        bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], code.message1, response['id']))
-        bot.say(u'{} Effects: {}{}'.format(code.message2, effects, disclaimer if best else ''))
-        bot.say('Next code in {}'.format(calculateTimeDiff()))
-    
-        cache[current['ReleaseDay']] = {'name': current['AccessCodeName'],'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
-        cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
-        
-        return
+            return
+    except TypeError:
+        pass
 
     for entry in expired:
         if entry['ReleaseDay'] == val:
@@ -358,8 +368,8 @@ def advent_command(bot, trigger):
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
-            bot.say(u'[EXPIRED] Advent Day {} - {}: {}'.format(val, data['name'], data['initial']))
-            bot.say(u'{} Effects: {}'.format(data['finished'], data['effects']))
+            bot.say(u'[EXPIRED] Advent Day {} - {}: {}'.format(val, data['name'], render(data['initial'])))
+            bot.say(u'{} Effects: {}'.format(render(data['finished']), data['effects']))
             return
 
     for entry in opened:
@@ -369,8 +379,8 @@ def advent_command(bot, trigger):
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
-            bot.say(u'Advent Day {} - {}: {} {}'.format(val, data['name'], data['initial'], data['url']))
-            bot.say(u'{} Effects: {}'.format(data['finished'], data['effects']))
+            bot.say(u'Advent Day {} - {}: {} {}'.format(val, data['name'], render(data['initial']), data['url']))
+            bot.say(u'{} Effects: {}'.format(render(data['finished']), data['effects']))
             return
 
     bot.say("I couldn't find anything for day {0} :<".format(val))
