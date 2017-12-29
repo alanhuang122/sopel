@@ -69,6 +69,7 @@ def help(bot, trigger):
             
             for category, cmds in collections.OrderedDict(sorted(bot.command_groups.items())).items():
                 category = category.upper().ljust(name_length)
+                cmds = set(cmds)
                 cmds = '  '.join(cmds)
                 msg = category + '  ' + cmds
                 indent = ' ' * (name_length + 2)
