@@ -103,3 +103,7 @@ def hooboo(bot, trigger):
 def log_PMs(bot, trigger):
     if trigger.is_privmsg:
         print('received privmsg: {}'.format(trigger.raw))
+
+@rule(r'(?i).*\ba[ow]oo+\b.*')
+def awoo(bot, trigger):
+    bot.say(random.choice(['awoooo; OwO', 'DON\'T AWOO - $300 PENALTY']))
