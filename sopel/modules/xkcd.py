@@ -15,6 +15,9 @@ def get_info(number=None):
         url = 'https://xkcd.com/info.0.json'
     data = requests.get(url).json()
     data['url'] = 'https://xkcd.com/' + str(data['num'])
+    for k, v in data.items():
+        if isinstance(v, unicode):
+            data[k] = v.encode('raw-unicode-escape').decode('utf-8')
     return data
 
 def google(query, key):
