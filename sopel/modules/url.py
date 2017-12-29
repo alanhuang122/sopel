@@ -196,7 +196,7 @@ def find_title(url, verify=True):
         print('Content-Type for url {} is text/plain; skipping'.format(url))
         return None
     try:
-        t = lxml.html.fromstring(response.content)
+        t = lxml.html.fromstring(response.text)
         return t.find(".//title").text.strip()
     except Exception as e:
         print(e)
