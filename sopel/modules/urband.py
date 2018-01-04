@@ -1,28 +1,41 @@
-from sopel.module import commands, example
+from sopel.module import commands, example, url
 import requests
-import json
 
 @commands('ud')
 @example('.ud word')
-def urbandict(bot, trigger):
+def ud_command(bot, trigger):
     """.ud <word> - Search Urban Dictionary for a definition."""
 
     word = trigger.group(2)
     if not word:
         return bot.say(urbandict.__doc__.strip())
 
+    response = ud(word)
+    if not response:
+        bot.say("No results found for {0}".format(word))
+    bot.say(response)
+
+def ud(word, say_url=True):
     try:
-        data = requests.get("https://api.urbandictionary.com/v0/define?term={0}".format(word))
-        data = json.loads(data.text)
+        data = requests.get("https://api.urbandictionary.com/v0/define?term={0}".format(word)).json()
     except Exception, e:
         print(e)
         return bot.say("Error connecting to urban dictionary")
         
     if data['result_type'] == 'no_results':
-        return bot.say("No results found for {0}".format(word))
+        return None
 
     result = data['list'][0]
-    url = 'https://www.urbandictionary.com/define.php?term={0}'.format(word)
+    if say_url:
+        url = 'https://www.urbandictionary.com/define.php?term={0}'.format(word)
+        response = "[Urban Dictionary] {0} - {1}".format(result['definition'].strip()[:256].replace('\n', ' '), url)
+    else:
+        response = "[Urban Dictionary] {0}".format(result['definition'].strip()[:256].replace('\n', ' '))
+    return response
 
-    response = "{0} - {1}".format(result['definition'].strip()[:256].replace('\n', ' '), url)
-    bot.say(response)
+@url('(http(s?)://)?(www\.)?urbandictionary\.com/define\.php\?term=(.+)')
+def get_ud(bot, trigger, match):
+    term = match.group(4).split(None)[0]
+    response = ud(term, say_url=False)
+    if response:
+        bot.say(response)
