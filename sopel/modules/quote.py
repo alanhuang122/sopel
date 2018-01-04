@@ -6,15 +6,15 @@ Licensed under the Eiffel Forum License 2.
 """
 
 from __future__ import unicode_literals
-from sopel.module import rate
+from sopel.module import commands, require_chanmsg
 import sopel
 import random
 import codecs # TODO in python3, codecs.open isn't needed since the default open does encoding.
 import sqlite3
 import re
 
-@sopel.module.commands('quote')
-@rate(5)
+@require_chanmsg('Quotes are channel-specific.')
+@commands('quote')
 def quote(bot, trigger):
     options = QuoteModuleOptions()
     options.channel = trigger.sender
@@ -98,7 +98,7 @@ def quote(bot, trigger):
     matching = re.sub('[^0-9a-zA-Z]+', ' ', output)
     for word in reversed(matching.split()):
         if word.lower() in bot.channels[trigger.sender].users:
-            output = output[:output.find(word) + 1] + '​' + data[output.find(word) + 1:]
+            output = output[:output.find(word) + 1] + '​' + output[output.find(word) + 1:]
     bot.say(output)
 
 def add_quote(dataprovider, data):
