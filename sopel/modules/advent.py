@@ -19,8 +19,8 @@ def setup(bot):
     update()
     global data
     global codes
-    data = cPickle.load(open('/home/alan/fallenlondon/qualities.dat'))
-    codes = cPickle.load(open('/home/alan/fallenlondon/codes.dat'))
+    data = cPickle.load(open('/home/alan/fl-utils/qualities.dat'))
+    codes = cPickle.load(open('/home/alan/fl-utils/codes.dat'))
     time = datetime.utcnow()
     if time.hour < 12:
         diff = time.replace(hour=12, minute=0, second=0, microsecond=0) - time
@@ -133,7 +133,7 @@ def verify_command(bot, trigger):
                         codes[codename]['Id'] = 9999990 + entry['ReleaseDay']
                         codes[codename]['Tag'] = 'ADVENT 2017 - Manual'
     '''
-    with open('/home/alan/fallenlondon/codes.dat', 'w') as f:
+    with open('/home/alan/fl-utils/codes.dat', 'w') as f:
         cPickle.dump(codes, f)
 
 @commands('when')
@@ -426,12 +426,12 @@ def get_snippet(url):
 def update():
     global codes
     try:
-        with open('/home/alan/fallenlondon/revs.dat') as f:
+        with open('/home/alan/fl-utils/revs.dat') as f:
             old = cPickle.load(f)
     except:
         old = {}
     try:
-        with open('/home/alan/fallenlondon/codes.dat') as f:
+        with open('/home/alan/fl-utils/codes.dat') as f:
             codes = cPickle.load(f)
     except:
         codes = {}
@@ -453,9 +453,9 @@ def update():
             code = acquire(row[0])
             codes[code['Name'].lower()] = code
 
-    with open('/home/alan/fallenlondon/revs.dat', 'w') as f:
+    with open('/home/alan/fl-utils/revs.dat', 'w') as f:
         cPickle.dump(revs, f)
-    with open('/home/alan/fallenlondon/codes.dat', 'w') as f:
+    with open('/home/alan/fl-utils/codes.dat', 'w') as f:
         cPickle.dump(codes, f)
 
 def first(text,key):
