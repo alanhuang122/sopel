@@ -40,7 +40,8 @@ def get_url(bot, trigger, match):
     try:
         content = client.get_status(tid, tweet_mode='extended')
     except tweepy.TweepError as e:
-        print('{} error reaching the twitter API for {}'.format(e.message[0]['code'], match.group(0)))
+        bot.say('{} error reaching the twitter API for {}'.format(e.message[0]['code'], match.group(0)))
+        return
     
     content.full_text = h.unescape(content.full_text.replace('\n', ' '))
     if content.is_quote_status:
