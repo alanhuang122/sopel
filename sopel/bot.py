@@ -24,7 +24,6 @@ from sopel.module import NOLIMIT
 from sopel.logger import get_logger
 import sopel.loader
 
-
 LOGGER = get_logger(__name__)
 
 if sys.version_info.major >= 3:
@@ -328,7 +327,6 @@ class Sopel(irc.Bot):
         text = encoded_text.decode('utf-8')
         try:
             self.sending.acquire()
-
             # No messages within the last 3 seconds? Go ahead!
             # Otherwise, wait so it's been at least 0.8 seconds + penalty
 
@@ -594,7 +592,7 @@ class Sopel(irc.Bot):
 
     def _shutdown(self):
         stderr(
-            'Calling shutdown for %d modules.' % (len(self.shutdown_methods),)
+            'Calling shutdown for %d modules.' % (len(self.shutdown_methods), )
         )
 
         for shutdown_method in self.shutdown_methods:
