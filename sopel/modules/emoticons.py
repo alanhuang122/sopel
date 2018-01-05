@@ -304,7 +304,7 @@ def wank_command(bot, trigger):
     save()
     return
 
-treats = ['a cupcake', 'a donut', 'an éclair', 'froyo', 'gingerbread', 'honeycomb', 'an ice cream sandwich', 'jellybeans', 'a kitkat', 'a lollipop', 'marshmallow', 'nougat']
+treats = ['a cupcake', 'a donut', 'an éclair', 'froyo', 'gingerbread', 'honeycomb', 'an ice cream sandwich', 'jellybeans', 'a kitkat', 'a lollipop', 'marshmallow', 'nougat', 'an oreo']
 
 @commands('treat')
 def treat_command(bot, trigger):
