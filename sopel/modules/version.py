@@ -64,7 +64,7 @@ def ctcp_version(bot, trigger):
 @rate(20)
 def ctcp_source(bot, trigger):
     bot.write(('NOTICE', trigger.nick),
-              '\x01SOURCE https://github.com/sopel-irc/sopel/\x01')
+              '\x01SOURCE https://github.com/alanhuang122/sopel/\x01')
 
 
 @intent('PING')
