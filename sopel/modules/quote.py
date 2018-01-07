@@ -270,10 +270,14 @@ class SqliteQuoteDataProvider(QuoteDataProvider):
             select * from quotes where quote like ? order by random() limit 1
         ''', ('%' + data + '%',))
         quote = self.dbcursor.fetchone()
+        self.dbcursor.execute('''
+            select count(*) from quotes where quote like ?
+        ''', ('%' + data + '%',))
+        num = self.dbcursor.fetchone()
         if quote is None:
             msg = 'there are no quotes in the database that match pattern = %s.' % (data)
         else:
-            msg = '[%d] %s' % (quote[0], quote[1])
+            msg = '[%d] %s - there are %s quotes matching that pattern' % (quote[0], quote[1], num[0])
         self.conn.close()
         return msg
 
