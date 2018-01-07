@@ -14,6 +14,7 @@ def ud_command(bot, trigger):
     response = ud(word)
     if not response:
         bot.say("No results found for {0}".format(word))
+        return
     bot.say(response)
 
 def ud(word, say_url=True):
