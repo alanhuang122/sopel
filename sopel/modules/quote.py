@@ -102,8 +102,6 @@ def quote(bot, trigger):
     bot.say(output)
 
 def add_quote(dataprovider, data):
-    for m in reversed(list(re.finditer(r'<.+?>', data))):
-        data = data[:m.start(0) + 2] + '​' + data[m.start(0) + 2:]
     return dataprovider.add(data)
 
 def is_valid_int(num):
