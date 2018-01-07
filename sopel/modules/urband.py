@@ -1,5 +1,6 @@
 from sopel.module import commands, example, url
 import requests
+import urllib
 
 @commands('ud')
 @example('.ud word')
@@ -27,7 +28,7 @@ def ud(word, say_url=True):
 
     result = data['list'][0]
     if say_url:
-        url = 'https://www.urbandictionary.com/define.php?term={0}'.format(word)
+        url = 'https://www.urbandictionary.com/define.php?term={0}'.format(urllib.quote_plus(word))
         response = "[Urban Dictionary] {0} - {1}".format(result['definition'].strip()[:256].replace('\n', ' '), url)
     else:
         response = "[Urban Dictionary] {0}".format(result['definition'].strip()[:256].replace('\n', ' '))
