@@ -3,7 +3,17 @@ from base64 import b64decode
 import requests
 import json
 import re
-from sopel.module import commands
+from sopel.module import commands, interval
+
+cur_rate = None
+
+def setup(bot):
+    global cur_rate
+    meltfile = open('/home/alan/fl-utils/rates.txt')
+    lines = meltfile.readlines()
+    meltfile.close()
+    cur_rate = lines[-1].strip().split(None, 1)
+    print('[melt] cur_rate init to {}'.format(cur_rate))
 
 def first(text,key):
     ecb = AES.new(key, AES.MODE_ECB)
@@ -131,3 +141,15 @@ def noman_command(bot, trigger):
         bot.say('No requirements...? Alan, help ;-;')
         return
     bot.say('Current requirements: {}'.format(costs))
+
+@interval(30)
+def melt_poll(bot):
+    global cur_rate
+    meltfile = open('/home/alan/fl-utils/rates.txt')
+    lines = meltfile.readlines()
+    meltfile.close()
+    new_rate = lines[-1].strip().split(None, 1)
+    if new_rate[1] != cur_rate[1]:
+        cur_rate = new_rate
+        bot.say('Melt rate has changed from {} to {}', '#alantest')
+        bot.say('Melt rate has changed from {} to {}', '#fallenlondon')
