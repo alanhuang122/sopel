@@ -60,30 +60,30 @@ def tl(bot, trigger):
     s = None
     t = 'en'
     parts = command.rsplit(None, 4)
-    print(parts)
+    print('[translate] {}'.format(parts))
     if len(parts) > 4:
         if parts[-2] == 'from':
             s = lookup(parts[-1])
-            print(s)
+            print('[translate] source language: {}'.format(s))
             parts = parts[:-2]
         elif parts[-2] == 'to':
             t = lookup(parts[-1])
-            print(t)
+            print('[translate] target language: {}'.format(t))
             parts = parts[:-2]
     if len(parts) > 2:
         if parts[-2] == 'from':
             s = lookup(parts[-1])
-            print(s)
+            print('[translate] source language: {}'.format(s))
             parts = parts[:-2]
         elif parts[-2] == 'to':
             t = lookup(parts[-1])
             parts = parts[:-2]
     client = translate.Client()
     if s:
-        print('source {} target {}'.format(s,t))
+        print('[translate] source {} target {}'.format(s,t))
         translation = client.translate(' '.join(parts), target_language=t, source_language=s)
     else:
-        print('target {}'.format(t))
+        print('[translate] target {}'.format(t))
         translation = client.translate(' '.join(parts), target_language=t)
 
     bot.reply(u'{0} ({1} to {2})'.format(h.unescape(translation['translatedText']), s if s is not None else translation['detectedSourceLanguage'], t))

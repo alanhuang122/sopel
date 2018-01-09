@@ -74,14 +74,14 @@ def kill(bot, trigger):
             time = int(trigger.group(1)) * 60
         elif trigger.group(2) == 'h':
             time = int(trigger.group(1)) * 3600
-        print('Dead for {0}s at {1}'.format(time, datetime.now().strftime('%H:%M:%S')))
+        print('[ping] Dead for {0}s at {1}'.format(time, datetime.now().strftime('%H:%M:%S')))
         bot.say('x_x')
         bot.dead = True
         sleep(time)
         bot.dead = False
-        print('Alive again')
+        print('[ping] Alive again')
     else:
-        print('{0} tried to murder me...'.format(trigger.nick))
+        print('[ping] {0} tried to murder me...'.format(trigger.nick))
 
 #@rule(r'.*')
 def hooboo(bot, trigger):
@@ -102,7 +102,7 @@ def hooboo(bot, trigger):
 @rule(r'.*')
 def log_PMs(bot, trigger):
     if trigger.is_privmsg:
-        print('received privmsg: {}'.format(trigger.raw))
+        print('[ping] received privmsg: {}'.format(trigger.raw))
 
 @rule(r'(?i).*\ba[ow]oo+\b.*')
 def awoo(bot, trigger):

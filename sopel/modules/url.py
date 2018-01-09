@@ -155,7 +155,7 @@ def process_urls(bot, trigger, urls):
                 parts._replace(netloc=idna.encode(parts.netloc))
                 url = urlunparse(parts)
             except Exception as e:
-                print(e)
+                print('[url] {}'.format(e))
                 pass
             # First, check that the URL we got doesn't match
             matched = check_callbacks(bot, trigger, url, False) 
@@ -199,7 +199,7 @@ def find_title(url, verify=True):
         t = lxml.html.fromstring(response.text)
         return t.find(".//title").text.strip()
     except Exception as e:
-        print(e)
+        print('[url] {}'.format(e))
         return None
 
 def get_hostname(url):

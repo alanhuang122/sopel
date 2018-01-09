@@ -480,7 +480,7 @@ def clean(s):
     return '{}}}'.format(temp[0])
 
 def acquire(id):
-    print('acquiring {}'.format(id))
+    print('[advent] acquiring {}'.format(id))
     return json.loads(unicode(clean(get(id)), 'utf-8'))
 
 def sub_qualities(string):

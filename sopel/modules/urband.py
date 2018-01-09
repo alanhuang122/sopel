@@ -20,8 +20,8 @@ def ud_command(bot, trigger):
 def ud(word, say_url=True):
     try:
         data = requests.get("https://api.urbandictionary.com/v0/define?term={0}".format(word)).json()
-    except Exception, e:
-        print(e)
+    except Exception as e:
+        print('[urband] {}'.format(e))
         return bot.say("Error connecting to urban dictionary")
         
     if data['result_type'] == 'no_results':

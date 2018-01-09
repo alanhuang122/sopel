@@ -214,11 +214,11 @@ def weather(bot, input):
 def f_weather(jenni, input, icao_code):
     text = input.group(2)
 
-    print 'icao_code:', icao_code
+    print '[weather] icao_code:', icao_code
 
     status, page = get_metar(icao_code)
-    print 'status:', status
-    print 'page:', page
+    print '[weather] status:', status
+    print '[weather] page:', page
     if not status:
         return jenni.say(page)
 
@@ -948,7 +948,7 @@ def weather_wunderground(jenni, input):
     name, lat, lon = location(txt)
 
     url_new = url % (apikey, urllib.quote(lat),urllib.quote(lon))
-    print('trying {}'.format(url_new))
+    print('[weather] trying {}'.format(url_new))
     try:
         useful = requests.get(url_new).json()
     except:
@@ -1028,7 +1028,7 @@ def forecast_wg(jenni, input):
     name, lat, lon = location(txt)
 
     url_new = url % (apikey, urllib.quote(lat),urllib.quote(lon))
-    print('trying {}'.format(url_new))
+    print('[weather] trying {}'.format(url_new))
 
     try:
         useful = requests.get(url_new).json()

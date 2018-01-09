@@ -70,7 +70,7 @@ def display(bot, amount, of, to):
             return
     except Exception as e:
         bot.reply("Something went wrong while I was getting the exchange rate.")
-        print(e)
+        print('[currency] {}'.format(e))
         return NOLIMIT
 
     result = amount / of_rate * to_rate

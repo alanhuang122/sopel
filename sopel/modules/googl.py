@@ -87,7 +87,7 @@ def find_title(url, verify=True):
             t = lxml.html.fromstring(response.text)
         return t.find(".//title").text.strip()
     except Exception as e:
-        print(e)
+        print('[googl][title] {}'.format(e))
         return None
 
 r_entity = re.compile(r'&([^;\s]+);')
