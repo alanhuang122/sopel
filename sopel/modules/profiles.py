@@ -47,7 +47,7 @@ def worker_command(user, index):
     if data.history:
         return "I couldn't find that profile."
     else:
-        soup = BeautifulSoup(data.text, 'html.parser')
+        soup = BeautifulSoup(data.text, 'lxml')
         if index is 1:
             tag = soup.find('section', id='usersMantel')
         elif index is 2:

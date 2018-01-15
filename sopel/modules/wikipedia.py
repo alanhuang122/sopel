@@ -122,7 +122,7 @@ def mw_section(bot, server, query, section):
 
     snippet = snippet[list(snippet.keys())[0]]
     snippet = snippet['revisions'][0]['*']
-    soup = bs4.BeautifulSoup(snippet, 'html.parser')
+    soup = bs4.BeautifulSoup(snippet, 'lxml')
     # Trying to remove all items that aren't main article text...
     tags = ['ol', 'sup', 'h2', 'h3', 'span', 'table']
     for key in soup.find_all(tags):

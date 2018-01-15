@@ -21,7 +21,7 @@ def lookup(bot, string):
     except urllib2.HTTPError:
         bot.say('404 - page not found')
         return
-    soup = BeautifulSoup(data,"html.parser")
+    soup = BeautifulSoup(data, 'lxml')
     if "ERROR" in soup.head.title.string:
         bot.say(soup.head.title.string)
         return

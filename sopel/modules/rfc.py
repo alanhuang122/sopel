@@ -16,7 +16,7 @@ def rfc_command(bot, trigger):
         except urllib2.HTTPError:
             bot.say('404 - page not found')
             return
-        soup = BeautifulSoup(data, 'html.parser')
+        soup = BeautifulSoup(data, 'lxml')
         title = soup.html.head.title.string
 
         bot.say('{0} | {1}'.format(title,URL))
