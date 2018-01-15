@@ -27,12 +27,14 @@ re_dcc = re.compile(r'(?i)dcc\ssend')
 # just keep downloading until there's no more memory. 640k ought to be enough
 # for anybody.
 max_bytes = 655360
+user_agent = None
 
 
 class UrlSection(StaticSection):
     # TODO some validation rules maybe?
     exclude = ListAttribute('exclude')
     exclusion_char = ValidatedAttribute('exclusion_char', default='!')
+    user_agent = ValidatedAttribute('user_agent')
 
 
 def configure(config):
@@ -49,6 +51,7 @@ def configure(config):
 
 def setup(bot=None):
     global url_finder
+    global user_agent
 
     # TODO figure out why this is needed, and get rid of it, because really?
     if not bot:
@@ -81,6 +84,8 @@ def setup(bot=None):
     url_finder = re.compile(r'(?u)(%s?(?:http|https|ftp)(?:://\S+))' %
                             (bot.config.url.exclusion_char), re.IGNORECASE)
 
+    if bot.config.url.user_agent:
+        user_agent = bot.config.url.user_agent
 
 @commands('title')
 @example('.title https://google.com', '[ Google ] - google.com')
@@ -191,7 +196,7 @@ def check_callbacks(bot, trigger, url, run=True):
 import lxml.html
 def find_title(url, verify=True):
     """Return the title for the given URL."""
-    response = requests.get(url, verify=verify, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'})
+    response = requests.get(url, verify=verify, headers={'User-Agent': user_agent, 'Accept': 'text/html'})
     if 'text/plain' in response.headers['Content-Type']:
         print('Content-Type for url {} is text/plain; skipping'.format(url))
         return None
@@ -199,6 +204,7 @@ def find_title(url, verify=True):
         t = lxml.html.fromstring(response.text)
         return t.find(".//title").text.strip()
     except Exception as e:
+        print('exception on url {}'.format(url))
         print('[url] {}'.format(e))
         return None
 

@@ -19,7 +19,14 @@ else:
     from urllib.parse import quote_plus
 
 r_entity = re.compile(r'&([^;\s]+);')
+user_agent = None
 
+def setup(bot):
+    global user_agent
+    try:
+        user_agent = bot.config.url.user_agent
+    except:
+        pass
 
 def entity(match):
     value = match.group(1).lower()
@@ -48,7 +55,7 @@ r_duck = re.compile(r'nofollow" class="[^"]+" href="(?!https?:\/\/r\.search\.yah
 def duck_search(query):
     query = query.replace('!', '')
     uri = 'https://duckduckgo.com/html/?q=%s&kl=uk-en' % query
-    bytes = requests.get(uri, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'}).text
+    bytes = requests.get(uri, headers={'User-Agent':user_agent}).text
     if 'web-result' in bytes:  # filter out the adds on top of the page
         bytes = bytes.split('web-result')[1]
     m = r_duck.search(bytes)
@@ -65,7 +72,7 @@ def duck_api(query):
     # So in order to always get a JSON response back the query is urlencoded
     query = quote_plus(query)
     uri = 'https://api.duckduckgo.com/?q=%s&format=json&no_html=1&no_redirect=1' % query
-    response = requests.get(uri, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'})
+    response = requests.get(uri, headers={'User-Agent': user_agent})
     results = json.loads(response.text)
     if results['Redirect']:
         return results['Redirect']
