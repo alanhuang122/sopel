@@ -13,6 +13,7 @@ import re
 import sys
 import threading
 import time
+import random
 
 from sopel import tools
 from sopel import irc
@@ -358,7 +359,7 @@ class Sopel(irc.Bot):
                     self.warns[recipient_id] = False
 
                 if not self.warns[recipient_id]:
-                    self.write(('PRIVMSG', recipient), "Too many messages. Wait a minute.")
+                    self.write(('PRIVMSG', recipient), 'Too many messages. {} a minute.'.format(random.choice(['Wait', 'Chotto'])))
                     self.warns[recipient_id] = True
                 return
             if self.dead:
