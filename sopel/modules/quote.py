@@ -17,7 +17,7 @@ import re
 @commands('quote')
 def quote(bot, trigger):
     options = QuoteModuleOptions()
-    options.channel = trigger.sender
+    options.channel = trigger.sender.lower()
     dataprovider = None
 
     # check for quote object in config object
@@ -95,7 +95,7 @@ def quote(bot, trigger):
                 output = 'invalid subcommand: %s' % (subcommand)
 
     # output results
-    matching = re.sub('[^0-9a-zA-Z]+', ' ', output)
+    matching = re.sub('[^0-9a-zA-Z_]+', ' ', output)
     for word in reversed(matching.split()):
         if word.lower() in bot.channels[trigger.sender].users:
             output = output[:output.find(word) + 1] + '​' + output[output.find(word) + 1:]
@@ -274,8 +274,10 @@ class SqliteQuoteDataProvider(QuoteDataProvider):
         num = self.dbcursor.fetchone()
         if quote is None:
             msg = 'there are no quotes in the database that match pattern = %s.' % (data)
-        else:
+        elif num[0] > 1:
             msg = '[%d] %s - there are %s quotes matching that pattern' % (quote[0], quote[1], num[0])
+        else:
+            msg = '[%d] %s - no other quotes match that pattern' % (quote[0], quote[1])
         self.conn.close()
         return msg
 
