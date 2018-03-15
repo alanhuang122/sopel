@@ -400,3 +400,33 @@ def taunt_command(bot, trigger):
     stats['taunt'] += 1
     save()
     return
+
+mp_spam = ["Well, there's egg and bacon; egg, sausage, and bacon; egg and Spam; egg, bacon, and Spam; egg, bacon, sausage, and Spam...",
+           "Spam, bacon, sausage, and Spam; Spam, egg, Spam, Spam, bacon, and Spam; Spam, sausage, Spam, Spam, Spam, bacon, Spam, tomato, and Spam...",
+           "Spam, Spam, Spam, egg, and Spam; Spam, Spam, Spam, Spam, Spam, Spam, baked beans, Spam, Spam, Spam, and Spam...",
+           "Lobster Thermidor aux crevettes with a Mornay sauce, served in a Provençale manner, with shallots and aubergines, garnished with truffle pâté, brandy and a fried egg on top and Spam",
+           "Spaaaaaam! Lovely Spaaaaaaaaam!",
+           "Have you got anything without Spam?",
+           "Well, there's Spam, egg, sausage, and Spam; that's not got much Spam in it.",
+           "I don't want ANY Spam!",
+           "\"Why can't she have egg, bacon, Spam, and sausage?\" \"THAT'S got Spam in it!\"",
+           "Hasn't got as much Spam in it as Spam, egg, sausage, and Spam, has it?",
+           "\"Could you do the egg, bacon, Spam, and sausage without the Spam, then?\" \"Eurgh!\"",
+           "What do you mean, \"Eurgh\"? I don't like Spam!",
+           "Spaaaaaam! Wonderful Spaaaaaaaaam! Shut up! SHUT UP! SHUT UP!!!",
+           "Spaaaaaam! Wonderful Spaaaaaaaaam! Shut up! SHUT UP! SHUT UP!!!",
+           "Spaaaaaam! Wonderful Spaaaaaaaaam! Shut up! SHUT UP! SHUT UP!!!",
+           "Spaaaaaam! Wonderful Spaaaaaaaaam! Shut up! SHUT UP! SHUT UP!!!",
+           "Spaaaaaam! Wonderful Spaaaaaaaaam! Shut up! SHUT UP! SHUT UP!!!",
+           "Spaaaaaam! Wonderful Spaaaaaaaaam! Shut up! SHUT UP! SHUT UP!!!",
+           "\"You can't have egg, bacon, Spam, and sausage without the Spam!\" \"Why not?!\"",
+           "\"It wouldn't be egg, bacon, Spam, and sausage, would it?\" \"I DON'T LIKE SPAM!!\"",
+           "Don't make a fuss, dear. I'll have your Spam. I love it! I'm having Spam, Spam, Spam, Spam, Spam, Spam, baked beans, Spam, Spam, Spam, and Spam!",
+           "\"Baked beans are off!\" \"Well, can I have Spam instead?\"",
+           "\"You mean Spam, Spam, Spam, Spam, Spam, Spam, Spam, Spam, Spam, Spam, and Spam?\" \"Yes!\" \"Eurgh!!!\"",
+           "Great boobies, honey bun! My lower intestine is full of Spam, egg, Spam, bacon, Spam, tomato, Spam, Spam, Spam, and-",
+           "\"Shut up! Shut up!!!\" \"My nipples-\""]
+
+@commands('spam')
+def spam_command(bot, trigger):
+    bot.say(choice(mp_spam))
