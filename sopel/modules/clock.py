@@ -42,33 +42,35 @@ def f_time(bot, trigger):
     """Returns the current time. Optionally takes a location."""
     if trigger.group(2):
         target = trigger.group(2).strip()
+    else:
+        target = trigger.nick
         #TODO check timestamp
-        if bot.db.get_nick_value(target, 'seen_timestamp'):
-            zone = bot.db.get_nick_value(target, 'timezone')
-            if not zone:
-                bot.say('{} has not set a time zone.'.format(target))
-                return
-        else:
-            try:
-                location = gmaps.geocode(trigger.group(2).strip())
-                location = location[0]
-            except:
-                bot.say("I couldn't find any results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
-                return
-            if 'partial_match' in location:
-                print('[clock] partial match for {}: {}'.format(target, f_loc(location['address_components'])))
-                bot.say("I couldn't find exact results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
-            coords = (location['geometry']['location']['lat'], location['geometry']['location']['lng'])
-            zone = gmaps.timezone(coords)['timeZoneId']
-            #zone = get_timezone(bot.db, bot.config, trigger.group(2).strip(), None, None)
-            if not zone:
-                bot.say('Could not find timezone for %s.' % trigger.group(2).strip())
-                return
+    if bot.db.get_nick_value(target, 'seen_timestamp'):
+        zone = bot.db.get_nick_value(target, 'timezone')
+        if not zone:
+            bot.say('{} has not set a time zone.'.format(target))
+            return
+    else:
+        try:
+            location = gmaps.geocode(trigger.group(2).strip())
+            location = location[0]
+        except:
+            bot.say("I couldn't find any results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
+            return
+        if 'partial_match' in location:
+            print('[clock] partial match for {}: {}'.format(target, f_loc(location['address_components'])))
+            bot.say("I couldn't find exact results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
+        coords = (location['geometry']['location']['lat'], location['geometry']['location']['lng'])
+        zone = gmaps.timezone(coords)['timeZoneId']
+        #zone = get_timezone(bot.db, bot.config, trigger.group(2).strip(), None, None)
+        if not zone:
+            bot.say('Could not find timezone for %s.' % trigger.group(2).strip())
+            return
     time = format_time(bot.db, bot.config, zone, trigger.nick, trigger.sender)
     try:
         time = 'Location time: {} - ({})'.format(time, f_loc(location['address_components']))
     except:
-        time = 'Time for {}: '.format(trigger.group(2)) + time
+        time = 'Time for {}: '.format(target) + time
     bot.say(time)
 
 def f_loc(address_components):
