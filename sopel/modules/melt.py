@@ -151,5 +151,5 @@ def melt_poll(bot):
     new_rate = lines[-1].strip().split(None, 1)
     if new_rate[1] != cur_rate[1]:
         cur_rate = new_rate
-        bot.say('Melt rate has changed from {} to {}', '#alantest')
-        bot.say('Melt rate has changed from {} to {}', '#fallenlondon')
+        bot.say('Melt rate has changed from {} to {}'.format(cur_rate, new_rate), '#alantest')
+        bot.say('Melt rate has changed from {} to {}'.format(cur_rate, new_rate), '#fallenlondon')
