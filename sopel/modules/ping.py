@@ -106,4 +106,11 @@ def log_PMs(bot, trigger):
 
 @rule(r'(?i).*\ba[ow]oo+\b.*')
 def awoo(bot, trigger):
-    bot.say(random.choice(['awoooo; OwO', 'DON\'T AWOO - $300 PENALTY']))
+    bot.say(random.choice(['awoooo; OwO', 'DON\'T AWOO - $350 PENALTY']))
+
+@rule(r'(?i).*\bowo\b.*')
+def owo(bot, trigger):
+    if random.randint(0,1):
+        bot.action('sprays {} with water'.format(trigger.nick))
+    else:
+        bot.say('OWO')
