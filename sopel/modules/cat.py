@@ -8,7 +8,7 @@ import requests
 @commands('cat')
 def cat_command(bot, trigger):
     """Get a cat picture."""
-    if random.randint(0,2) == 0:
+    if random.randint(0,5) == 0:
         if random.randint(0,1) == 0:
             bot.say("meow~")
             return
@@ -17,13 +17,11 @@ def cat_command(bot, trigger):
             return
     URL = "http://thecatapi.com/api/images/get?api_key=MTU0MDA0"
     count = 0
-    while True:
+    for x in xrange(5):
         try:
             r = requests.get(URL)
             bot.say(r.url)
-            break
+            return
         except requests.ConnectionError:
-            if count > 5:
-                bot.say("I'm having connection woes...")
-                return
-            count += 1
+            pass
+    bot.say("I'm having connection woes...")
