@@ -16,7 +16,7 @@ from sopel.module import commands
 @commands("stats")
 def stats_command(bot, trigger):
     if trigger.sender == '#fallenlondon' or trigger.sender == '#alantest':
-        bot.say('Cumulative: https://alanhuang.name/pisg.html | This Month: https://alanhuang.name/pisg-monthly.html | This Week: https://alanhuang.name/pisg-weekly.html')
+        bot.say('Cumulative: https://alanhua.ng/pisg.html | This Month: https://alanhua.ng/pisg-monthly.html | This Week: https://alanhua.ng/pisg-weekly.html')
 
     else:
         print(trigger.sender)
