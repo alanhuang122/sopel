@@ -13,7 +13,7 @@ def ud_command(bot, trigger):
 
     response = ud(word)
     if not response:
-        bot.say("No results found for {0}".format(word))
+        bot.say(u"No results found for {0}".format(word))
         return
     bot.say(response)
 
@@ -21,7 +21,7 @@ def ud(word, say_url=True):
     try:
         data = requests.get("https://api.urbandictionary.com/v0/define?term={0}".format(word)).json()
     except Exception as e:
-        print('[urband] {}'.format(e))
+        print(u'[urband] {}'.format(e))
         return bot.say("Error connecting to urban dictionary")
         
     if data['result_type'] == 'no_results':
@@ -30,9 +30,9 @@ def ud(word, say_url=True):
     result = data['list'][0]
     if say_url:
         url = 'https://www.urbandictionary.com/define.php?term={0}'.format(urllib.quote_plus(word))
-        response = "[Urban Dictionary] {0} - {1}".format(result['definition'].strip()[:256].replace('\n', ' '), url)
+        response = u"[Urban Dictionary] {0} - {1}".format(result['definition'].strip()[:256].replace('\n', ' '), url)
     else:
-        response = "[Urban Dictionary] {0}".format(result['definition'].strip()[:256].replace('\n', ' '))
+        response = u"[Urban Dictionary] {0}".format(result['definition'].strip()[:256].replace('\n', ' '))
     return response
 
 @url('(http(s?)://)?(www\.)?urbandictionary\.com/define\.php\?term=(.+)')
