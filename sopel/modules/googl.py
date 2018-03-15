@@ -5,6 +5,7 @@ from sopel.module import commands
 import urllib2, json, re, requests, idna
 from urlparse import urlparse, urlunparse
 import lxml.html
+from ftfy import fix_encoding
 
 # Most of this code was ripped from url.py in sopel's source. Don't kill me.
 
@@ -16,6 +17,11 @@ re_dcc = re.compile(r'(?i)dcc\ssend')
 # just keep downloading until there's no more memory. 640k ought to be enough
 # for anybody.
 max_bytes = 655360
+user_agent = None
+
+def setup(bot):
+    global user_agent
+    user_agent = bot.config.url.user_agent
 
 def title_auto(bot, trigger):
     """
@@ -79,15 +85,29 @@ def process_urls(bot, trigger, urls):
     return results
 
 def find_title(url, verify=True):
-    response = requests.get(url, verify=verify, headers={'User-Agent':user_agent})
+    """Return the title for the given URL."""
     try:
-        if isinstance(response.text, unicode):
-            t = lxml.html.fromstring(response.text.encode('utf-8'))
-        else:
-            t = lxml.html.fromstring(response.text)
+        response = requests.get(url, verify=verify, headers={'User-Agent': user_agent, 'Accept': 'text/html'})
+    except requests.exceptions.ConnectionError as e:
+        if '[Errno -2]' in str(e):  #name or service not known
+            print('[url] name or service not known: {}'.format(url))
+            return None
+        if '[Errno 111]' in str(e): #connection refused
+            print('[url] connection refused: {}'.format(url))
+            return None
+        raise e
+    except requests.exceptions.ReadTimeout:
+        print('[url] connection timed out: {}'.format(url))
+        return None
+    if 'text/plain' in response.headers['Content-Type']:
+        print('Content-Type for url {} is text/plain; skipping'.format(url))
+        return None
+    try:
+        t = lxml.html.fromstring(fix_encoding(response.text))
         return t.find(".//title").text.strip()
     except Exception as e:
-        print('[googl][title] {}'.format(e))
+        print('exception on url {}'.format(url))
+        print('[url] {}'.format(e))
         return None
 
 r_entity = re.compile(r'&([^;\s]+);')

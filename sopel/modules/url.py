@@ -194,14 +194,30 @@ def check_callbacks(bot, trigger, url, run=True):
     return matched
 
 import lxml.html
+from ftfy import fix_encoding
 def find_title(url, verify=True):
     """Return the title for the given URL."""
-    response = requests.get(url, verify=verify, headers={'User-Agent': user_agent, 'Accept': 'text/html'})
+    try:
+        response = requests.get(url, verify=verify, headers={'User-Agent': user_agent, 'Accept': 'text/html'})
+    except requests.exceptions.ConnectionError as e:
+        if '[Errno -2]' in str(e):  #name or service not known
+            print('[url] name or service not known: {}'.format(url))
+            return None
+        if '[Errno 111]' in str(e): #connection refused
+            print('[url] connection refused: {}'.format(url))
+            return None
+        raise e
+    except requests.exceptions.ReadTimeout:
+        print('[url] connection timed out: {}'.format(url))
+        return None
+    if response.status_code != 200:
+        print('[url] got code {} for url {}'.format(response.status_code, url))
+        return None
     if 'text/plain' in response.headers['Content-Type']:
         print('Content-Type for url {} is text/plain; skipping'.format(url))
         return None
     try:
-        t = lxml.html.fromstring(response.text)
+        t = lxml.html.fromstring(fix_encoding(response.text))
         return t.find(".//title").text.strip()
     except Exception as e:
         print('exception on url {}'.format(url))
