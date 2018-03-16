@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import imp
 import os.path
@@ -9,7 +9,7 @@ import sys
 from sopel.tools import itervalues, get_command_regexp
 
 if sys.version_info.major >= 3:
-    basestring = (str, bytes)
+    str = (str, bytes)
 
 # Can be implementation-dependent
 _regex_type = type(re.compile(''))
@@ -165,13 +165,13 @@ def clean_callable(func, config):
     if not hasattr(func, 'event'):
         func.event = ['PRIVMSG']
     else:
-        if isinstance(func.event, basestring):
+        if isinstance(func.event, str):
             func.event = [func.event.upper()]
         else:
             func.event = [event.upper() for event in func.event]
 
     if hasattr(func, 'rule'):
-        if isinstance(func.rule, basestring):
+        if isinstance(func.rule, str):
             func.rule = [func.rule]
         func.rule = [compile_rule(nick, rule) for rule in func.rule]
 

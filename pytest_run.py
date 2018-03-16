@@ -11,7 +11,7 @@ Licensed under the Eiffel Forum License 2.
 
 http://sopel.chat
 """
-from __future__ import unicode_literals
+
 
 if __name__ == "__main__":
     import sys

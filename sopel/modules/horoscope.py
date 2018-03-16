@@ -2,9 +2,7 @@
 #coding: latin-1
 
 from sopel.module import commands
-import imp
-
-emoticons = imp.load_source('emoticons', '/home/alan/.sopel/modules')
+from sopel.modules import emoticons
 
 @commands('horoscope')
 def horoscope_command(bot, trigger):

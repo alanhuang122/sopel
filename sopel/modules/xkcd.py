@@ -3,7 +3,7 @@
 # Copyright 2012, Lior Ramati
 # Copyright 2013, Elsie Powell (embolalia.com)
 # Licensed under the Eiffel Forum License 2.
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import random, re, requests
 from sopel.module import commands, url
@@ -15,8 +15,8 @@ def get_info(number=None):
         url = 'https://xkcd.com/info.0.json'
     data = requests.get(url).json()
     data['url'] = 'https://xkcd.com/' + str(data['num'])
-    for k, v in data.items():
-        if isinstance(v, unicode):
+    for k, v in list(data.items()):
+        if isinstance(v, str):
             data[k] = v.encode('raw-unicode-escape').decode('utf-8')
     return data
 

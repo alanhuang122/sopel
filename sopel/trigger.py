@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import re
 import sys
@@ -8,8 +8,8 @@ import datetime
 import sopel.tools
 
 if sys.version_info.major >= 3:
-    unicode = str
-    basestring = str
+    str = str
+    str = str
 
 
 class PreTrigger(object):
@@ -90,7 +90,7 @@ class PreTrigger(object):
             self.tags['account'] = self.args[1]
 
 
-class Trigger(unicode):
+class Trigger(str):
     """A line from the server, which has matched a callable's rules.
 
     Note that CTCP messages (`PRIVMSG`es and `NOTICE`es which start and end
@@ -161,7 +161,7 @@ class Trigger(unicode):
     """
 
     def __new__(cls, config, message, match, account=None):
-        self = unicode.__new__(cls, message.args[-1] if message.args else '')
+        self = str.__new__(cls, message.args[-1] if message.args else '')
         self._account = account
         self._pretrigger = message
         self._match = match

@@ -4,7 +4,7 @@ ping.py - Sopel Ping Module
 Author: Sean B. Palmer, inamidst.com
 About: https://sopel.chat
 """
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import random
 from time import sleep

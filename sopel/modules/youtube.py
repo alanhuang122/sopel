@@ -1,6 +1,6 @@
 # coding=utf8
 """Youtube module for Sopel"""
-from __future__ import unicode_literals, division
+
 
 from sopel.module import rule, commands, example
 from sopel.config.types import StaticSection, ValidatedAttribute, NO_DEFAULT
@@ -10,7 +10,7 @@ import sys
 import re
 import apiclient.discovery
 if sys.version_info.major < 3:
-    int = long
+    int = int
 
 ISO8601_PERIOD_REGEX = re.compile(
     r"^(?P<sign>[+-])?"
@@ -118,7 +118,7 @@ def _say_result(bot, trigger, id_, include_link=True):
 def _parse_duration(duration):
     splitdur = ISO8601_PERIOD_REGEX.match(duration)
     dur = []
-    for k, v in splitdur.groupdict().items():
+    for k, v in list(splitdur.groupdict().items()):
         if v is not None:
             dur.append(v.lower())
     return ' '.join(dur)

@@ -3,13 +3,13 @@
 # Copyright 2013, Elsie Powell, embolalia.com
 # Copyright 2008, Sean B. Palmer, inamidst.com
 # Licensed under the Eiffel Forum License 2.
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 import unicodedata
 import sys
 from sopel.module import commands, example, NOLIMIT
 
 if sys.version_info.major >= 3:
-    unichr = chr
+    chr = chr
 
 
 @commands('u')
@@ -27,13 +27,13 @@ def codepoint(bot, trigger):
         if arg.startswith('U+'):
             arg = arg[2:]
         try:
-            arg = unichr(int(arg, 16))
+            arg = chr(int(arg, 16))
         except:
             bot.reply("That's not a valid code point.")
             return NOLIMIT
 
     # Get the hex value for the code point, and drop the 0x from the front
-    point = str(hex(ord(u'' + arg)))[2:]
+    point = str(hex(ord('' + arg)))[2:]
     # Make the hex 4 characters long with preceding 0s, and all upper case
     point = point.rjust(4, str('0')).upper()
     try:

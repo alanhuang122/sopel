@@ -4,7 +4,7 @@ import aspell, re, string
 from sopel.module import commands
 
 def setup(bot):
-    chars = string.letters
+    chars = string.ascii_letters
     global regex
     regex = re.compile('[^%s]' % re.escape(chars))
 

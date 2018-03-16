@@ -3,7 +3,7 @@
 
 from sopel.module import commands, example
 from bs4 import BeautifulSoup
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 @commands('rfc')
 @example('.rfc 1149')
@@ -12,8 +12,8 @@ def rfc_command(bot, trigger):
     if trigger.group(2):
         URL = "https://tools.ietf.org/html/rfc{0}".format(trigger.group(2))
         try:
-            data = urllib2.urlopen(URL)
-        except urllib2.HTTPError:
+            data = urllib.request.urlopen(URL)
+        except urllib.error.HTTPError:
             bot.say('404 - page not found')
             return
         soup = BeautifulSoup(data, 'lxml')

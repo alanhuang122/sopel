@@ -17,7 +17,7 @@ def cat_command(bot, trigger):
             return
     URL = "http://thecatapi.com/api/images/get?api_key=MTU0MDA0"
     count = 0
-    for x in xrange(5):
+    for x in range(5):
         try:
             r = requests.get(URL)
             bot.say(r.url)

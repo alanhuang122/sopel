@@ -6,7 +6,7 @@ Licensed under the Eiffel Forum License 2.
 
 https://sopel.chat
 """
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import requests
 from bs4 import BeautifulSoup as Soup
@@ -19,7 +19,7 @@ bad_cols = ['Restrictions', 'Notes']
 
 def search_row(string, row, headers):
     parts = [t.text for t in row.find_all('td')]
-    for x in xrange(min(len(headers), len(parts))):
+    for x in range(min(len(headers), len(parts))):
         if headers[x] not in bad_cols:
             if string in parts[x]:
                 return True
@@ -35,7 +35,7 @@ def get_tld(bot, trigger):
     s = Soup(page.text, 'lxml')
     tables = s.find_all('table', class_='wikitable')
     for t in tables:
-        if tld in unicode(t):
+        if tld in str(t):
             table = t
             break
     if not table:
@@ -51,7 +51,7 @@ def get_tld(bot, trigger):
             break
     parts = [t.text for t in row.find_all('td')]
     headers = headers[:len(parts)]
-    for x in xrange(len(headers)):
+    for x in range(len(headers)):
         if headers[x] in bad_cols:
             headers.append(headers[x])
             headers.remove(headers[x])
@@ -61,7 +61,7 @@ def get_tld(bot, trigger):
             # moving long columns to end of lists
             # there will only ever be one "bad column"
     strings = []
-    for x in xrange(min(len(headers), len(parts))):
+    for x in range(min(len(headers), len(parts))):
         if len(re.sub(r'\[.+?\]', '', parts[x])) > 1:
             strings.append('{}: {}'.format(headers[x], parts[x].strip()))
     string = re.sub(r'\[.+?\]', '', '{}: {}'.format(title, ' | '.join(strings)))
@@ -100,7 +100,7 @@ def gettld(bot, trigger):
         bot.reply(reply)
     else:
         search = r'<td><a href="\S+" title="\S+">.{0}</a></td>\n<td><span class="flagicon"><img.*?\">(.*?)</a></td>\n<td[^>]*>(.*?)</td>\n<td[^>]*>(.*?)</td>\n<td[^>]*>(.*?)</td>\n<td[^>]*>(.*?)</td>\n<td[^>]*>(.*?)</td>\n'
-        search = search.format(unicode(tld))
+        search = search.format(str(tld))
         re_country = re.compile(search)
         matches = re_country.findall(page)
         if matches:
@@ -115,5 +115,5 @@ def gettld(bot, trigger):
                 dict_val["notes"] = dict_val["notes"][:400] + "..."
             reply = "%s (%s, %s). IDN: %s, DNSSEC: %s, SLD: %s" % (dict_val["country"], dict_val["expl"], dict_val["notes"], dict_val["idn"], dict_val["dnssec"], dict_val["sld"])
         else:
-            reply = "No matches found for TLD: {0}".format(unicode(tld))
+            reply = "No matches found for TLD: {0}".format(str(tld))
         bot.reply(reply)

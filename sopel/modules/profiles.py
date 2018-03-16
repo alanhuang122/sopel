@@ -55,9 +55,9 @@ def worker_command(user, index):
         try:
             text = tag.find_all('h1')[1]
         except IndexError:
-            return u'I couldn\'t find anything...'
+            return 'I couldn\'t find anything...'
 
-        return u'{0} has {1}'.format(soup.find('a', class_='character-name').text, text.text)
+        return '{0} has {1}'.format(soup.find('a', class_='character-name').text, text.text)
 
 @commands('abom')
 def abom_command(bot, trigger):

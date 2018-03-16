@@ -1,7 +1,7 @@
 # coding=utf-8
 """Simple website status check with isup.me"""
 # Author: Elsie Powell https://embolalia.com
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import requests
 from sopel.module import commands

@@ -30,7 +30,7 @@ def main():
     elif not config.core.db_filename:
         print('Filename is only configured with old setting. Make sure you '
               'set the db_filename setting in [core].')
-    print('Migrating db file {}'.format(filename))
+    print(('Migrating db file {}'.format(filename)))
     new_db = willie.db.WillieDB(config)
     conn = sqlite3.connect(new_db.filename)
     cur = conn.cursor()
@@ -42,9 +42,9 @@ def main():
             continue
         if column[2] != 'text':
             msg = "Can't migrate non-text field {}. Please do so manually"
-            print(msg.format(old_name))
+            print((msg.format(old_name)))
             continue
-        print('Migrating column {}'.format(old_name))
+        print(('Migrating column {}'.format(old_name)))
 
         values = cur.execute(
             'SELECT name, {} FROM preferences WHERE {} NOT NULL'

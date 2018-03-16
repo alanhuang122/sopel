@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 from sopel.module import commands
-import random, cPickle, requests, re
+import random, pickle, requests, re
 from requests.utils import quote
 
 data = None
@@ -8,7 +8,7 @@ data = None
 def setup(bot):
     global data
     try:
-        data = cPickle.load(open('/home/alan/.sopel/cards.dat'))
+        data = pickle.load(open('/home/alan/.sopel/cards.dat', 'rb'))
     except:
         data = {'watchful': [], 'shadowy': [], 'dangerous': [], 'persuasive': []}
 
@@ -40,7 +40,7 @@ def cards_command(bot, trigger):
         name = re.search(r'class="character-name">(.+?)</a>', r.text).group(1)
 
         key = ''
-        for k in data.keys():
+        for k in list(data.keys()):
             if k.startswith(l.lower()):
                 key = k
                 break
@@ -55,7 +55,7 @@ def cards_command(bot, trigger):
 
         data[key].append((trigger.nick, name))
         bot.say('Added user {} to list {}'.format(name, key.title()), alias=False)
-        cPickle.dump(data, open('/home/alan/.sopel/cards.dat', 'w'))
+        pickle.dump(data, open('/home/alan/.sopel/cards.dat', 'wb'))
         return
 
     elif cmd == 'del':
@@ -66,7 +66,7 @@ def cards_command(bot, trigger):
             return
         
         key = ''
-        for k in data.keys():
+        for k in list(data.keys()):
             if k.startswith(l.lower()):
                 key = k
                 break
@@ -75,12 +75,12 @@ def cards_command(bot, trigger):
             bot.say("Invalid stat - choose 1 from [Watchful, Shadowy, Dangerous, Persuasive]")
             return
 
-        for x in xrange(len(data[key])):
+        for x in range(len(data[key])):
             if data[key][x][1].lower() == name.lower():
                 if trigger.nick.lower() == data[key][x][0]:
                     del data[key][x]
                     bot.say('Removed {} from list {}'.format(name, key.title()), alias=False)
-                    cPickle.dump(data, open('/home/alan/.sopel/cards.dat', 'w'))
+                    pickle.dump(data, open('/home/alan/.sopel/cards.dat', 'wb'))
                     return
                 else:
                     bot.say('Only {} can remove {} from the list'.format(data[key][x][0], data[key][x][1]), alias=False)
@@ -93,14 +93,14 @@ def cards_command(bot, trigger):
         parts = params.split(None)
         if len(parts) == 0:
             lists = []
-            for key in data.keys():
+            for key in list(data.keys()):
                 msg = get_list(key, 7)
                 lists.append(msg)
             msg = ' | '.join(lists)
             bot.say(msg, alias=False)
         elif len(parts) == 1:
             key = ''
-            for k in data.keys():
+            for k in list(data.keys()):
                 if k.startswith(parts[0].lower()):
                     key = k
                     break
@@ -117,7 +117,7 @@ def cards_command(bot, trigger):
                     if limit > 7:
                         limit = 7
                     lists = []
-                    for key in data.keys():
+                    for key in list(data.keys()):
                         msg = get_list(key, limit)
                         lists.append(msg)
                     msg = ' | '.join(lists)
@@ -134,7 +134,7 @@ def cards_command(bot, trigger):
                 limit = 7
             
             key = ''
-            for k in data.keys():
+            for k in list(data.keys()):
                 if k.startswith(parts[0].lower()):
                     key = k
                     break
@@ -155,7 +155,7 @@ def cards_command(bot, trigger):
             return
 
         lists = []
-        for i in data.items():
+        for i in list(data.items()):
             for x in i[1]:
                 if name.lower() == x[1].lower():
                     lists.append(i[0].title())
@@ -170,9 +170,9 @@ def cards_command(bot, trigger):
     elif cmd == 'clear' and trigger.owner:
         print('[cards] clearing cards')
         data = {'watchful': [], 'shadowy': [], 'dangerous': [], 'persuasive': []}
-        cPickle.dump(data, open('/home/alan/.sopel/cards.dat', 'w'))
+        pickle.dump(data, open('/home/alan/.sopel/cards.dat', 'wb'))
     elif cmd == 'dump' and trigger.owner:
-        print('[cards] {}'.format(data))
+        print(('[cards] {}'.format(data)))
     else:
         bot.say("I don't know what you want me to do.")
 

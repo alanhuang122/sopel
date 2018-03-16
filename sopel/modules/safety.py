@@ -6,7 +6,7 @@ Licensed under the Eiffel Forum License 2.
 
 This module uses virustotal.com
 """
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 from sopel.config.types import StaticSection, ValidatedAttribute, ListAttribute
 from sopel.formatting import color, bold
@@ -21,12 +21,12 @@ import re
 import requests
 
 if sys.version_info.major > 2:
-    unicode = str
+    str = str
     from urllib.request import urlretrieve
     from urllib.parse import urlparse
 else:
-    from urllib import urlretrieve
-    from urlparse import urlparse
+    from urllib.request import urlretrieve
+    from urllib.parse import urlparse
 
 LOGGER = get_logger(__name__)
 
@@ -77,7 +77,7 @@ def setup(bot):
         _download_malwaredomains_db(loc)
     with open(loc, 'r') as f:
         for line in f:
-            clean_line = unicode(line).strip().lower()
+            clean_line = str(line).strip().lower()
             if clean_line != '':
                 malware_domains.add(clean_line)
 
@@ -126,7 +126,7 @@ def url_handler(bot, trigger):
     apikey = bot.config.safety.vt_api_key
     try:
         if apikey is not None and use_vt:
-            payload = {'resource': unicode(trigger),
+            payload = {'resource': str(trigger),
                        'apikey': apikey,
                        'scan': '1'}
 
@@ -151,7 +151,7 @@ def url_handler(bot, trigger):
         LOGGER.debug('Error from checking URL with VT.', exc_info=True)
         pass  # Ignoring exceptions with VT so MalwareDomains will always work
 
-    if unicode(netloc).lower() in malware_domains:
+    if str(netloc).lower() in malware_domains:
         # malwaredomains is more trustworthy than some VT engines
         # therefor it gets a weight of 10 engines when calculating confidence
         positives += 10

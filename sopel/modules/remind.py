@@ -6,7 +6,7 @@ Licensed under the Eiffel Forum License 2.
 
 https://sopel.chat
 """
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import os
 import re
@@ -119,7 +119,7 @@ scaling = collections.OrderedDict([
     ('s', 1),
 ])
 
-periods = '|'.join(scaling.keys())
+periods = '|'.join(list(scaling.keys()))
 
 
 @commands('in')
@@ -133,8 +133,8 @@ def remind(bot, trigger):
         bot.say("No message given for reminder.")
         return NOLIMIT
     duration = 0
-    message = filter(None, re.split('(\d+(?:\.\d+)? ?(?:(?i)' + periods + ')) ?',
-                                    trigger.group(2))[1:])
+    message = [_f for _f in re.split('(\d+(?:\.\d+)? ?(?:(?i)' + periods + ')) ?',
+                                    trigger.group(2))[1:] if _f]
     reminder = ''
     stop = False
     for piece in message:

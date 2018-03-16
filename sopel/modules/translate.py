@@ -7,15 +7,15 @@ Licensed under the Eiffel Forum License 2.
 
 https://sopel.chat
 """
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 from sopel.module import commands, example
 import os, sys, re
 from google.cloud import translate
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 h = HTMLParser()
 
 if sys.version_info.major >= 3:
-    unicode = str
+    str = str
 
 def setup(bot):
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/alan/.sopel/sopel-irc-key.json'
@@ -86,4 +86,4 @@ def tl(bot, trigger):
         print('[translate] target {}'.format(t))
         translation = client.translate(' '.join(parts), target_language=t)
 
-    bot.reply(u'{0} ({1} to {2})'.format(h.unescape(translation['translatedText']), s if s is not None else translation['detectedSourceLanguage'], t))
+    bot.reply('{0} ({1} to {2})'.format(h.unescape(translation['translatedText']), s if s is not None else translation['detectedSourceLanguage'], t))

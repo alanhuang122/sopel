@@ -10,7 +10,7 @@ dispatch function in bot.py and making it easier to maintain.
 # Copyright © 2012, Elad Alfassa <elad@fedoraproject.org>
 # Copyright 2012-2015, Elsie Powell embolalia.com
 # Licensed under the Eiffel Forum License 2.
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 
 from random import randint
@@ -26,7 +26,7 @@ import base64
 from sopel.logger import get_logger
 
 if sys.version_info.major >= 3:
-    unicode = str
+    str = str
 
 LOGGER = get_logger(__name__)
 
@@ -142,7 +142,7 @@ def retry_join(bot, trigger):
 
     """
     channel = trigger.args[1]
-    if channel in bot.memory['retry_join'].keys():
+    if channel in list(bot.memory['retry_join'].keys()):
         bot.memory['retry_join'][channel] += 1
         if bot.memory['retry_join'][channel] > 10:
             LOGGER.warning('Failed to join %s after 10 attempts.', channel)
@@ -186,7 +186,7 @@ def handle_names(bot, trigger):
         for prefix, value in iteritems(mapping):
             if prefix in name:
                 priv = priv | value
-        nick = Identifier(name.lstrip(''.join(mapping.keys())))
+        nick = Identifier(name.lstrip(''.join(list(mapping.keys()))))
         bot.privileges[channel][nick] = priv
 
 
@@ -272,7 +272,7 @@ def track_nicks(bot, trigger):
             value = bot.privileges[channel].pop(old)
             bot.privileges[channel][new] = value
 
-    for channel in bot.channels.values():
+    for channel in list(bot.channels.values()):
         channel.rename_user(old, new)
     if old in bot.users:
         bot.users[new] = bot.users.pop(old)
@@ -306,7 +306,7 @@ def _remove_from_channel(bot, nick, channel):
         bot.channels.pop(channel, None)
 
         lost_users = []
-        for nick_, user in bot.users.items():
+        for nick_, user in list(bot.users.items()):
             user.channels.pop(channel, None)
             if not user.channels:
                 lost_users.append(nick_)
@@ -380,9 +380,9 @@ def track_join(bot, trigger):
 @sopel.module.thread(False)
 @sopel.module.unblockable
 def track_quit(bot, trigger):
-    for chanprivs in bot.privileges.values():
+    for chanprivs in list(bot.privileges.values()):
         chanprivs.pop(trigger.nick, None)
-    for channel in bot.channels.values():
+    for channel in list(bot.channels.values()):
         channel.clear_user(trigger.nick)
     bot.users.pop(trigger.nick, None)
 
@@ -575,7 +575,7 @@ def blocks(bot, trigger):
 
     if len(text) == 2 and text[1] == "list":
         if len(masks) > 0:
-            blocked = ', '.join(unicode(mask) for mask in masks)
+            blocked = ', '.join(str(mask) for mask in masks)
             bot.say("Blocked hostmasks: {}".format(blocked))
         else:
             bot.reply(STRINGS['nonelisted'] % ('hostmasks'))
@@ -591,7 +591,7 @@ def blocks(bot, trigger):
             bot.reply(STRINGS['no_host'] % (text[2]))
             return
         masks.remove(mask)
-        bot.config.core.hostmask_blocks = [unicode(m) for m in masks]
+        bot.config.core.hostmask_blocks = [str(m) for m in masks]
         bot.config.save()
         bot.reply(STRINGS['success_del'] % (text[2]))
     else:

@@ -12,7 +12,7 @@
 
 # https://sopel.chat
 
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import sys
 import os
@@ -26,7 +26,7 @@ from sopel.tools._events import events  # NOQA
 
 if sys.version_info.major >= 3:
     raw_input = input
-    unicode = str
+    str = str
     iteritems = dict.items
     itervalues = dict.values
     iterkeys = dict.keys
@@ -42,9 +42,9 @@ def get_input(prompt):
     """Get decoded input from the terminal (equivalent to python 3's ``input``).
     """
     if sys.version_info.major >= 3:
-        return input(prompt)
+        return eval(input(prompt))
     else:
-        return raw_input(prompt).decode('utf8')
+        return input(prompt).decode('utf8')
 
 
 def get_raising_file_and_line(tb=None):
@@ -122,7 +122,7 @@ class Ddict(dict):
         return dict.__getitem__(self, key)
 
 
-class Identifier(unicode):
+class Identifier(str):
     """A `unicode` subclass which acts appropriately for IRC identifiers.
 
     When used as normal `unicode` objects, case will be preserved.
@@ -138,7 +138,7 @@ class Identifier(unicode):
         # just assume unicode. It won't hurt anything, and is more internally
         # consistent. And who knows, maybe there's another use case for this
         # weird case convention.
-        s = unicode.__new__(cls, identifier)
+        s = str.__new__(cls, identifier)
         s._lowered = Identifier._lower(identifier)
         return s
 
@@ -238,7 +238,7 @@ class OutputRedirect(object):
                 logfile.write(string)
             except UnicodeDecodeError:
                 # we got an invalid string, safely encode it to utf-8
-                logfile.write(unicode(string, 'utf8', errors="replace"))
+                logfile.write(str(string, 'utf8', errors="replace"))
 
     def flush(self):
         if self.stderr:

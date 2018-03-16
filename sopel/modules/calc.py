@@ -6,7 +6,7 @@ Licensed under the Eiffel Forum License 2.
 
 https://sopel.chat
 """
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 from collections import deque
 import math
 import requests
@@ -15,7 +15,7 @@ from sopel.module import commands, example
 from sopel.tools.calculation import eval_equation
 import sys
 if sys.version_info.major >= 3:
-    unichr = chr
+    chr = chr
 
 
 BASE_TUMBOLIA_URI = 'https://tumbolia-two.appspot.com/'

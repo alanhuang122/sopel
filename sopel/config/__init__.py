@@ -17,7 +17,7 @@ object is initialized.
 # Copyright © 2012, Elad Alfassa <elad@fedoraproject.org>
 # Licensed under the Eiffel Forum License 2.
 
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 from sopel.tools import iteritems, stderr
 import sopel.tools
@@ -91,7 +91,7 @@ class Config(object):
         """
         try:
             return self.parser.add_section(name)
-        except ConfigParser.DuplicateSectionError:
+        except configparser.DuplicateSectionError:
             return False
 
     def define_section(self, name, cls_, validate=True):
@@ -148,7 +148,7 @@ class Config(object):
             value = getattr(self, name)
             if not value:
                 return []
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 value = value.split(',')
                 # Keep the split value, so we don't have to keep doing this
                 setattr(self, name, value)

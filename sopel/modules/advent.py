@@ -1,12 +1,12 @@
 # 2016.12.24 03:29:00 CST
 #Embedded file name: modules/advent.py
-import re, json, requests, threading, cPickle
+import re, json, requests, threading, pickle
 from time import sleep
 from sopel.module import commands, rule, example, require_owner
 from datetime import datetime
 from base64 import b64decode
 from Crypto.Cipher import AES
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 data = {}
 codes = {}
@@ -19,8 +19,8 @@ def setup(bot):
     update()
     global data
     global codes
-    data = cPickle.load(open('/home/alan/fl-utils/qualities.dat'))
-    codes = cPickle.load(open('/home/alan/fl-utils/codes.dat'))
+    data = pickle.load(open('/home/alan/fl-utils/data/qualities.dat', 'rb'))
+    codes = pickle.load(open('/home/alan/fl-utils/data/codes.dat', 'rb'))
     time = datetime.utcnow()
     if time.hour < 12:
         diff = time.replace(hour=12, minute=0, second=0, microsecond=0) - time
@@ -29,7 +29,7 @@ def setup(bot):
             diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
         except:
             diff = time.replace(month=time.month+1, day=1, hour=12, minute=0, second=0, microsecond=0) - time
-    print('[advent] scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
+    print(('[advent] scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds // 3600, diff.seconds // 60 % 60, diff.seconds % 60)))
     global start
     global end
     start = datetime.utcnow()
@@ -84,7 +84,7 @@ def verify_command(bot, trigger):
                 return
             except KeyError:
                 cstring = codename.lstrip('0123456789')
-                for k in codes.keys():
+                for k in list(codes.keys()):
                     if cstring in k:
                         year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
                         if not best:
@@ -133,8 +133,8 @@ def verify_command(bot, trigger):
                         codes[codename]['Id'] = 9999990 + entry['ReleaseDay']
                         codes[codename]['Tag'] = 'ADVENT 2017 - Manual'
     '''
-    with open('/home/alan/fl-utils/codes.dat', 'w') as f:
-        cPickle.dump(codes, f)
+    with open('/home/alan/fl-utils/data/codes.dat', 'wb') as f:
+        pickle.dump(codes, f)
 
 @commands('when')
 def when_command(bot, trigger):
@@ -161,7 +161,7 @@ def timed_advent(bot):
     diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
 
     if time.month < 12:
-        print('[advent] timer triggered but is not December yet - scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
+        print(('[advent] timer triggered but is not December yet - scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60)))
         start = time
         end = time + diff
         timer = threading.Timer(diff.seconds, timed_advent, [bot])
@@ -174,10 +174,10 @@ def timed_advent(bot):
         print('[advent] merry christmas; no more advent codes; rip timer')
         return
     try:
-        cache = cPickle.load(open('/home/alan/.sopel/advent_cache.dat'))
+        cache = pickle.load(open('/home/alan/.sopel/advent_cache.dat', 'rb'))
     except IOError:
         cache = {}
-        cPickle.dump({}, open('/home/alan/.sopel/advent_cache.dat', 'w'))
+        pickle.dump({}, open('/home/alan/.sopel/advent_cache.dat', 'wb'))
 
     print('[advent] looking for page')
     while True:
@@ -205,7 +205,7 @@ def timed_advent(bot):
             code = codes[codename]
         except KeyError:
             cstring = codename.lstrip('0123456789')
-            for k in codes.keys():
+            for k in list(codes.keys()):
                 if cstring in k:
                     year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
                     if not best:
@@ -214,8 +214,8 @@ def timed_advent(bot):
                         best = [year, k]
 
             if not best:
-                bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(get_snippet(url)), response['id']), '#fallenlondon')
-                print('[advent|ERROR]: could not get code {}'.format(codename))
+                bot.say('Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(get_snippet(url)), response['id']), '#fallenlondon')
+                print(('[advent|ERROR]: could not get code {}'.format(codename)))
                 return
             else:
                 if best[0] == 0:
@@ -228,16 +228,16 @@ def timed_advent(bot):
     code = AccessCode(code)
     effects = code.list_effects()
     
-    bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(code.message1), response['id']), '#fallenlondon')
-    bot.say(u'{} Effects: {}{}'.format(render(code.message2), effects, disclaimer if best else ''), '#fallenlondon')
+    bot.say('Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(code.message1), response['id']), '#fallenlondon')
+    bot.say('{} Effects: {}{}'.format(render(code.message2), effects, disclaimer if best else ''), '#fallenlondon')
 
     cache[current['ReleaseDay']] = {'name': current['AccessCodeName'], 'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
-    cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
+    pickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'wb'))
     
     time = datetime.utcnow()
     diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
 
-    print('[advent] scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
+    print(('[advent] scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60)))
     start = datetime.utcnow()
     end = datetime.utcnow() + diff
     timer = threading.Timer(diff.seconds, timed_advent, [bot])
@@ -300,10 +300,10 @@ def advent_command(bot, trigger):
         pass
 
     try:
-        cache = cPickle.load(open('/home/alan/.sopel/advent_cache.dat'))
+        cache = pickle.load(open('/home/alan/.sopel/advent_cache.dat', 'rb'))
     except IOError:
         cache = {}
-        cPickle.dump({}, open('/home/alan/.sopel/advent_cache.dat', 'w'))
+        pickle.dump({}, open('/home/alan/.sopel/advent_cache.dat', 'wb'))
 
     try:
         if not trigger.group(2) or val == 0 or val == current['ReleaseDay']:
@@ -327,7 +327,7 @@ def advent_command(bot, trigger):
                     code = codes[codename]
                 except KeyError:
                     cstring = codename.lstrip('0123456789')
-                    for k in codes.keys():
+                    for k in list(codes.keys()):
                         if cstring in k:
                             year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
                             if not best:
@@ -336,8 +336,8 @@ def advent_command(bot, trigger):
                                 best = [year, k]
 
                     if not best:
-                        bot.say(u'Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], render(get_snippet(url)), response['id']), '#fallenlondon')
-                        print('[advent|ERROR]: could not get code {}'.format(codename))
+                        bot.say('Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], render(get_snippet(url)), response['id']), '#fallenlondon')
+                        print(('[advent|ERROR]: could not get code {}'.format(codename)))
                         return
                     else:
                         if best[0] == 0:
@@ -350,12 +350,12 @@ def advent_command(bot, trigger):
             code = AccessCode(code)
             effects = code.list_effects()
             
-            bot.say(u'Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(code.message1), response['id']))
-            bot.say(u'{} Effects: {}{}'.format(render(code.message2), effects, disclaimer if best else ''))
+            bot.say('Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(code.message1), response['id']))
+            bot.say('{} Effects: {}{}'.format(render(code.message2), effects, disclaimer if best else ''))
             bot.say('Next code in {}'.format(calculateTimeDiff()) if day < 25 else 'No more codes! Merry Christmas; see you in 2018!')
         
             cache[current['ReleaseDay']] = {'name': current['AccessCodeName'],'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
-            cPickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'w'))
+            pickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'wb'))
         
             return
     except TypeError:
@@ -368,8 +368,8 @@ def advent_command(bot, trigger):
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
-            bot.say(u'[EXPIRED] Advent Day {} - {}: {}'.format(val, data['name'], render(data['initial'])))
-            bot.say(u'{} Effects: {}'.format(render(data['finished']), data['effects']))
+            bot.say('[EXPIRED] Advent Day {} - {}: {}'.format(val, data['name'], render(data['initial'])))
+            bot.say('{} Effects: {}'.format(render(data['finished']), data['effects']))
             return
 
     for entry in opened:
@@ -379,8 +379,8 @@ def advent_command(bot, trigger):
             except KeyError:
                 bot.say("I don't have any information for that day :<")
             print('[advent] using cache')
-            bot.say(u'Advent Day {} - {}: {} {}'.format(val, data['name'], render(data['initial']), data['url']))
-            bot.say(u'{} Effects: {}'.format(render(data['finished']), data['effects']))
+            bot.say('Advent Day {} - {}: {} {}'.format(val, data['name'], render(data['initial']), data['url']))
+            bot.say('{} Effects: {}'.format(render(data['finished']), data['effects']))
             return
 
     bot.say("I couldn't find anything for day {0} :<".format(val))
@@ -408,8 +408,8 @@ def code_command(bot, trigger):
 
     code = AccessCode(code)
 
-    bot.say(u'Access code {}: {}'.format(render(code.name), render(code.message1)))
-    bot.say(u'{} Effects: {}'.format(render(code.message2), code.list_effects()))
+    bot.say('Access code {}: {}'.format(render(code.name), render(code.message1)))
+    bot.say('{} Effects: {}'.format(render(code.message2), code.list_effects()))
 
 def get_snippet(url):
     data = requests.get(url)
@@ -426,13 +426,13 @@ def get_snippet(url):
 def update():
     global codes
     try:
-        with open('/home/alan/fl-utils/revs.dat') as f:
-            old = cPickle.load(f)
+        with open('/home/alan/fl-utils/data/revs.dat', 'rb') as f:
+            old = pickle.load(f)
     except:
         old = {}
     try:
-        with open('/home/alan/fl-utils/codes.dat') as f:
-            codes = cPickle.load(f)
+        with open('/home/alan/fl-utils/data/codes.dat', 'rb') as f:
+            codes = pickle.load(f)
     except:
         codes = {}
 
@@ -442,7 +442,7 @@ def update():
         if 'accesscodes' in value['key']:
             revs[value['key']] = value['value']['rev']
 
-    for row in revs.items():
+    for row in list(revs.items()):
         try:
             if old[row[0]] == row[1]:
                 continue
@@ -453,10 +453,10 @@ def update():
             code = acquire(row[0])
             codes[code['Name'].lower()] = code
 
-    with open('/home/alan/fl-utils/revs.dat', 'w') as f:
-        cPickle.dump(revs, f)
-    with open('/home/alan/fl-utils/codes.dat', 'w') as f:
-        cPickle.dump(codes, f)
+    with open('/home/alan/fl-utils/data/revs.dat', 'wb') as f:
+        pickle.dump(revs, f)
+    with open('/home/alan/fl-utils/data/codes.dat', 'wb') as f:
+        pickle.dump(codes, f)
 
 def first(text,key):
     ecb = AES.new(key, AES.MODE_ECB)
@@ -464,12 +464,12 @@ def first(text,key):
 
 def second(text,key,iv):
     ecb = AES.new(key, AES.MODE_CBC, iv)
-    return ecb.decrypt(b64decode(text))[16:].replace('\x0c','')
+    return ecb.decrypt(b64decode(text))[16:]
 
 def decrypt(text):
     key = 'eyJUaXRsZSI6Ildo'
     iv = b64decode('7ENDyFzB5uxEtjFCpRpj3Q==')
-    return first(text,key)+second(text,key,iv)
+    return (first(text,key)+second(text,key,iv)).decode('utf-8')
 
 def get(id):
     data = requests.get('http://couchbase-fallenlondon.storynexus.com:4984/sync_gateway_json/{0}'.format(id), headers={'Host' : 'couchbase-fallenlondon.storynexus.com:4984', 'User-Agent' : None, 'Accept' : 'multipart/related,  application/json'}).json()
@@ -480,8 +480,8 @@ def clean(s):
     return '{}}}'.format(temp[0])
 
 def acquire(id):
-    print('[advent] acquiring {}'.format(id))
-    return json.loads(unicode(clean(get(id)), 'utf-8'))
+    print(('[advent] acquiring {}'.format(id)))
+    return json.loads(clean(get(id)))
 
 def sub_qualities(string):
     for x in re.findall(r'\[q:(\d+)\]', string):
@@ -492,7 +492,7 @@ class Effect:
     def __init__(self, effect):
         self.raw = effect
         self.quality = Quality(effect['AssociatedQuality']['Id'])
-        self.equip = u'ForceEquip' in effect
+        self.equip = 'ForceEquip' in effect
         try:
             self.amount = effect['Level']
         except:
@@ -521,29 +521,29 @@ class Effect:
             self.priority = 0
     def __repr__(self):
         try:
-            limits = u' if no more than {} and at least {}'.format(self.ceil, self.floor)
+            limits = ' if no more than {} and at least {}'.format(self.ceil, self.floor)
         except:
             try:
-                limits = u' if no more than {}'.format(self.ceil)
+                limits = ' if no more than {}'.format(self.ceil)
             except:
                 try:
-                    limits = u' only if at least {}'.format(self.floor)
+                    limits = ' only if at least {}'.format(self.floor)
                 except:
-                    limits = u''
+                    limits = ''
 
         try:
-            return u'{} (set to {}{})'.format(self.quality.name, self.setTo, limits)
+            return '{} (set to {}{})'.format(self.quality.name, self.setTo, limits)
         except:
             if self.quality.nature == 2 or not self.quality.pyramid:
                 try:
-                    return u'{:+} x {}{}'.format(self.amount, self.quality.name, limits)
+                    return '{:+} x {}{}'.format(self.amount, self.quality.name, limits)
                 except:
-                    return u'{} {}{}'.format('' if self.amount.startswith('-') else u'+' + self.amount, self.quality.name, limits)
+                    return '{} {}{}'.format('' if self.amount.startswith('-') else '+' + self.amount, self.quality.name, limits)
             else:
                 try:
-                    return u'{} ({:+} cp{})'.format(self.quality.name, self.amount, limits)
+                    return '{} ({:+} cp{})'.format(self.quality.name, self.amount, limits)
                 except:
-                    return u'{} ({} cp{})'.format(self.quality.name, u'' if self.amount.startswith('-') else u'' + self.amount, limits)
+                    return '{} ({} cp{})'.format(self.quality.name, '' if self.amount.startswith('-') else '' + self.amount, limits)
 
 class Quality:  #done
     def __init__(self, id):
@@ -556,7 +556,7 @@ class Quality:  #done
             self.nature = jdata['Nature']
         except KeyError:
             self.nature = 1
-        self.pyramid = u'UsePyramidNumbers' in jdata
+        self.pyramid = 'UsePyramidNumbers' in jdata
 
 class AccessCode:
     def __init__(self, jdata):
@@ -564,39 +564,39 @@ class AccessCode:
         try:
             self.name = jdata['Name']
         except:
-            self.name = u'(no name)'
+            self.name = '(no name)'
         try:
             self.message1 = h.unescape(jdata['InitialMessage'])
         except Exception as e:
-            print e
-            self.message1 = u'(no message)'
+            print(e)
+            self.message1 = '(no message)'
         try:
             self.message2 = h.unescape(jdata['CompletedMessage'])
         except Exception as e:
-            print e
-            self.message2 = u'(no message)'
+            print(e)
+            self.message2 = '(no message)'
         self.effects = []
         for e in jdata['QualitiesAffected']:
             self.effects.append(Effect(e))
     def __repr__(self):
-        string = u'Access code name: {}'.format(self.name)
-        string += u'\nInitial message: {}'.format(self.message1)
-        string += u'\nFinish message: {}'.format(self.message2)
-        string += u'\nEffects: {}'.format(self.list_effects())
+        string = 'Access code name: {}'.format(self.name)
+        string += '\nInitial message: {}'.format(self.message1)
+        string += '\nFinish message: {}'.format(self.message2)
+        string += '\nEffects: {}'.format(self.list_effects())
         return string.encode('utf-8')
     def __unicode__(self):
-        string = u'Access code name: {}'.format(self.name)
-        string += u'\nInitial message: {}'.format(self.message1)
-        string += u'\nFinish message: {}'.format(self.message2)
-        string += u'\nEffects: {}'.format(self.list_effects())
+        string = 'Access code name: {}'.format(self.name)
+        string += '\nInitial message: {}'.format(self.message1)
+        string += '\nFinish message: {}'.format(self.message2)
+        string += '\nEffects: {}'.format(self.list_effects())
         return string
     def list_effects(self):
         if self.effects != []:
-            return u'[{}]'.format(u', '.join([unicode(e) for e in self.effects]))
+            return '[{}]'.format(', '.join([str(e) for e in self.effects]))
 
 def render(string):
-    string = re.sub(r'<.{,2}?br.{,2}?>',u' ', string)
-    string = re.sub(r'<.{,2}?[pP].{,2}?>',u' ', string)
+    string = re.sub(r'<.{,2}?br.{,2}?>',' ', string)
+    string = re.sub(r'<.{,2}?[pP].{,2}?>',' ', string)
     string = string.replace('<em>', '\x1d')
     string = string.replace('<i>', '\x1d')
     string = string.replace('</em>', '\x1d')

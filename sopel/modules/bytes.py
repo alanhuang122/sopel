@@ -4,7 +4,7 @@ bytes.py - Byte conversion module for Sopel
 Copyright © 2015, Richard Petrie, <rap1011@ksu.edu>
 Licensed Eiffel Forum License, version 2
 """
-from __future__ import unicode_literals
+
 from sopel.module import commands, example, NOLIMIT
 import re
 
@@ -23,6 +23,9 @@ def do_bytes(bot, trigger):
     Handles input and 'says' the list of conversions
     """
     # Take and parse input
+    if not trigger.group(2):
+        bot.reply("Invalid or missing arguments")
+        return NOLIMIT
     user_input = FIND_INPUT.match(trigger.group(2))
     if not user_input:
         bot.reply("Invalid or missing arguments")

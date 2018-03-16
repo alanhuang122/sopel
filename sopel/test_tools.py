@@ -7,7 +7,7 @@ Licensed under the Eiffel Forum License 2.
 
 https://sopel.chat
 """
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import os
 import re
@@ -15,7 +15,7 @@ import sys
 import tempfile
 
 try:
-    import ConfigParser
+    import configparser
 except ImportError:
     import configparser as ConfigParser
 
@@ -30,7 +30,7 @@ class MockConfig(sopel.config.Config):
         self.filename = tempfile.mkstemp()[1]
         #self._homedir = tempfile.mkdtemp()
         #self.filename = os.path.join(self._homedir, 'test.cfg')
-        self.parser = ConfigParser.RawConfigParser(allow_no_value=True)
+        self.parser = configparser.RawConfigParser(allow_no_value=True)
         self.parser.add_section('core')
         self.parser.set('core', 'owner', 'Embolalia')
         self.define_section('core', sopel.config.core_section.CoreSection)

@@ -5,7 +5,7 @@ Copyright 2015, Andy Chung, iamchung.com
 Licensed under the Eiffel Forum License 2.
 """
 
-from __future__ import unicode_literals
+
 from sopel.module import commands, require_chanmsg
 import sopel
 import random

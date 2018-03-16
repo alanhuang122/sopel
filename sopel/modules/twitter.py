@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import unicode_literals, absolute_import, division, print_function
+
 
 from sopel import module
 from sopel.config.types import StaticSection, ValidatedAttribute, NO_DEFAULT
@@ -29,7 +29,7 @@ def setup(bot):
     client = tweepy.API(auth)
 
 from sopel.tools.time import get_timezone, format_time
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 h = HTMLParser()
 

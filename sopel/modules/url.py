@@ -5,13 +5,13 @@
 # Copyright 2013      Lior Ramati (firerogue517@gmail.com)
 # Copyright © 2014 Elad Alfassa <elad@fedoraproject.org>
 # Licensed under the Eiffel Forum License 2.
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import re, idna
 from sopel import tools
 from sopel.module import commands, rule, example
 from sopel.config.types import ValidatedAttribute, ListAttribute, StaticSection
-from urlparse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse
 
 import requests
 
@@ -138,7 +138,7 @@ def title_auto(bot, trigger):
     bot.memory['last_seen_url'][trigger.sender] = urls[-1]
 
     for title, domain in results[:4]:
-        message = u'[ %s ] - %s' % (title, domain)
+        message = '[ %s ] - %s' % (title, domain)
         # Guard against responding to other instances of this bot.
         if message != trigger:
             bot.say(message)

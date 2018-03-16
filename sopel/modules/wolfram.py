@@ -6,7 +6,7 @@ https://github.com/maxpowa/inumuta-modules/blob/e0b195c4f1e1b788fa77ec2144d39c47
 Updated and packaged for PyPI by dgw (@dgw)
 """
 
-from __future__ import unicode_literals
+
 from sopel.config.types import StaticSection, ChoiceAttribute, ValidatedAttribute
 from sopel.module import commands, example
 from requests.utils import quote

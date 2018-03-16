@@ -37,7 +37,7 @@ morse = {
         '_' : '.-..-.',
         '$' : '...-..-'}
 
-inverse = dict((v,k) for (k,v) in morse.items())
+inverse = dict((v,k) for (k,v) in list(morse.items()))
 
 @commands('encode')
 def encode_command(bot, trigger):

@@ -45,7 +45,7 @@ def results_command(bot, trigger):
     oth = soup.find_all('li', 'ge-sop__party')[-1].contents[3].text.split(None)[0]
     seats['Others'] = int(oth)
 
-    sort = sorted(seats.items(), key=operator.itemgetter(1), reverse=True)
+    sort = sorted(list(seats.items()), key=operator.itemgetter(1), reverse=True)
     message = ''
     for e in sort:
         if e[0] is not 'Others' and e[1] is not 0:
@@ -75,7 +75,7 @@ def alternate_results(bot, trigger):
     URL = 'https://int.nyt.com/newsgraphics/2017/06/uk-election/results-live.json'
     data = requests.get(URL).json()
     message = ''
-    plist = data['summary']['results'].keys()
+    plist = list(data['summary']['results'].keys())
     plist.remove('Others')
     for party in plist:
         po = data['summary']['results'][party]
@@ -86,7 +86,7 @@ def alternate_results(bot, trigger):
             if po['losses'] is None:
                 po['losses'] = 0
             diffs[party] = po['gains'] - po['losses']
-    sorted_x = sorted(seats.items(), key=operator.itemgetter(1), reverse=True)
+    sorted_x = sorted(list(seats.items()), key=operator.itemgetter(1), reverse=True)
     for e in sorted_x:
         if e[0] in parties:
             if diffs[e[0]] > 0:

@@ -4,8 +4,8 @@
 TODO: Most of these tests assume functionality tested in other tests. This is
 enough to get everything working (and is better than nothing), but best
 practice would probably be not to do that."""
-from __future__ import unicode_literals
-from __future__ import absolute_import
+
+
 
 import json
 import os
@@ -21,8 +21,8 @@ from sopel.tools import Identifier
 
 db_filename = tempfile.mkstemp()[1]
 if sys.version_info.major >= 3:
-    unicode = str
-    basestring = str
+    str = str
+    str = str
     iteritems = dict.items
     itervalues = dict.values
     iterkeys = dict.keys
@@ -122,7 +122,7 @@ def test_set_nick_value(db):
                 'SELECT value FROM nick_values WHERE nick_id = ? AND key = ?',
                 [nick_id, key]
             ).fetchone()[0]
-            assert json.loads(unicode(found_value)) == value
+            assert json.loads(str(found_value)) == value
     check()
 
     # Test updates
@@ -221,7 +221,7 @@ def test_merge_nick_groups(db):
         found = conn.execute(
             'SELECT value FROM nick_values WHERE nick_id = ? AND key = ?',
             [nick_id, key]).fetchone()[0]
-        assert json.loads(unicode(found)) == value
+        assert json.loads(str(found)) == value
 
 
 def test_set_channel_value(db):

@@ -4,7 +4,7 @@
 # Copyright © 2013, Elad Alfassa <elad@fedoraproject.org>
 # Licensed under the Eiffel Forum License 2.
 
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import pygeoip
 import socket
@@ -13,7 +13,7 @@ import gzip
 
 urlretrieve = None
 try:
-    from urllib import urlretrieve
+    from urllib.request import urlretrieve
 except ImportError:
     try:
         # urlretrieve has been put under urllib.request in Python 3.

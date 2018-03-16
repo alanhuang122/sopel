@@ -5,10 +5,10 @@
 """
 # Copyright 2014, Elsie Powell, embolalia.com
 # Licensed under the Eiffel Forum License 2.
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 import sys
 if sys.version_info.major >= 3:
-    unicode = str
+    str = str
 
 # Color names are as specified at https://www.mirc.com/colors.html
 
@@ -67,7 +67,7 @@ def _get_color(color):
     if isinstance(color, int):
         if color > 99:
             raise ValueError('Can not specify a color above 99.')
-        return unicode(color).rjust(2, '0')
+        return str(color).rjust(2, '0')
 
     # You can also pass the name of the color
     color_name = color.upper()

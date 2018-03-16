@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import unicode_literals, division, print_function, absolute_import
+
 
 import os
 import tempfile
@@ -33,4 +33,4 @@ class ConfigFunctionalTest(unittest.TestCase):
 
     def test_validated_string_when_none(self):
         self.config.fake.attr = None
-        self.assertEquals(self.config.fake.attr, None)
+        self.assertEqual(self.config.fake.attr, None)

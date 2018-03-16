@@ -5,7 +5,7 @@
 #
 # Licensed under the Eiffel Forum License 2.
 
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import collections
 import os
@@ -28,8 +28,8 @@ import sopel.loader
 LOGGER = get_logger(__name__)
 
 if sys.version_info.major >= 3:
-    unicode = str
-    basestring = str
+    str = str
+    str = str
     py3 = True
 else:
     py3 = False
@@ -253,7 +253,7 @@ class Sopel(irc.Bot):
                 # it should work yet, so not making it public for 6.0.
                 category = getattr(callbl, 'category', module_name)
                 self._command_groups[category].append(callbl.commands[0])
-            for command, docs in callbl._docs.items():
+            for command, docs in list(callbl._docs.items()):
                 self.doc[command] = docs
         for func in jobs:
             for interval in func.interval:
@@ -310,7 +310,7 @@ class Sopel(irc.Bot):
         # hostmask, which is hard.
         max_text_length = 400
         # Encode to bytes, for propper length calculation
-        if isinstance(text, unicode):
+        if isinstance(text, str):
             encoded_text = text.encode('utf-8')
         else:
             encoded_text = text
@@ -527,7 +527,7 @@ class Sopel(irc.Bot):
 
         list_of_blocked_functions = []
         for priority in ('high', 'medium', 'low'):
-            items = self._callables[priority].items()
+            items = list(self._callables[priority].items())
 
             for regexp, funcs in items:
                 match = regexp.match(text)

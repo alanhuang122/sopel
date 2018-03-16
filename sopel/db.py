@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import json
 import os.path
@@ -9,8 +9,8 @@ import sqlite3
 from sopel.tools import Identifier
 
 if sys.version_info.major >= 3:
-    unicode = str
-    basestring = str
+    str = str
+    str = str
 
 
 def _deserialize(value):
@@ -18,7 +18,7 @@ def _deserialize(value):
         return None
     # sqlite likes to return ints for strings that look like ints, even though
     # the column type is string. That's how you do dynamic typing wrong.
-    value = unicode(value)
+    value = str(value)
     # Just in case someone's mucking with the DB in a way we can't account for,
     # ignore json parsing errors
     try:

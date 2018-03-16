@@ -1,6 +1,6 @@
 # coding=utf-8
 """Tests for message parsing"""
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import re
 import pytest

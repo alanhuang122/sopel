@@ -2,7 +2,7 @@
 # Copyright 2008-9, Sean B. Palmer, inamidst.com
 # Copyright 2012, Elsie Powell, embolalia.com
 # Licensed under the Eiffel Forum License 2.
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import re
 import requests
@@ -14,7 +14,7 @@ import sys
 from sopel.modules.url import find_title
 
 if sys.version_info.major < 3:
-    from urllib import quote_plus
+    from urllib.parse import quote_plus
 else:
     from urllib.parse import quote_plus
 
@@ -31,11 +31,11 @@ def setup(bot):
 def entity(match):
     value = match.group(1).lower()
     if value.startswith('#x'):
-        return unichr(int(value[2:], 16))
+        return chr(int(value[2:], 16))
     elif value.startswith('#'):
-        return unichr(int(value[1:]))
+        return chr(int(value[1:]))
     elif value in name2codepoint:
-        return unichr(name2codepoint[value])
+        return chr(name2codepoint[value])
     return '[' + value + ']'
 
 

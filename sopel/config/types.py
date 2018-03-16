@@ -24,7 +24,7 @@ As an example, if one wanted to define the ``[spam]`` section as having an
     ValueError: ListAttribute value must be a list.
 """
 
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 import os.path
 import sys
 from sopel.tools import get_input
@@ -32,11 +32,11 @@ from sopel.tools import get_input
 try:
     import configparser
 except ImportError:
-    import ConfigParser as configparser
+    import configparser as configparser
 
 if sys.version_info.major >= 3:
-    unicode = str
-    basestring = (str, bytes)
+    str = str
+    str = (str, bytes)
 
 
 class NO_DEFAULT(object):
@@ -169,7 +169,7 @@ class BaseValidated(object):
 def _parse_boolean(value):
     if value is True or value == 1:
         return value
-    if isinstance(value, basestring):
+    if isinstance(value, str):
         return value.lower() in ['1', 'yes', 'y', 'true', 'on']
     return bool(value)
 
@@ -197,7 +197,7 @@ class ValidatedAttribute(BaseValidated):
         self.default = default
 
     def serialize(self, value):
-        return unicode(value)
+        return str(value)
 
     def parse(self, value):
         return value

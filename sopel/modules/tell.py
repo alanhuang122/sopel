@@ -6,7 +6,7 @@ Licensed under the Eiffel Forum License 2.
 
 https://sopel.chat
 """
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import os
 import time
@@ -181,5 +181,5 @@ def message(bot, trigger):
         for line in reminders[maximum:]:
             bot.msg(tellee, line)
 
-    if len(bot.memory['reminders'].keys()) != remkeys:
+    if len(list(bot.memory['reminders'].keys())) != remkeys:
         dumpReminders(bot.tell_filename, bot.memory['reminders'], bot.memory['tell_lock'])  # @@ tell

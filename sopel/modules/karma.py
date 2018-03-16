@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 from sopel.module import commands, example, NOLIMIT, rule, require_chanmsg
 
 @require_chanmsg(message='Sorry, because of recent abuse, changing karma is not allowed in PMs.')

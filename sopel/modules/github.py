@@ -1,6 +1,6 @@
 # coding=utf8
 
-from __future__ import unicode_literals
+
 from sopel.module import commands, rule, NOLIMIT
 from sopel.tools.time import get_timezone, format_time
 

@@ -1,6 +1,6 @@
 # coding=utf8
 """Tests for message formatting"""
-from __future__ import unicode_literals
+
 
 import pytest
 

@@ -21,4 +21,4 @@ def kickstarter_command(bot, trigger):
     num = float(parts[0][1:].replace(',',''))
     den = float(parts[1][1:].replace(',',''))
     percent = round(num*100/den, 2)
-    bot.say(u'{} has earned {} out of its goal of {} ({}% funded)'.format(title, parts[0], parts[1], percent))
+    bot.say('{} has earned {} out of its goal of {} ({}% funded)'.format(title, parts[0], parts[1], percent))

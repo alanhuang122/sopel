@@ -8,7 +8,7 @@
 #
 # When working on core IRC protocol related features, consult protocol
 # documentation at http://www.irchelp.org/irchelp/rfc/
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import sys
 import time
@@ -37,7 +37,7 @@ import errno
 import threading
 from datetime import datetime
 if sys.version_info.major >= 3:
-    unicode = str
+    str = str
 
 LOGGER = get_logger(__name__)
 
@@ -103,7 +103,7 @@ class Bot(asynchat.async_chat):
                 os._exit(1)
         f = codecs.open(os.path.join(self.config.core.logdir, 'raw.log'),
                         'a', encoding='utf-8')
-        f.write(prefix + unicode(time.time()) + "\t")
+        f.write(prefix + str(time.time()) + "\t")
         temp = line.replace('\n', '')
 
         f.write(temp)
@@ -115,8 +115,8 @@ class Bot(asynchat.async_chat):
         if sys.version_info.major >= 3 and isinstance(string, bytes):
                 string = string.decode('utf8')
         elif sys.version_info.major < 3:
-            if not isinstance(string, unicode):
-                string = unicode(string, encoding='utf8')
+            if not isinstance(string, str):
+                string = str(string, encoding='utf8')
         string = string.replace('\n', '')
         string = string.replace('\r', '')
         return string
@@ -295,15 +295,15 @@ class Bot(asynchat.async_chat):
     def collect_incoming_data(self, data):
         # We can't trust clients to pass valid unicode.
         try:
-            data = unicode(data, encoding='utf-8')
+            data = str(data, encoding='utf-8')
         except UnicodeDecodeError:
             # not unicode, let's try cp1252
             try:
-                data = unicode(data, encoding='cp1252')
+                data = str(data, encoding='cp1252')
             except UnicodeDecodeError:
                 # Okay, let's try ISO8859-1
                 try:
-                    data = unicode(data, encoding='iso8859-1')
+                    data = str(data, encoding='iso8859-1')
                 except:
                     # Discard line if encoding is unknown
                     return

@@ -1,7 +1,7 @@
 # coding=utf-8
 # Copyright 2013 Elsie Powell - embolalia.com
 # Licensed under the Eiffel Forum License 2.
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 import requests
 from sopel import tools
 from sopel.config.types import StaticSection, ValidatedAttribute
@@ -12,7 +12,7 @@ import bs4
 
 import sys
 if sys.version_info.major < 3:
-    from urlparse import unquote as _unquote
+    from urllib.parse import unquote as _unquote
     unquote = lambda s: _unquote(s.encode('utf-8')).decode('utf-8')
 else:
     from urllib.parse import unquote
@@ -87,7 +87,7 @@ def say_section(bot, server, query, section):
     snippet = mw_section(bot, server, query, section)
     if snippet is None:
         return
-    msg = u'[WIKIPEDIA] {0} - {1} | {2}'.format(page_name, section, snippet)
+    msg = '[WIKIPEDIA] {0} - {1} | {2}'.format(page_name, section, snippet)
     bot.say(msg)
 
 

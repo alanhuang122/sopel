@@ -1,7 +1,7 @@
 # 2016.12.24 03:29:54 CST
 #Embedded file name: modules/courses.py
 from sopel.module import commands, example
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 
 def chunkstring(string, length):
@@ -16,7 +16,7 @@ def course_command(bot, trigger):
     course = course.replace(' ', '')
     course = course.lower()
     url = 'https://catalog.utdallas.edu/2016/undergraduate/courses/{}'.format(course)
-    data = urllib2.urlopen(url)
+    data = urllib.request.urlopen(url)
     string = None
     for line in data:
         if re.search('(<span.+)', line) is not None:

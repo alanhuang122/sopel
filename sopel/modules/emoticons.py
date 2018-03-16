@@ -6,16 +6,13 @@ import json
 from random import randint, choice
 import operator
 import re
-def setup(bot):
-    global stats
-    stats = json.load(open('/home/alan/.sopel/stats'))
-    unicode_chars = ''.join(map(unichr, range(0,32) + range(127,160)))
-    global regex
-    regex = re.compile('[%s]' % re.escape(unicode_chars))
+
+stats = json.load(open('/home/alan/.sopel/stats', 'rb'))
+unicode_chars = ''.join(map(chr, list(range(0,32)) + list(range(127,160))))
+regex = re.compile('[%s]' % re.escape(unicode_chars))
 
 def clean(s):
     return regex.sub('',s)
-
 
 def save():
     f = open('/home/alan/.sopel/stats', 'w')
@@ -23,20 +20,19 @@ def save():
     f.close()
     return
 
-
 @commands('estats')
 def stats_command(bot, trigger):
     if not trigger.group(2):
-        slist = sorted(stats.items(), key=operator.itemgetter(1),reverse=True)
-        msg = u'Top 5 emotes used: '
+        slist = sorted(list(stats.items()), key=operator.itemgetter(1),reverse=True)
+        msg = 'Top 5 emotes used: '
         for i in range(5):
             msg += '{0}: {1}, '.format(slist[i][0],slist[i][1])
         msg = msg[:-2]
         bot.say(msg)
     elif trigger.group(2).strip() in stats:
-        bot.say(u'{0} has been used {1} times.'.format(trigger.group(2).strip(), stats[trigger.group(2).strip()]))
+        bot.say('{0} has been used {1} times.'.format(trigger.group(2).strip(), stats[trigger.group(2).strip()]))
     else:
-        bot.say(u'Stats not found.')
+        bot.say('Stats not found.')
     stats['stats'] += 1
     save()
     return
@@ -45,9 +41,9 @@ def stats_command(bot, trigger):
 @commands('stare')
 def stare_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: ಠ_ಠ'.format(trigger.nick))
+        bot.say('{0}: ಠ_ಠ'.format(trigger.nick))
     else:
-        bot.say(u'{0}: ಠ_ಠ'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ಠ_ಠ'.format(clean(trigger.group(2).strip())))
     stats['stare'] += 1
     save()
     return
@@ -56,9 +52,9 @@ def stare_command(bot, trigger):
 @commands('lenny')
 def lenny_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: ( ͡° ͜ʖ ͡°)'.format(trigger.nick))
+        bot.say('{0}: ( ͡° ͜ʖ ͡°)'.format(trigger.nick))
     else:
-        bot.say(u'{0}: ( ͡° ͜ʖ ͡°)'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ( ͡° ͜ʖ ͡°)'.format(clean(trigger.group(2).strip())))
     stats['lenny'] += 1
     save()
     return
@@ -66,9 +62,9 @@ def lenny_command(bot, trigger):
 @commands('shrug')
 def shrug_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: ¯\\_(ツ)_/¯'.format(trigger.nick))
+        bot.say('{0}: ¯\\_(ツ)_/¯'.format(trigger.nick))
     else:
-        bot.say(u'{0}: ¯\\_(ツ)_/¯'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ¯\\_(ツ)_/¯'.format(clean(trigger.group(2).strip())))
     stats['shrug'] += 1
     save()
     return
@@ -76,9 +72,9 @@ def shrug_command(bot, trigger):
 @commands('bear')
 def bear_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: ʕ•ᴥ•ʔ'.format(trigger.nick))
+        bot.say('{0}: ʕ•ᴥ•ʔ'.format(trigger.nick))
     else:
-        bot.say(u'{0}: ʕ•ᴥ•ʔ'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ʕ•ᴥ•ʔ'.format(clean(trigger.group(2).strip())))
     stats['bear'] += 1
     save()
     return
@@ -86,9 +82,9 @@ def bear_command(bot, trigger):
 @commands('table')
 def table_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: (╯°□°)╯︵ ┻━┻'.format(trigger.nick))
+        bot.say('{0}: (╯°□°)╯︵ ┻━┻'.format(trigger.nick))
     else:
-        bot.say(u'{0}: (╯°□°)╯︵ ┻━┻'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: (╯°□°)╯︵ ┻━┻'.format(clean(trigger.group(2).strip())))
     stats['table'] += 1
     save()
     return
@@ -96,9 +92,9 @@ def table_command(bot, trigger):
 @commands('replace')
 def replace_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: ┬─┬ ノ( ゜-゜ノ)'.format(trigger.nick))
+        bot.say('{0}: ┬─┬ ノ( ゜-゜ノ)'.format(trigger.nick))
     else:
-        bot.say(u'{0}: ┬─┬ ノ( ゜-゜ノ)'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ┬─┬ ノ( ゜-゜ノ)'.format(clean(trigger.group(2).strip())))
     stats['replace'] += 1
     save()
     return
@@ -106,9 +102,9 @@ def replace_command(bot, trigger):
 @commands('angry')
 def angry_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: (ノಠ益ಠ)ノ彡┻━┻'.format(trigger.nick))
+        bot.say('{0}: (ノಠ益ಠ)ノ彡┻━┻'.format(trigger.nick))
     else:
-        bot.say(u'{0}: (ノಠ益ಠ)ノ彡┻━┻'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: (ノಠ益ಠ)ノ彡┻━┻'.format(clean(trigger.group(2).strip())))
     stats['angry'] += 1
     save()
     return
@@ -116,14 +112,14 @@ def angry_command(bot, trigger):
 @commands('defenestrate')
 def throw_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'Who am I defenestrating?')
+        bot.say('Who am I defenestrating?')
     elif clean(trigger.group(2).strip()) == bot.nick:
-        bot.say(u'Nuh-uh! D:')
+        bot.say('Nuh-uh! D:')
     elif clean(trigger.group(2).strip()) == trigger.nick:
-        bot.say(u'| ︵(/°□°)/ <- {0}'.format(trigger.nick))
+        bot.say('| ︵(/°□°)/ <- {0}'.format(trigger.nick))
         stats['autodefenestrate'] += 1
     else:
-        bot.say(u'{0}:  （╯°□°）╯︵| (\\ .o.)\\'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}:  （╯°□°）╯︵| (\\ .o.)\\'.format(clean(trigger.group(2).strip())))
         stats['defenestrate'] += 1
     save()
     return
@@ -131,19 +127,19 @@ def throw_command(bot, trigger):
 @commands('autodefenestrate')
 def throwing_command(bot, trigger):
     if not trigger.group(2) or clean(trigger.group(2).strip()) == trigger.nick:
-        bot.say(u'| ︵(/°□°)/ <- {0}'.format(trigger.nick))
+        bot.say('| ︵(/°□°)/ <- {0}'.format(trigger.nick))
         stats['autodefenestrate'] += 1
     else:
-        bot.say(u'No autodefestrating others! >:c')
+        bot.say('No autodefestrating others! >:c')
     save()
     return
 
 @commands('rat')
 def rat_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: <:3D~'.format(trigger.nick))
+        bot.say('{0}: <:3D~'.format(trigger.nick))
     else:
-        bot.say(u'{0}: <:3D~'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: <:3D~'.format(clean(trigger.group(2).strip())))
     stats['rat'] += 1
     save()
     return
@@ -151,23 +147,23 @@ def rat_command(bot, trigger):
 @commands('wink')
 def wink_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: ( ͡~ ͜ʖ ͡°)'.format(trigger.nick))
+        bot.say('{0}: ( ͡~ ͜ʖ ͡°)'.format(trigger.nick))
     else:
-        bot.say(u'{0}: ( ͡~ ͜ʖ ͡°)'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ( ͡~ ͜ʖ ͡°)'.format(clean(trigger.group(2).strip())))
     stats['wink'] += 1
     save()
     return
 
 @commands('utd')
 def whoosh_command(bot, trigger):
-    bot.say(u'WHOOOOOOOOOOSH o/')
+    bot.say('WHOOOOOOOOOOSH o/')
     stats['utd'] += 1
     save()
     return
 
 @commands('dev', 'developers')
 def devs_command(bot, trigger):
-    bot.say(u'DEVELOPERS DEVELOPERS DEVELOPERS DEVELOPERS')
+    bot.say('DEVELOPERS DEVELOPERS DEVELOPERS DEVELOPERS')
     stats['dev'] += 1
     save()
     return
@@ -185,9 +181,9 @@ def poke_command(bot, trigger):
 @commands('fight')
 def fight_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: (งಠ_ಠ)ง'.format(trigger.nick))
+        bot.say('{0}: (งಠ_ಠ)ง'.format(trigger.nick))
     else:
-        bot.say(u'{0}: (งಠ_ಠ)ง'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: (งಠ_ಠ)ง'.format(clean(trigger.group(2).strip())))
     stats['fight'] += 1
     save()
     return
@@ -195,13 +191,13 @@ def fight_command(bot, trigger):
 @commands('flower')
 def flower_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: (◕◡◕)ノ✿'.format(trigger.nick))
+        bot.say('{0}: (◕◡◕)ノ✿'.format(trigger.nick))
     elif 'alan' in trigger.group(2).lower() and 'salaxalans' not in trigger.group(2).lower():
         return
     elif bot.nick.lower() in trigger.group(2).lower():
-        bot.say(u'(◕◡◕✿)')
+        bot.say('(◕◡◕✿)')
     else:
-        bot.say(u'{0}: (◕◡◕)ノ✿'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: (◕◡◕)ノ✿'.format(clean(trigger.group(2).strip())))
     stats['flower'] += 1
     save()
     return
@@ -209,11 +205,11 @@ def flower_command(bot, trigger):
 @commands('pretty')
 def pretty_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: (◕◡◕✿)'.format(trigger.nick))
+        bot.say('{0}: (◕◡◕✿)'.format(trigger.nick))
     elif 'alan' in trigger.group(2).lower() and 'salaxalans' not in trigger.group(2).lower():
         return
     else:
-        bot.say(u'{0}: (◕◡◕✿)'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: (◕◡◕✿)'.format(clean(trigger.group(2).strip())))
     stats['pretty'] += 1
     save()
     return
@@ -221,9 +217,9 @@ def pretty_command(bot, trigger):
 @commands('party')
 def party_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(u'{0}: ♪＼(*＾▽＾*)／＼(*＾▽＾*)／'.format(trigger.nick))
+        bot.say('{0}: ♪＼(*＾▽＾*)／＼(*＾▽＾*)／'.format(trigger.nick))
     else:
-        bot.say(u'{0}: ♪＼(*＾▽＾*)／＼(*＾▽＾*)／'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ♪＼(*＾▽＾*)／＼(*＾▽＾*)／'.format(clean(trigger.group(2).strip())))
     stats['party'] += 1
     save()
     return
@@ -232,12 +228,12 @@ def party_command(bot, trigger):
 def explain_command(bot, trigger):
 
     if trigger.nick == 'phy1729' or trigger.nick == 'Alan':
-        bot.reply(u'because fuck you, that\'s why')
+        bot.reply('because fuck you, that\'s why')
     else:
         if randint(1,5) == 1:
             bot.say("THERE IS AS YET INSUFFICIENT DATA FOR A MEANINGFUL ANSWER")
         else:
-            bot.reply(u'because fuck you, that\'s why')
+            bot.reply('because fuck you, that\'s why')
     stats['why'] += 1
     save()
     return
@@ -245,9 +241,9 @@ def explain_command(bot, trigger):
 @commands('tentacle')
 def tentacle_command(bot, trigger):
     if not trigger.group(2):
-        bot.reply(u'~~~~~~~~~ （╯°□°）╯')
+        bot.reply('~~~~~~~~~ （╯°□°）╯')
     else:
-        bot.say(u'{0}: ~~~~~~~~~ （╯°□°）╯'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ~~~~~~~~~ （╯°□°）╯'.format(clean(trigger.group(2).strip())))
     stats['tentacle'] += 1
     save()
     return
@@ -266,9 +262,9 @@ def dance_command(bot, trigger):
 @commands('tem', 'temmie')
 def hoi_command(bot, trigger):
     if not trigger.group(2):
-        bot.reply(u'hOI!!!!!')
+        bot.reply('hOI!!!!!')
     else:
-        bot.say(u'{0}: hOI!!!!!'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: hOI!!!!!'.format(clean(trigger.group(2).strip())))
     stats['tem'] += 1
     stats['temmie'] += 1
     save()
@@ -277,9 +273,9 @@ def hoi_command(bot, trigger):
 @commands('finger')
 def finger_command(bot, trigger):
     if not trigger.group(2):
-        bot.reply(u'(☞ﾟヮﾟ)☞')
+        bot.reply('(☞ﾟヮﾟ)☞')
     else:
-        bot.say(u'{0}: (☞ﾟヮﾟ)☞'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: (☞ﾟヮﾟ)☞'.format(clean(trigger.group(2).strip())))
     if 'finger' not in stats:
         stats['finger'] = 0
     stats['finger'] += 1
@@ -288,7 +284,7 @@ def finger_command(bot, trigger):
 
 @commands('wonk')
 def wonk_command(bot, trigger):
-    bot.say(u':O')
+    bot.say(':O')
     if 'wonk' not in stats:
         stats['wonk'] = 0
     stats['wonk'] += 1
@@ -297,7 +293,7 @@ def wonk_command(bot, trigger):
 
 @commands('wank')
 def wank_command(bot, trigger):
-    bot.say(u'Ewwww...')
+    bot.say('Ewwww...')
     if 'wank' not in stats:
         stats['wank'] = 0
     stats['wank'] += 1
@@ -318,9 +314,9 @@ def treat_command(bot, trigger):
 @commands('praise')
 def praise_command(bot, trigger):
     if not trigger.group(2):
-        bot.reply(u'\[T]/ \[T]/')
+        bot.reply('\[T]/ \[T]/')
     else:
-        bot.say(u'{0}: \[T]/ \[T]/'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: \[T]/ \[T]/'.format(clean(trigger.group(2).strip())))
     if 'praise' not in stats:
         stats['praise'] = 0
     stats['praise'] += 1
@@ -330,9 +326,9 @@ def praise_command(bot, trigger):
 @commands('hf')
 def five_command(bot, trigger):
     if not trigger.group(2):
-        bot.reply(u'ヘ( ^o^)ノ＼(^_^ )')
+        bot.reply('ヘ( ^o^)ノ＼(^_^ )')
     else:
-        bot.say(u'{0}: ヘ( ^o^)ノ＼(^_^ )'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ヘ( ^o^)ノ＼(^_^ )'.format(clean(trigger.group(2).strip())))
     if 'hf' not in stats:
         stats['hf'] = 0
     stats['hf'] += 1
@@ -342,9 +338,9 @@ def five_command(bot, trigger):
 @commands('eldritchstare')
 def eld_stare_command(bot, trigger):
     if not trigger.group(2):
-        bot.reply(u'ꙮ_ꙮ')
+        bot.reply('ꙮ_ꙮ')
     else:
-        bot.say(u'{0}: ꙮ_ꙮ'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: ꙮ_ꙮ'.format(clean(trigger.group(2).strip())))
     if 'eldritchstare' not in stats:
         stats['eldritchstare'] = 0
     stats['eldritchstare'] += 1

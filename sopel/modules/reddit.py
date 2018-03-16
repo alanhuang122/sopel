@@ -1,6 +1,6 @@
 # coding=utf-8
 # Author: Elsie Powell, embolalia.com
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 from sopel.module import commands, rule, example, require_chanmsg, NOLIMIT, OP
 from sopel.formatting import bold, color, colors
@@ -11,14 +11,14 @@ import praw
 import re
 import sys
 if sys.version_info.major >= 3:
-    unicode = str
+    str = str
     if sys.version_info.minor >= 4:
         from html import unescape
     else:
         from html.parser import HTMLParser
         unescape = HTMLParser().unescape
 else:
-    from HTMLParser import HTMLParser
+    from html.parser import HTMLParser
     unescape = HTMLParser().unescape
 
 
@@ -95,7 +95,7 @@ def rpost_info(bot, trigger, match=None):
     else:
         point_color = colors.RED
 
-    percent = color(unicode(s.upvote_ratio * 100) + '%', point_color)
+    percent = color(str(s.upvote_ratio * 100) + '%', point_color)
 
     title = unescape(s.title)
     message = message.format(

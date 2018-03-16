@@ -2,8 +2,8 @@
 #coding: latin-1
 
 from sopel.module import commands
-import urllib2, json, re, requests, idna
-from urlparse import urlparse, urlunparse
+import urllib.request, urllib.error, urllib.parse, json, re, requests, idna
+from urllib.parse import urlparse, urlunparse
 import lxml.html
 from ftfy import fix_encoding
 
@@ -72,8 +72,8 @@ def process_urls(bot, trigger, urls):
             title = find_title(url, verify=bot.config.core.verify_ssl)
             if title:
                 
-                req = urllib2.Request('https://www.googleapis.com/urlshortener/v1/url?key={0}'.format(bot.config.google.api_key),'{{"longUrl": "{0}"}}'.format(url), {'Content-Type' : 'application/json'})
-                data = urllib2.urlopen(req)
+                req = urllib.request.Request('https://www.googleapis.com/urlshortener/v1/url?key={0}'.format(bot.config.google.api_key),'{{"longUrl": "{0}"}}'.format(url).encode('utf-8'), {'Content-Type' : 'application/json'})
+                data = urllib.request.urlopen(req)
                 response = json.load(data)
                 if 'error' in response:
                     bot.say(response['message'])
@@ -90,24 +90,24 @@ def find_title(url, verify=True):
         response = requests.get(url, verify=verify, headers={'User-Agent': user_agent, 'Accept': 'text/html'})
     except requests.exceptions.ConnectionError as e:
         if '[Errno -2]' in str(e):  #name or service not known
-            print('[url] name or service not known: {}'.format(url))
+            print(('[url] name or service not known: {}'.format(url)))
             return None
         if '[Errno 111]' in str(e): #connection refused
-            print('[url] connection refused: {}'.format(url))
+            print(('[url] connection refused: {}'.format(url)))
             return None
         raise e
     except requests.exceptions.ReadTimeout:
-        print('[url] connection timed out: {}'.format(url))
+        print(('[url] connection timed out: {}'.format(url)))
         return None
     if 'text/plain' in response.headers['Content-Type']:
-        print('Content-Type for url {} is text/plain; skipping'.format(url))
+        print(('Content-Type for url {} is text/plain; skipping'.format(url)))
         return None
     try:
         t = lxml.html.fromstring(fix_encoding(response.text))
         return t.find(".//title").text.strip()
     except Exception as e:
-        print('exception on url {}'.format(url))
-        print('[url] {}'.format(e))
+        print(('exception on url {}'.format(url)))
+        print(('[url] {}'.format(e)))
         return None
 
 r_entity = re.compile(r'&([^;\s]+);')
@@ -115,11 +115,11 @@ r_entity = re.compile(r'&([^;\s]+);')
 def entity(match):
     value = match.group(1).lower()
     if value.startswith('#x'):
-        return unichr(int(value[2:], 16))
+        return chr(int(value[2:], 16))
     elif value.startswith('#'):
-        return unichr(int(value[1:]))
+        return chr(int(value[1:]))
     elif value in name2codepoint:
-        return unichr(name2codepoint[value])
+        return chr(name2codepoint[value])
     return '[' + value + ']'
 
 def decode(html):

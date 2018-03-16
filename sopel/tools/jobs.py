@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import copy
 import datetime
@@ -8,14 +8,14 @@ import threading
 import time
 
 if sys.version_info.major >= 3:
-    unicode = str
-    basestring = str
+    str = str
+    str = str
     py3 = True
 else:
     py3 = False
 
 try:
-    import Queue
+    import queue
 except ImportError:
     import queue as Queue
 
@@ -32,7 +32,7 @@ class released(object):
         self.lock.acquire()
 
 
-class PriorityQueue(Queue.PriorityQueue):
+class PriorityQueue(queue.PriorityQueue):
     """A priority queue with a peek method."""
     def peek(self):
         """Return a copy of the first element without removing it."""
@@ -129,7 +129,7 @@ class JobScheduler(threading.Thread):
                     t.start()
                 else:
                     self._call(job.func)
-                job.next()
+                next(job)
             # If jobs were cleared during the call, don't put an old job
             # into the new job queue.
             if not self._cleared:
@@ -179,7 +179,7 @@ class Job(object):
         self.interval = interval
         self.func = func
 
-    def next(self):
+    def __next__(self):
         """Update self.next_time with the assumption func was just called.
 
         Returns: A modified job object.

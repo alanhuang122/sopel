@@ -9,11 +9,11 @@ cur_rate = None
 
 def setup(bot):
     global cur_rate
-    meltfile = open('/home/alan/fl-utils/rates.txt')
+    meltfile = open('/home/alan/fl-utils/data/rates.txt')
     lines = meltfile.readlines()
     meltfile.close()
     cur_rate = lines[-1].strip().split(None, 1)
-    print('[melt] cur_rate init to {}'.format(cur_rate))
+    print(('[melt] cur_rate init to {}'.format(cur_rate)))
 
 def first(text,key):
     ecb = AES.new(key, AES.MODE_ECB)
@@ -21,12 +21,12 @@ def first(text,key):
 
 def second(text,key,iv):
     ecb = AES.new(key, AES.MODE_CBC, iv)
-    return ecb.decrypt(b64decode(text))[16:].replace('\x0c','')
+    return ecb.decrypt(b64decode(text))[16:]
 
 def decrypt(text):
     key = 'eyJUaXRsZSI6Ildo'
     iv = b64decode('7ENDyFzB5uxEtjFCpRpj3Q==')
-    return first(text,key)+second(text,key,iv)
+    return (first(text,key)+second(text,key,iv)).decode('utf-8')
 
 def get(id):
     data = requests.get('http://couchbase-fallenlondon.storynexus.com:4984/sync_gateway_json/{}'.format(id), headers={'Host': 'couchbase-fallenlondon.storynexus.com:4984', 'User-Agent': None, 'Accept-Encoding': None, 'Connection': None}).json()
@@ -37,7 +37,7 @@ def clean(s):
     return '{}}}'.format(temp[0])
 
 def acquire(id):
-    return json.loads(unicode(clean(get(id)), 'utf-8'))
+    return json.loads(clean(get(id)))
 
 def get_rate():
     j = acquire('livingstories:142')
@@ -53,16 +53,16 @@ def get_costs():
             requirements = b['QualitiesRequired']
             for r in requirements:
                 costs.append(Requirement(r))
-            return u'[{}]'.format(u', '.join([unicode(r) for r in costs]))
+            return '[{}]'.format(', '.join([str(r) for r in costs]))
 
 class Quality:
     def __init__(self, jdata):
-        self.name = jdata.get('Name', u'(no name)')
-        self.test_type = u'Narrow' if u'DifficultyTestType' in jdata else u'Broad'
+        self.name = jdata.get('Name', '(no name)')
+        self.test_type = 'Narrow' if 'DifficultyTestType' in jdata else 'Broad'
 
     @classmethod
     def get(self, id):
-        key = u'qualities:{}'.format(id)
+        key = 'qualities:{}'.format(id)
         data = acquire(key)
         return Quality(data)
 
@@ -91,34 +91,34 @@ class Requirement:
                 self.difficulty = sub_qualities(jdata['DifficultyAdvanced'])
             except KeyError:
                 pass
-        if hasattr(self, u'difficulty'):
-            self.type = u'Challenge'
+        if hasattr(self, 'difficulty'):
+            self.type = 'Challenge'
             self.test_type = self.quality.test_type
         else:
-            self.type = u'Requirement'
+            self.type = 'Requirement'
         assert jdata.get('BranchVisibleWhenRequirementFailed') == jdata.get('VisibleWhenRequirementFailed')
         self.visibility = jdata.get('BranchVisibleWhenRequirementFailed', False)
 
     def __repr__(self):
-        string = u''
+        string = ''
         if not self.visibility:
-            string += u'[Branch hidden if failed] '
-        if self.type == u'Challenge':
+            string += '[Branch hidden if failed] '
+        if self.type == 'Challenge':
             if self.quality.id == 432:
-                string += u'Luck: {}% chance'.format(50 - self.difficulty * 10)
+                string += 'Luck: {}% chance'.format(50 - self.difficulty * 10)
             else:
-                string += u'{} {}: {} {}'.format(self.test_type, self.type, self.quality.name, self.difficulty)
+                string += '{} {}: {} {}'.format(self.test_type, self.type, self.quality.name, self.difficulty)
         else:
             try:
                 if self.lower_bound == self.upper_bound:
-                    string += u'{} exactly {}'.format(self.quality.name, self.lower_bound)
+                    string += '{} exactly {}'.format(self.quality.name, self.lower_bound)
                 else:
-                    string += u'{} [{}-{}]'.format(self.quality.name, self.lower_bound, self.upper_bound)
+                    string += '{} [{}-{}]'.format(self.quality.name, self.lower_bound, self.upper_bound)
             except:
                 try:
-                    string += u'{} at least {}'.format(self.quality.name, self.lower_bound)
+                    string += '{} at least {}'.format(self.quality.name, self.lower_bound)
                 except:
-                    string += u'{} no more than {}'.format(self.quality.name, self.upper_bound)
+                    string += '{} no more than {}'.format(self.quality.name, self.upper_bound)
         return string
 
 def sub_qualities(string):
@@ -145,7 +145,7 @@ def noman_command(bot, trigger):
 @interval(30)
 def melt_poll(bot):
     global cur_rate
-    meltfile = open('/home/alan/fl-utils/rates.txt')
+    meltfile = open('/home/alan/fl-utils/data/rates.txt')
     lines = meltfile.readlines()
     meltfile.close()
     new_rate = lines[-1].strip().split(None, 1)

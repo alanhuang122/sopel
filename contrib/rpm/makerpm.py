@@ -15,12 +15,12 @@ version = '3.3'
 build = '0'
 if len(sys.argv)>1:
     build = sys.argv[1]
-print 'Generating archive...'
+print('Generating archive...')
 f = open('sopel-%s.tar' % version, 'w')
 repo.archive(f, prefix='sopel-%s/' % version)
 f.close()
 
-print 'Building spec file..'
+print('Building spec file..')
 spec_in = open('sopel.spec.in', 'r')
 spec_out = open('sopel.spec', 'w')
 for line in spec_in:
@@ -31,13 +31,13 @@ for line in spec_in:
     spec_out.write(newline)
 spec_in.close()
 spec_out.close()
-print 'Starting rpmbuild...'
+print('Starting rpmbuild...')
 cmdline = 'rpmbuild --define="%_specdir @wd@" --define="%_rpmdir @wd@" --define="%_srcrpmdir @wd@" --define="%_sourcedir @wd@" -ba sopel.spec'.replace('@wd@', os.getcwd())
 p = call(cmdline, shell=True)
 for item in os.listdir('noarch'):
     os.rename(os.path.join('noarch', item), item)
-print 'Cleaning...'
+print('Cleaning...')
 os.removedirs('noarch')
 os.remove('sopel.spec')
 os.remove('sopel-%s.tar' % version)
-print 'Done'
+print('Done')

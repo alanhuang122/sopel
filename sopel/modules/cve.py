@@ -3,7 +3,7 @@
 
 from sopel.module import commands, url
 from bs4 import BeautifulSoup
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 @url('(^| )((http|https)://)?cve\.mitre\.org/cgi-bin/cvename.cgi\?name=(.+)')
 def process_cve(bot, trigger, match):
@@ -17,8 +17,8 @@ def cve_command(bot, trigger):
 
 def lookup(bot, string):
     try:
-        data = urllib2.urlopen(string)
-    except urllib2.HTTPError:
+        data = urllib.request.urlopen(string)
+    except urllib.error.HTTPError:
         bot.say('404 - page not found')
         return
     soup = BeautifulSoup(data, 'lxml')
@@ -27,4 +27,4 @@ def lookup(bot, string):
         return
     tag = soup.find_all(string="Description")[0].parent.parent
     description = tag.next_sibling.next_sibling
-    bot.say('{0} | {1}'.format(unicode(description.get_text().replace("\n"," ")),string))
+    bot.say('{0} | {1}'.format(str(description.get_text().replace("\n"," ")),string))

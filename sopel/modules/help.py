@@ -7,14 +7,14 @@ Licensed under the Eiffel Forum License 2.
 
 https://sopel.chat
 """
-from __future__ import unicode_literals, absolute_import, print_function, division
+
 
 import textwrap
 import collections
 import json
 
 import requests
-import cPickle, os
+import pickle, os
 
 from sopel.logger import get_logger
 from sopel.module import commands, rule, example, priority
@@ -59,7 +59,7 @@ def help(bot, trigger):
         else:
             msgs = []
 
-            name_length = max(6, max(len(k) for k in bot.command_groups.keys()))
+            name_length = max(6, max(len(k) for k in list(bot.command_groups.keys())))
                 
             heading1 = 'Module Name'.upper().ljust(name_length)
             msg = heading1 + '  ' + "commands:"
@@ -67,7 +67,7 @@ def help(bot, trigger):
             # Honestly not sure why this is a list here
             msgs.append('\n'.join(textwrap.wrap(msg, subsequent_indent=indent)))
             
-            for category, cmds in collections.OrderedDict(sorted(bot.command_groups.items())).items():
+            for category, cmds in list(collections.OrderedDict(sorted(bot.command_groups.items())).items()):
                 category = category.upper().ljust(name_length)
                 cmds = set(cmds)
                 cmds = '  '.join(cmds)
@@ -78,17 +78,17 @@ def help(bot, trigger):
 
             docs = []
             if os.path.isfile('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config)):
-                docs = cPickle.load(open('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config),'r'))
+                docs = pickle.load(open('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config),'rb'))
             
             if docs == msgs:
-                url = cPickle.load(open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'r'))
+                url = pickle.load(open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'rb'))
             else:
                 url = create_gist(bot, '\n\n'.join(msgs))
             if not url:
                 return
             bot.memory['command-gist'] = (len(bot.command_groups), url)
-            cPickle.dump(msgs,open('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config),'w'))
-            cPickle.dump(url,open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'w'))
+            pickle.dump(msgs,open('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config),'wb'))
+            pickle.dump(url,open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'wb'))
         bot.say("I've posted a list of my commands at {} - You can see "
                 "more info about most of these commands by doing .help "
                 "<command> (e.g. .help time)".format(url))

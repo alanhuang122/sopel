@@ -14,7 +14,7 @@ More info:
 import datetime
 import json
 import re
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import requests
 from sopel.modules import unicode as uc
 from sopel.module import commands
@@ -180,23 +180,23 @@ def speed_desc(speed):
 def wind_dir(degrees):
     '''Provide a nice little unicode character of the wind direction'''
     if degrees == 'VRB':
-        degrees = u'\u21BB'.encode('utf-8')
+        degrees = '\u21BB'.encode('utf-8')
     elif (degrees <= 22.5) or (degrees > 337.5):
-        degrees = u'\u2191'.encode('utf-8')
+        degrees = '\u2191'.encode('utf-8')
     elif (degrees > 22.5) and (degrees <= 67.5):
-        degrees = u'\u2197'.encode('utf-8')
+        degrees = '\u2197'.encode('utf-8')
     elif (degrees > 67.5) and (degrees <= 112.5):
-        degrees = u'\u2192'.encode('utf-8')
+        degrees = '\u2192'.encode('utf-8')
     elif (degrees > 112.5) and (degrees <= 157.5):
-        degrees = u'\u2198'.encode('utf-8')
+        degrees = '\u2198'.encode('utf-8')
     elif (degrees > 157.5) and (degrees <= 202.5):
-        degrees = u'\u2193'.encode('utf-8')
+        degrees = '\u2193'.encode('utf-8')
     elif (degrees > 202.5) and (degrees <= 247.5):
-        degrees = u'\u2199'.encode('utf-8')
+        degrees = '\u2199'.encode('utf-8')
     elif (degrees > 247.5) and (degrees <= 292.5):
-        degrees = u'\u2190'.encode('utf-8')
+        degrees = '\u2190'.encode('utf-8')
     elif (degrees > 292.5) and (degrees <= 337.5):
-        degrees = u'\u2196'.encode('utf-8')
+        degrees = '\u2196'.encode('utf-8')
 
     return degrees
 
@@ -214,11 +214,11 @@ def weather(bot, input):
 def f_weather(jenni, input, icao_code):
     text = input.group(2)
 
-    print '[weather] icao_code:', icao_code
+    print('[weather] icao_code:', icao_code)
 
     status, page = get_metar(icao_code)
-    print '[weather] status:', status
-    print '[weather] page:', page
+    print('[weather] status:', status)
+    print('[weather] page:', page)
     if not status:
         return jenni.say(page)
 
@@ -375,13 +375,13 @@ def f_weather(jenni, input, icao_code):
                     level = 0
 
         if level == 8:
-            cover = u'Overcast \u2601'.encode('utf-8')
+            cover = 'Overcast \u2601'.encode('utf-8')
         elif level == 5:
             cover = 'Cloudy'
         elif level == 3:
             cover = 'Scattered'
         elif (level == 1) or (level == 0):
-            cover = u'Clear \u263C'.encode('utf-8')
+            cover = 'Clear \u263C'.encode('utf-8')
         else: cover = 'Cover Unknown'
     else: cover = 'Cover Unknown'
 
@@ -419,10 +419,10 @@ def f_weather(jenni, input, icao_code):
 
         if icao_code.startswith('K'):
             ## if in North America
-            windchill = u'%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (f, windchill)
+            windchill = '%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (f, windchill)
         else:
             ## else, anywhere else in the worldd
-            windchill = u'%.1f\u00B0C'.encode('utf-8') % (windchill)
+            windchill = '%.1f\u00B0C'.encode('utf-8') % (windchill)
 
     heatindex = False
     if isinstance(temp, float) and isinstance(dew, float):
@@ -430,7 +430,7 @@ def f_weather(jenni, input, icao_code):
         temp_f = (temp * 1.8) + 32.0
         if rh >= 40.0 and temp_f >= 80.0:
             heatindex = gen_heat_index(temp_f, rh)
-            heatindex = u'%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (heatindex, (heatindex - 32.0) / (1.8) )
+            heatindex = '%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (heatindex, (heatindex - 32.0) / (1.8) )
 
     if pressure:
         if pressure.startswith('Q'):
@@ -448,16 +448,16 @@ def f_weather(jenni, input, icao_code):
 
             if isinstance(temp, float):
                 f = (temp * 1.8) + 32
-                temp = u'%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (f, temp)
+                temp = '%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (f, temp)
             if isinstance(dew, float):
                 f = (dew * 1.8) + 32
-                dew = u'%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (f, dew)
+                dew = '%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (f, dew)
     else: pressure = '?mb'
 
     if isinstance(temp, float):
-        temp = u'%.1f\u00B0C'.encode('utf-8') % temp
+        temp = '%.1f\u00B0C'.encode('utf-8') % temp
     if isinstance(dew, float):
-        dew = u'%.1f\u00B0C'.encode('utf-8') % dew
+        dew = '%.1f\u00B0C'.encode('utf-8') % dew
 
     if cond:
         conds = cond
@@ -565,7 +565,7 @@ def windchill(jenni, input):
 
     if len(text) == 1:
         ## show them what we want
-        return jenni.say(u'.windchill <temp> <wind speed> -- shows Windchill in \u00B0F')
+        return jenni.say('.windchill <temp> <wind speed> -- shows Windchill in \u00B0F')
 
     if len(text) >= 3:
         try:
@@ -580,7 +580,7 @@ def windchill(jenni, input):
         return jenni.say('Invalid arguments! Try, .windchill without any parameters.')
 
     if temp > 50:
-        return jenni.say(u'The windchill formula only works on temperatures below 50 \u00B0F')
+        return jenni.say('The windchill formula only works on temperatures below 50 \u00B0F')
 
     if wind < 0:
         ## yes, yes, I know about vectors, but this is a scalar equation
@@ -592,7 +592,7 @@ def windchill(jenni, input):
     ## cf. https://is.gd/mgLuzU
     wc = 35.74 + (0.6215 * temp) - (35.75 * (wind ** (0.16))) + (0.4275 * temp * (wind ** (0.16)))
 
-    jenni.say(u'Windchill: %2.f \u00B0F' % (wc))
+    jenni.say('Windchill: %2.f \u00B0F' % (wc))
 windchill.commands = ['windchill', 'wc']
 windchill.priority = 'low'
 windchill.rate = 10
@@ -670,7 +670,7 @@ def forecast(jenni, input):
 
     url = 'https://api.darksky.net/forecast/%s/%s,%s'
 
-    url = url % (jenni.config.forecastio_apikey, urllib.quote(lat), urllib.quote(lng))
+    url = url % (jenni.config.forecastio_apikey, urllib.parse.quote(lat), urllib.parse.quote(lng))
 
     ## do some error checking
     try:
@@ -712,7 +712,7 @@ def forecast(jenni, input):
 
     for day in days:
         ## give me floats with only one significant digit
-        form = u'%.1f'
+        form = '%.1f'
 
         hi = form % (day['temperatureMax'])
         low = form % (day['temperatureMin'])
@@ -733,9 +733,9 @@ def forecast(jenni, input):
             day_ts = int(day['sunriseTime'])
 
         dotw_day = datetime.datetime.fromtimestamp(day_ts).weekday()
-        dotw_day_pretty = u'\x0310\x02\x1F%s\x1F\x02\x03' % (dotw[dotw_day])
+        dotw_day_pretty = '\x0310\x02\x1F%s\x1F\x02\x03' % (dotw[dotw_day])
 
-        line = u'%s: \x02\x0304%sF (%sC)\x03\x02 / \x02\x0312%sF (%sC)\x03\x02, \x1FDew\x1F: %sF (%sC), \x1FWind\x1F: %smph (%skmh), %s | '
+        line = '%s: \x02\x0304%sF (%sC)\x03\x02 / \x02\x0312%sF (%sC)\x03\x02, \x1FDew\x1F: %sF (%sC), \x1FWind\x1F: %smph (%skmh), %s | '
 
         ## remove extra whitespace
         dotw_day_pretty = (dotw_day_pretty).strip()
@@ -805,7 +805,7 @@ def forecastio_current_weather(jenni, input):
 
     url = 'https://api.darksky.net/forecast/%s/%s,%s'
 
-    url = url % (jenni.config.forecastio_apikey, urllib.quote(lat), urllib.quote(lng))
+    url = url % (jenni.config.forecastio_apikey, urllib.parse.quote(lat), urllib.parse.quote(lng))
 
     ## do some error checking
     try:
@@ -853,13 +853,13 @@ def forecastio_current_weather(jenni, input):
         cover_word = 'Clear'
 
     temp_c = (temp - 32) / 1.8
-    temp = u'%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (temp, temp_c)
+    temp = '%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (temp, temp_c)
 
     dew_c = (dew - 32) / 1.8
-    dew = u'%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (dew, dew_c)
+    dew = '%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (dew, dew_c)
 
     APtemp_c = (APtemp - 32) / 1.8
-    APtemp = u'%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (APtemp, APtemp_c)
+    APtemp = '%.1f\u00B0F (%.1f\u00B0C)'.encode('utf-8') % (APtemp, APtemp_c)
 
     humidity = str(int(float(humidity) * 100)) + '%'
 
@@ -924,14 +924,14 @@ def gen_heat_index(temp, rh):
 
 def add_degree(txt):
     if ' F' in txt:
-        txt = re.sub(' F', u'\u00B0F', txt)
+        txt = re.sub(' F', '\u00B0F', txt)
     else:
-        txt = re.sub('F', u'\u00B0F', txt)
+        txt = re.sub('F', '\u00B0F', txt)
 
     if ' C' in txt:
-        txt = re.sub(' C', u'\u00B0C', txt)
+        txt = re.sub(' C', '\u00B0C', txt)
     else:
-        txt = re.sub('C', u'\u00B0C', txt)
+        txt = re.sub('C', '\u00B0C', txt)
     return ((txt).encode('utf-8')).decode('utf-8')
 
 import requests
@@ -944,11 +944,10 @@ def weather_wunderground(jenni, input):
     if not txt:
         return jenni.say('No input provided. Please provide a locaiton.')
 
-    txt = txt.encode('utf-8')
     name, lat, lon = location(txt)
 
-    url_new = url % (apikey, urllib.quote(lat),urllib.quote(lon))
-    print('[weather] trying {}'.format(url_new))
+    url_new = url % (apikey, urllib.parse.quote(lat),urllib.parse.quote(lon))
+    print(('[weather] trying {}'.format(url_new)))
     try:
         useful = requests.get(url_new).json()
     except:
@@ -981,12 +980,12 @@ def weather_wunderground(jenni, input):
 
     if pressure_trend == '-':
         #pressure_trend = re.sub('-', u'\u2193', pressure_trend)
-        pressure_trend = u'\u2193'
+        pressure_trend = '\u2193'
     elif pressure_trend == '+':
         #pressure_trend = re.sub('\+', u'\u2191', pressure_trend)
-        pressure_trend = u'\u2191'
+        pressure_trend = '\u2191'
     elif pressure_trend == '0':
-        pressure_trend = u'\u2192'
+        pressure_trend = '\u2192'
 
     time_updated = re.sub('Last Updated on ', '\x1FLast Updated\x1F: ', time_updated)
 
@@ -1027,8 +1026,8 @@ def forecast_wg(jenni, input):
 
     name, lat, lon = location(txt)
 
-    url_new = url % (apikey, urllib.quote(lat),urllib.quote(lon))
-    print('[weather] trying {}'.format(url_new))
+    url_new = url % (apikey, urllib.parse.quote(lat),urllib.parse.quote(lon))
+    print(('[weather] trying {}'.format(url_new)))
 
     try:
         useful = requests.get(url_new).json()
@@ -1073,8 +1072,8 @@ def forecast_wg(jenni, input):
     for day in days:
         day_of_week = day['date']['weekday_short']
         conditions = day['conditions']
-        highs = u'%s\u00B0F (%s\u00B0C)' % (day['high']['fahrenheit'], day['high']['celsius'])
-        lows = u'%s\u00B0F (%s\u00B0C)' % (day['low']['fahrenheit'], day['low']['celsius'])
+        highs = '%s\u00B0F (%s\u00B0C)' % (day['high']['fahrenheit'], day['high']['celsius'])
+        lows = '%s\u00B0F (%s\u00B0C)' % (day['low']['fahrenheit'], day['low']['celsius'])
         wind = 'From %s at %s-mph (%s-kph)' % (day['avewind']['dir'], day['maxwind']['mph'], day['maxwind']['kph'])
 
         days_text_temp = days_text[k]
@@ -1104,4 +1103,4 @@ def radar_us(jenni, input):
 radar_us.commands = ['radar_us']
 
 if __name__ == '__main__':
-    print __doc__.strip()
+    print(__doc__.strip())
