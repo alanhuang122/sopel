@@ -16,6 +16,12 @@ sopel.egg-info/*
 *.spec
 .*.sw*
 .pid-*
+*.bak
+bin/
+lib/
+lib64
+pip-selfcheck.json
+pyvenv.cfg
 
 # IntelliJ idea
 .idea
