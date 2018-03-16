@@ -1,17 +1,11 @@
 # coding=utf-8
 
-
 import json
 import os.path
 import sys
 import sqlite3
 
 from sopel.tools import Identifier
-
-if sys.version_info.major >= 3:
-    str = str
-    str = str
-
 
 def _deserialize(value):
     if value is None:

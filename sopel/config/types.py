@@ -35,9 +35,7 @@ except ImportError:
     import configparser as configparser
 
 if sys.version_info.major >= 3:
-    str = str
     str = (str, bytes)
-
 
 class NO_DEFAULT(object):
     """A special value to indicate that there should be no default."""

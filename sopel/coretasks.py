@@ -11,8 +11,6 @@ dispatch function in bot.py and making it easier to maintain.
 # Copyright 2012-2015, Elsie Powell embolalia.com
 # Licensed under the Eiffel Forum License 2.
 
-
-
 from random import randint
 import re
 import sys
@@ -24,9 +22,6 @@ from sopel.tools import Identifier, iteritems, events
 from sopel.tools.target import User, Channel
 import base64
 from sopel.logger import get_logger
-
-if sys.version_info.major >= 3:
-    str = str
 
 LOGGER = get_logger(__name__)
 

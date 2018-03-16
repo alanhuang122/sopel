@@ -19,14 +19,8 @@ import time
 import os.path
 import re
 import requests
-
-if sys.version_info.major > 2:
-    str = str
-    from urllib.request import urlretrieve
-    from urllib.parse import urlparse
-else:
-    from urllib.request import urlretrieve
-    from urllib.parse import urlparse
+from urllib.request import urlretrieve
+from urllib.parse import urlparse
 
 LOGGER = get_logger(__name__)
 

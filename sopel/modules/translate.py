@@ -14,9 +14,6 @@ from google.cloud import translate
 from html.parser import HTMLParser
 h = HTMLParser()
 
-if sys.version_info.major >= 3:
-    str = str
-
 def setup(bot):
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/alan/.sopel/sopel-irc-key.json'
     global client, languages

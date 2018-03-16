@@ -12,8 +12,6 @@
 
 # https://sopel.chat
 
-
-
 import sys
 import os
 import re
@@ -26,17 +24,11 @@ from sopel.tools._events import events  # NOQA
 
 if sys.version_info.major >= 3:
     raw_input = input
-    str = str
     iteritems = dict.items
     itervalues = dict.values
     iterkeys = dict.keys
-else:
-    iteritems = dict.iteritems
-    itervalues = dict.itervalues
-    iterkeys = dict.iterkeys
 
 _channel_prefixes = ('#', '&', '+', '!')
-
 
 def get_input(prompt):
     """Get decoded input from the terminal (equivalent to python 3's ``input``).

@@ -7,8 +7,6 @@
 # Licensed under the Eiffel Forum License 2.
 
 import sys
-if sys.version_info.major >= 3:
-    str = str
 
 # Color names are as specified at https://www.mirc.com/colors.html
 

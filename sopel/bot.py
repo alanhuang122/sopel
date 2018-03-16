@@ -28,8 +28,6 @@ import sopel.loader
 LOGGER = get_logger(__name__)
 
 if sys.version_info.major >= 3:
-    str = str
-    str = str
     py3 = True
 else:
     py3 = False

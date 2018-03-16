@@ -1,6 +1,4 @@
 # coding=utf-8
-
-
 import copy
 import datetime
 import sys
@@ -8,8 +6,6 @@ import threading
 import time
 
 if sys.version_info.major >= 3:
-    str = str
-    str = str
     py3 = True
 else:
     py3 = False

@@ -1,16 +1,9 @@
 # coding=utf-8
-
-
 import re
 import sys
 import datetime
 
 import sopel.tools
-
-if sys.version_info.major >= 3:
-    str = str
-    str = str
-
 
 class PreTrigger(object):
     """A parsed message from the server, which has not been matched against

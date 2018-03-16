@@ -1,7 +1,6 @@
 # coding=utf-8
 # Author: Elsie Powell, embolalia.com
 
-
 from sopel.module import commands, rule, example, require_chanmsg, NOLIMIT, OP
 from sopel.formatting import bold, color, colors
 from sopel.web import USER_AGENT
@@ -11,16 +10,11 @@ import praw
 import re
 import sys
 if sys.version_info.major >= 3:
-    str = str
     if sys.version_info.minor >= 4:
         from html import unescape
     else:
         from html.parser import HTMLParser
         unescape = HTMLParser().unescape
-else:
-    from html.parser import HTMLParser
-    unescape = HTMLParser().unescape
-
 
 domain = r'https?://(?:www\.|np\.)?reddit\.com'
 post_url = '%s/r/(.*?)/comments/([\w-]+)' % domain

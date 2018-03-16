@@ -36,11 +36,8 @@ except ImportError:
 import errno
 import threading
 from datetime import datetime
-if sys.version_info.major >= 3:
-    str = str
 
 LOGGER = get_logger(__name__)
-
 
 class Bot(asynchat.async_chat):
     def __init__(self, config):
