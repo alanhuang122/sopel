@@ -3,6 +3,7 @@
 help.py - Sopel Help Module
 Copyright 2008, Sean B. Palmer, inamidst.com
 Copyright © 2013, Elad Alfassa, <elad@fedoraproject.org>
+Copyright © 2018, Adam Erdman, pandorah.org
 Licensed under the Eiffel Forum License 2.
 
 https://sopel.chat
@@ -11,8 +12,6 @@ https://sopel.chat
 
 import textwrap
 import collections
-import json
-
 import requests
 import pickle, os
 
@@ -54,8 +53,8 @@ def help(bot, trigger):
         # actually creating the list first. Maybe worth storing the link and a
         # heuristic in config, too, so it persists across restarts. Would need a
         # command to regenerate, too...
-        if 'command-gist' in bot.memory and bot.memory['command-gist'][0] == len(bot.command_groups):
-            url = bot.memory['command-gist'][1]
+        if 'command-list' in bot.memory and bot.memory['command-list'][0] == len(bot.command_groups):
+            url = bot.memory['command-list'][1]
         else:
             msgs = []
 
@@ -83,45 +82,33 @@ def help(bot, trigger):
             if docs == msgs:
                 url = pickle.load(open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'rb'))
             else:
-                url = create_gist(bot, '\n\n'.join(msgs))
+                url = create_list(bot, '\n\n'.join(msgs))
             if not url:
                 return
-            bot.memory['command-gist'] = (len(bot.command_groups), url)
+            bot.memory['command-list'] = (len(bot.command_groups), url)
             pickle.dump(msgs,open('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config),'wb'))
             pickle.dump(url,open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'wb'))
         bot.say("I've posted a list of my commands at {} - You can see "
-                "more info about most of these commands by doing .help "
+                "more info about some of these commands by doing .help "
                 "<command> (e.g. .help time)".format(url))
 
 
-def create_gist(bot, msg):
-    payload = {
-        'description': 'Command listing for {}@{}'.format(bot.nick, bot.config.core.host),
-        'public': 'true',
-        'files': {
-            'commands.txt': {
-                "content": msg,
-            },
-        },
-    }
+def create_list(bot, msg):
+    msg = 'Command listing for {}@{}\n\n'.format(bot.nick, bot.config.core.host) + msg
+
     try:
-        result = requests.post('https://api.github.com/gists',
-                               data=json.dumps(payload))
+        result = requests.post('http://ix.io/', data={'f:1':msg})
     except requests.RequestException:
         bot.say("Sorry! Something went wrong.")
-        logger.exception("Error posting commands gist")
+        logger.exception("Error posting commands list")
         return
-    if not result.status_code != '201':
-        bot.say("Sorry! Something went wrong.")
-        logger.error("Error %s posting commands gist: %s",
-                     result.status_code, result.text)
-        return
-    result = result.json()
-    if 'html_url' not in result:
+    result = result.text
+    if "http://ix.io/" in result:
+        return result
+    else:
         bot.say("Sorry! Something went wrong.")
         logger.error("Invalid result %s", result)
         return
-    return result['html_url']
 
 
 @rule('$nick' r'(?i)help(?:[?!]+)?$')
