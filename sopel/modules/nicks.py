@@ -1,6 +1,7 @@
 # 2016.12.24 03:31:41 CST
 #Embedded file name: modules/nicks.py
 from sopel.module import commands, example
+import csv
 import requests
 
 def equal(a, b):
