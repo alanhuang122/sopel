@@ -18,17 +18,18 @@ def reference(bot, trigger):
         bot.say(str(files))
         return
     if query in files:
-        link = open(dir + query).read()
-        bot.say(link)
+        link = open(dir + query)
+        for line in link:
+            bot.say(link)
 
-        parts = trigger.raw.split(None)
-        parts = parts[:4]
-        parts.append(':{0}'.format(link))
-        string = ' '.join(parts)
-        print(string)
+            parts = trigger.raw.split(None)
+            parts = parts[:4]
+            parts.append(':{0}'.format(link))
+            string = ' '.join(parts)
+            print(string)
 #        urls = process_urls(bot, trigger, link)
 #        print(urls)
-        pt = PreTrigger(bot.nick, string)
-        bot.dispatch(pt)
+            pt = PreTrigger(bot.nick, string)
+            bot.dispatch(pt)
     else:
         bot.say("Not found")
