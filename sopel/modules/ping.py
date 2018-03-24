@@ -110,7 +110,7 @@ def awoo(bot, trigger):
 
 @rule(r'(?i).*\bowo\b.*')
 def owo(bot, trigger):
-    if random.randint(0,1):
+    if random.randint(0,1) or trigger.nick == 'Alan':
         bot.action('sprays {} with water'.format(trigger.nick))
     else:
         bot.say('OWO')
