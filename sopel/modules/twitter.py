@@ -45,7 +45,7 @@ def get_url(bot, trigger, match):
     
     content.full_text = h.unescape(content.full_text.replace('\n', ' '))
     if content.is_quote_status:
-        content.quoted_status = client.get_status(content.quoted_status['id'], tweet_mode='extended')
+        content.quoted_status = client.get_status(content.quoted_status.id, tweet_mode='extended')
         content.quoted_status.full_text = h.unescape(content.quoted_status.full_text.replace('\n', ' '))
     message = '[Twitter]'
     if content.is_quote_status:
