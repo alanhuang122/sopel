@@ -426,3 +426,7 @@ mp_spam = ["Well, there's egg and bacon; egg, sausage, and bacon; egg and Spam; 
 @commands('spam')
 def spam_command(bot, trigger):
     bot.say(choice(mp_spam))
+
+@commands('potatosalad', 'potato')
+def potato_command(bot, trigger):
+    bot.say('https://i.imgur.com/9tEQo4N.png')
