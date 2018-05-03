@@ -218,7 +218,9 @@ def find_title(url, verify=True):
         return None
     try:
         t = lxml.html.fromstring(fix_encoding(response.text))
-        return t.find(".//title").text.strip()
+        title = t.find(".//title")
+        if title:
+            return title.text.strip()
     except Exception as e:
         print('exception on url {}'.format(url))
         print('[url] {}'.format(e))
