@@ -280,50 +280,65 @@ def quality_command(bot, trigger):
         bot.say(worker_command(trigger.group(2), 2))
         return
 
+@commands('where')
+def location_command(bot, trigger):
+    if not trigger.group(2):
+        bot.say(worker_command(trigger.nick, 3)) 
+        return
+    else:
+        bot.say(worker_command(trigger.group(2), 3)) 
+        return
+
 @commands('profile')
 def profile_command(bot, trigger):
-    url = quote('https://fallenlondon.storynexus.com/Profile/{0}'.format(trigger.group(2).strip()), safe=':/')
-    data = requests.get(url)
-    if data.history:
+    url = 'https://api.fallenlondon.com/api/profile/{}'.format(quote(trigger.group(2).strip()))
+    r = requests.get(url)
+    data = json.loads(r.text)
+    if not data:
         bot.say('Couldn\'t find that profile.')
         return
-    name = re.search(r'class="character-name">(.+?)</a>', data.text).group(1)
-    bot.say(quote('https://fallenlondon.storynexus.com/Profile/{0}'.format(name), safe=':/'), alias=False)
-
+    name = data.get('ProfileCharacter', {}).get('Name')
+    if not name:
+        bot.say('Couldn\'t find that profile.')
+        return
+    bot.say('https://beta.fallenlondon.com/profile/{}'.format(quote(name)), alias=False)
 
 def worker_command(user, index):
-    url = quote('https://fallenlondon.storynexus.com/Profile/{0}'.format(user.strip()), safe=':/')
-    data = requests.get(url)
-    if data.history:
+    url = 'https://api.fallenlondon.com/api/profile/{}'.format(quote(user.strip()))
+    r = requests.get(url)
+    data = json.loads(r.text)
+    if not data:
         return "I couldn't find that profile."
     else:
-        soup = BeautifulSoup(data.text, 'lxml')
+        character = data['ProfileCharacter']
         if index is 1:
-            tag = soup.find('section', id='usersMantel')
+            return "{} has {}".format(character['Name'], character['MantelpieceItem']['NameAndLevel'])
         elif index is 2:
-            tag = soup.find('section', id='usersScrapbook')
-        try:
-            text = tag.find_all('h1')[1]
-        except IndexError:
-            return 'I couldn\'t find anything...'
-
-        return '{0} has {1}'.format(soup.find('a', class_='character-name').text, text.text)
+            return "{} has {}".format(character['Name'], character['ScrapbookStatus']['NameAndLevel'])
+        elif index is 3:
+            if data['CurrentArea']['Name'] == 'your Lodgings':
+                gender = data['CharacterName'].rsplit(None, 1)[1]
+                if gender == "gentleman":
+                    pronoun = "his"
+                elif gender == "lady":
+                    pronoun = "her"
+                elif gender == "gender":
+                    pronoun = "their"
+                data['CurrentArea']['Name'] = '{} Lodgings'.format(pronoun)
+            return "{} is in {}".format(character['Name'], data['CurrentArea']['Name'])
 
 @commands('abom')
 def abom_command(bot, trigger):
     string = worker_command('Darkroot', 2)
     bot.say(string[:string.rfind(':')] + ' 777' + string[string.rfind(':'):])
 
-
 @commands('smen')
 def smen_command(bot, trigger):
     bot.say(worker_command('Passionario', 2).rsplit(' ', 1)[0] + ' DAMNED.')
 
-
 @commands('drugs')
 def drugs_command(bot, trigger):
     bot.say('Call ' + worker_command('Call Now', 2).split(' ', 2)[2])
-
 
 @commands('box')
 def box_command(bot, trigger):
