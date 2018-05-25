@@ -213,13 +213,16 @@ def find_title(url, verify=True):
     if response.status_code != 200:
         print('[url] got code {} for url {}'.format(response.status_code, url))
         return None
-    if 'text/plain' in response.headers['Content-Type']:
-        print('Content-Type for url {} is text/plain; skipping'.format(url))
+    try:
+        if 'text/plain' in response.headers['Content-Type']:
+            print('Content-Type for url {} is text/plain; skipping'.format(url))
+            return None
+    except KeyError:
         return None
     try:
         t = lxml.html.fromstring(fix_encoding(response.text))
         title = t.find(".//title")
-        if title:
+        if title is not None:
             return title.text.strip()
     except Exception as e:
         print('exception on url {}'.format(url))
