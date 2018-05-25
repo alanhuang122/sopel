@@ -43,7 +43,7 @@ def get_url(bot, trigger, match):
         bot.say('{} error reaching the twitter API for {}'.format(e.message[0]['code'], match.group(0)))
         return
     
-    content.full_text = h.unescape(content.full_text.replace('\n', ' '))
+    content.full_text = h.unescape(content.full_text.replace('\n', '    '))
     if content.is_quote_status:
         content.quoted_status = client.get_status(content.quoted_status.id, tweet_mode='extended')
         content.quoted_status.full_text = h.unescape(content.quoted_status.full_text.replace('\n', ' '))
