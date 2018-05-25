@@ -55,11 +55,11 @@ def f_time(bot, trigger):
             location = gmaps.geocode(trigger.group(2).strip())
             location = location[0]
         except:
-            bot.say("I couldn't find any results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
+            bot.say("I couldn't find any results for {}.".format(target))
             return
         if 'partial_match' in location:
             print('[clock] partial match for {}: {}'.format(target, f_loc(location['address_components'])))
-            bot.say("I couldn't find exact results for {}. Are you sure it's a location? Alan's going to get really pissed off if you're using .t for bullshit non-locations.".format(target))
+            bot.say("I couldn't find exact results for {}.".format(target))
         coords = (location['geometry']['location']['lat'], location['geometry']['location']['lng'])
         zone = gmaps.timezone(coords)['timeZoneId']
         #zone = get_timezone(bot.db, bot.config, trigger.group(2).strip(), None, None)
