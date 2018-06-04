@@ -3,7 +3,6 @@
 from sopel.module import commands
 import requests, re
 from requests.utils import quote
-import json
 
 @commands('item')
 def item_command(bot, trigger):
@@ -36,7 +35,7 @@ def location_command(bot, trigger):
 def profile_command(bot, trigger):
     url = 'https://api.fallenlondon.com/api/profile/{}'.format(quote(trigger.group(2).strip()))
     r = requests.get(url)
-    data = json.loads(r.text)
+    data = r.json()
     if not data:
         bot.say('Couldn\'t find that profile.')
         return
@@ -49,7 +48,7 @@ def profile_command(bot, trigger):
 def worker_command(user, index):
     url = 'https://api.fallenlondon.com/api/profile/{}'.format(quote(user.strip()))
     r = requests.get(url)
-    data = json.loads(r.text)
+    data = r.json()
     if not data:
         return "I couldn't find that profile."
     else:
@@ -59,7 +58,7 @@ def worker_command(user, index):
         elif index is 2:
             return "{} has {}".format(character['Name'], character['ScrapbookStatus']['NameAndLevel'])
         elif index is 3:
-            if data['CurrentArea']['Name'] == 'your Lodgings':
+            if 'your' in data['CurrentArea']['Name']:
                 gender = data['CharacterName'].rsplit(None, 1)[1]
                 if gender == "gentleman":
                     pronoun = "his"
@@ -68,6 +67,15 @@ def worker_command(user, index):
                 elif gender == "gender":
                     pronoun = "their"
                 data['CurrentArea']['Name'] = '{} Lodgings'.format(pronoun)
+            elif 'you' in data['CurrentArea']['Name']:
+                gender = data['CharacterName'].rsplit(None, 1)[1]
+                if gender == "gentleman":
+                    pronoun = "he"
+                elif gender == "lady":
+                    pronoun = "she"
+                elif gender == "gender":
+                    pronoun = "they"
+                data['CurrentArea']['Name'] = data['CurrentArea']['Name'].replace('you', pronoun)
             return "{} is in {}".format(character['Name'], data['CurrentArea']['Name'])
 
 @commands('smen')
