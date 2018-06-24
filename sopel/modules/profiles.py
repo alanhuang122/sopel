@@ -3,6 +3,14 @@
 from sopel.module import commands
 import requests, re
 from requests.utils import quote
+from bs4 import BeautifulSoup
+
+def equal(a, b):
+    try:
+        return a.lower().replace(' ', '') == b.lower().replace(' ', '')
+    except AttributeError:
+        return a == b
+
 
 @commands('item')
 def item_command(bot, trigger):
@@ -22,66 +30,55 @@ def quality_command(bot, trigger):
         bot.say(worker_command(trigger.group(2), 2))
         return
 
-@commands('where')
-def location_command(bot, trigger):
-    if not trigger.group(2):
-        bot.say(worker_command(trigger.nick, 3))
-        return
-    else:
-        bot.say(worker_command(trigger.group(2), 3))
-        return
-
 @commands('profile')
 def profile_command(bot, trigger):
-    url = 'https://api.fallenlondon.com/api/profile/{}'.format(quote(trigger.group(2).strip()))
-    r = requests.get(url)
-    data = r.json()
-    if not data:
+    url = quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(trigger.group(2).strip()), safe=':/')
+    data = requests.get(url)
+    if data.history:
         bot.say('Couldn\'t find that profile.')
         return
-    name = data.get('ProfileCharacter', {}).get('Name')
-    if not name:
-        bot.say('Couldn\'t find that profile.')
-        return
-    bot.say('https://beta.fallenlondon.com/profile/{}'.format(quote(name)), alias=False)
+    name = re.search(r'class="character-name">(.+?)</a>', data.text).group(1)
+    bot.say(quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(name), safe=':/'), alias=False)
+
 
 def worker_command(user, index):
-    url = 'https://api.fallenlondon.com/api/profile/{}'.format(quote(user.strip()))
-    r = requests.get(url)
-    data = r.json()
-    if not data:
+    url = quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(user.strip()), safe=':/')
+    data = requests.get(url)
+    if data.history:
         return "I couldn't find that profile."
     else:
-        character = data['ProfileCharacter']
+        soup = BeautifulSoup(data.text, 'lxml')
         if index is 1:
-            return "{} has {}".format(character['Name'], character['MantelpieceItem']['NameAndLevel'])
+            tag = soup.find('section', id='usersMantel')
         elif index is 2:
-            return "{} has {}".format(character['Name'], character['ScrapbookStatus']['NameAndLevel'])
-        elif index is 3:
-            if 'your' in data['CurrentArea']['Name']:
-                gender = data['CharacterName'].rsplit(None, 1)[1]
-                if gender == "gentleman":
-                    pronoun = "his"
-                elif gender == "lady":
-                    pronoun = "her"
-                elif gender == "gender":
-                    pronoun = "their"
-                data['CurrentArea']['Name'] = '{} Lodgings'.format(pronoun)
-            elif 'you' in data['CurrentArea']['Name']:
-                gender = data['CharacterName'].rsplit(None, 1)[1]
-                if gender == "gentleman":
-                    pronoun = "he"
-                elif gender == "lady":
-                    pronoun = "she"
-                elif gender == "gender":
-                    pronoun = "they"
-                data['CurrentArea']['Name'] = data['CurrentArea']['Name'].replace('you', pronoun)
-            return "{} is in {}".format(character['Name'], data['CurrentArea']['Name'])
+            tag = soup.find('section', id='usersScrapbook')
+        try:
+            text = tag.find_all('h1')[1]
+        except IndexError:
+            return 'I couldn\'t find anything...'
+
+        return '{0} has {1}'.format(soup.find('a', class_='character-name').text, text.text)
+
+@commands('abom')
+def abom_command(bot, trigger):
+    string = worker_command('Darkroot', 2)
+    bot.say(string[:string.rfind(':')] + ' 777' + string[string.rfind(':'):])
+
 
 @commands('smen')
 def smen_command(bot, trigger):
     bot.say(worker_command('Passionario', 2).rsplit(' ', 1)[0] + ' DAMNED.')
 
+
 @commands('drugs')
 def drugs_command(bot, trigger):
     bot.say('Call ' + worker_command('Call Now', 2).split(' ', 2)[2])
+
+
+@commands('box')
+def box_command(bot, trigger):
+    bot.say('Gazzien ' + worker_command('Mr Forms', 1).split(' ', 2)[2].rsplit(' ', 4)[0] + ' Surprise Packages <3')
+
+@commands('ushabti')
+def shabti_command(bot,trigger):
+    bot.say('Vavakx ' + worker_command('Vavakx  Nonexus',1).split(' ',3)[3])
