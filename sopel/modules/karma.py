@@ -98,16 +98,15 @@ def reduceKarma(bot, trigger):
 def tellKarma(bot, trigger):
     """Outputs user's number of karma points."""
     if not trigger.group(2):
-        nick = 'You'
-        reply = " have "
+        karma = bot.db.get_nick_value(trigger.nick, 'karma')
+        if not karma:
+            karma = 0
+        bot.say("You have {} karma points.".format(karma))
     else:
-        nick = trigger.group(2).strip()
-        reply = " has "
-
-    currentKarma = bot.db.get_nick_value(nick, 'karma')
-    if not currentKarma:
-        currentKarma = '0'
-    bot.say("{}{}{} karma points.".format(nick, reply, currentKarma))
+        karma = bot.db.get_nick_value(trigger.group(2).strip(), 'karma')
+        if not karma:
+            karma = 0
+        bot.say("{} has {} karma points.".format(trigger.group(2).strip(), karma))
 
 @commands('top')
 @example('.top 5')
