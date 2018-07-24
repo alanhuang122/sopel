@@ -125,7 +125,7 @@ def entity(match):
 def decode(html):
     return r_entity.sub(entity, html)
 
-@commands('shorten', 'tiny')
+#@commands('shorten', 'tiny')
 def url_command(bot, trigger):
     """Shortens URLs using goo.gl"""
     if trigger.group(2):
