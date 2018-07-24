@@ -1,9 +1,115 @@
 # 2016.12.24 03:31:56 CST
 #Embedded file name: modules/profiles.py
 from sopel.module import commands, example
-import requests, re
+from fuzzywuzzy import process
+import re
+import requests
+import json
+from sopel.modules import fl
 from requests.utils import quote
 from bs4 import BeautifulSoup
+
+storylets = [15691, 18728, 18730, 18729]
+areas = ['Spite', 'Ladybones Road', 'Watchmaker\'s Hill', 'Veilgarden'] # Threshold is 60
+items = {}
+abb = {}
+
+def load():
+    data = {}
+    try:
+        with open('/home/alan/fl-utils/utils/text/fl.dat') as f:
+            last_seq = int(f.readline())
+            for line in f:
+                temp = json.loads(line)
+                data[temp['key']] = temp['value']
+        return data
+    except Exception as e:
+        print(e)
+        return None
+
+def render_events(ed):
+    strings = []
+    try:
+        se = ed['SuccessEvent']
+        strings.append('Success: {}'.format(se.list_effects()))
+    except KeyError:
+        pass
+    try:
+        rse = ed['RareSuccessEvent']
+        strings.append('Rare Success ({}% chance): {}'.format(ed['RareSuccessEventChance'], rse.list_effects()))
+    except KeyError:
+        pass
+    try:
+        fe = ed['DefaultEvent']
+        strings.append('{}{}'.format('Failure: ' if len(strings) > 0 else '', fe.list_effects()))
+    except KeyError:
+        pass
+    try:
+        rfe = ed['RareDefaultEvent']
+        strings.append('Rare {}: ({}% chance): {}'.format('Failure' if len(strings) > 1 else 'Success', ed['RareDefaultEventChance'], rfe.list_effects()))
+    except KeyError:
+        pass
+    return ' | '.join(strings)
+
+#UB: list of materials or categories; can hook in with acr; print rare successes too
+#list per location
+def setup(bot):
+    global storylets
+    # initialize data
+    data = load()
+    fl.data = data
+    storylets = [fl.Storylet.get(x) for x in storylets]
+
+    # configure storylet references
+    for storylet in storylets:
+        for branch in storylet.branches:
+            for event in branch.events:
+                if event.endswith('Chance'):
+                    continue
+                for effect in branch.events[event].effects:
+                    if effect.quality.nature == 1:
+                        continue
+                    try:
+                        if effect.amount < 0:
+                            continue
+                    except TypeError:
+                        if effect.amount.strip().startswith('-'):
+                            continue
+                    items[effect.quality.name] = branch
+
+    global areas
+    areas = {area: storylet for area, storylet in zip(areas, storylets)}
+
+    for item in items:
+        abb[''.join([word[0] for word in re.split(r'[ -]+', item)]).lower()] = item
+        abb[''.join([word[0] for word in re.split(r'[ -]+', item) if word[0].isupper()]).lower()] = item
+
+@commands('ub')
+def ub_command(bot, trigger):
+    if not trigger.group(2):
+        bot.say('What Unfinished Business do you want information for?')
+        return
+    else:
+        key = trigger.group(2).strip().lower()
+        if key in abb:
+            # Print one UB
+            print_branch(bot, items[abb[key]])
+            return
+        match = process.extractOne(trigger.group(2), items.keys())
+        if match[1] > 70:
+            # print one UB
+            print_branch(bot, items[match[0]])
+            return
+#        match = process.extractOne(trigger.group(2), areas)
+#        if match[1] > 70:
+#            # Print UBs in area
+#            print_area(bot, areas[match[0]])
+#            return
+        bot.say('I couldn\'t understand that input.')
+
+def print_branch(bot, branch):
+    storylet = branch.parent
+    bot.say('Storylet: {} | Branch: {} | {}'.format(storylet.title, branch.title, render_events(branch.events)))
 
 @commands('level')
 @example('.level 20 to 50')
