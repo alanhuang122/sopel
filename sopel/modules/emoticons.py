@@ -426,7 +426,23 @@ mp_spam = ["Well, there's egg and bacon; egg, sausage, and bacon; egg and Spam; 
 @commands('spam')
 def spam_command(bot, trigger):
     bot.say(choice(mp_spam))
+    try:
+        stats['spam'] += 1
+    except KeyError:
+        stats['spam'] = 1
 
 @commands('potatosalad', 'potato')
 def potato_command(bot, trigger):
     bot.say('https://i.imgur.com/9tEQo4N.png')
+    try:
+        stats['potato'] += 1
+    except KeyError:
+        stats['potato'] = 1
+
+@commands('butt')
+def butt_command(bot,trigger):
+    bot.say('(_!_)')
+    try:
+        stats['butt'] += 1
+    except KeyError:
+        stats['butt'] = 1
