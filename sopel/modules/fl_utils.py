@@ -282,17 +282,17 @@ def quality_command(bot, trigger):
 
 @commands('profile')
 def profile_command(bot, trigger):
-    url = quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(trigger.group(2).strip()), safe=':/')
+    url = quote('https://fallenlondon.storynexus.com/Profile/{0}'.format(trigger.group(2).strip()), safe=':/')
     data = requests.get(url)
     if data.history:
         bot.say('Couldn\'t find that profile.')
         return
     name = re.search(r'class="character-name">(.+?)</a>', data.text).group(1)
-    bot.say(quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(name), safe=':/'), alias=False)
+    bot.say(quote('https://fallenlondon.storynexus.com/Profile/{0}'.format(name), safe=':/'), alias=False)
 
 
 def worker_command(user, index):
-    url = quote('http://fallenlondon.storynexus.com/Profile/{0}'.format(user.strip()), safe=':/')
+    url = quote('https://fallenlondon.storynexus.com/Profile/{0}'.format(user.strip()), safe=':/')
     data = requests.get(url)
     if data.history:
         return "I couldn't find that profile."
@@ -327,8 +327,8 @@ def drugs_command(bot, trigger):
 
 @commands('box')
 def box_command(bot, trigger):
-    bot.say('Gazzien ' + worker_command('Mr Forms', 1).split(' ', 2)[2].rsplit(' ', 4)[0] + ' Surprise Packages <3')
+    bot.say(f"Gazzien {worker_command('Mr Forms', 1).split(' ', 2)[2].rsplit(' ', 4)[0]} Surprise Packages <3")
 
-@commands('ushabti')
-def shabti_command(bot,trigger):
-    bot.say('Vavakx ' + worker_command('Vavakx  Nonexus',1).split(' ',3)[3])
+@commands('enigmas')
+def enigmas_command(bot, trigger):
+    bot.say('Alan ' + worker_command('ebzfan', 1).split(None, 1)[1] + ' and ' + worker_command('ebzfan', 2).split(None, 1)[1])
