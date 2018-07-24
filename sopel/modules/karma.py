@@ -132,3 +132,13 @@ def topKarma(bot, trigger):
         reply += (topKarma[x]['name'] + ": " + str(topKarma[x]['karma']) + ", ")
     reply = reply[:-2]
     bot.say(reply)
+
+@rule('.*so sad.*play despacito.*')
+def despacito(bot, trigger):
+    karma = bot.db.get_nick_value(trigger.nick, 'karma')
+    if not karma:
+        karma = 0
+    else:
+        karma = int(karma)
+    karma -= 1
+    bot.db.set_nick_value(trigger.nick, 'karma', karma)
