@@ -10,7 +10,7 @@ https://sopel.chat
 
 
 from datetime import datetime
-import sopel
+from sopel import __version__ as release
 from sopel.module import commands, intent, rate
 import re
 from os import path
@@ -57,7 +57,7 @@ def version(bot, trigger):
 @rate(20)
 def ctcp_version(bot, trigger):
     bot.write(('NOTICE', trigger.nick),
-              '\x01VERSION Sopel IRC Bot version %s\x01' % sopel.__version__)
+              '\x01VERSION Sopel IRC Bot version %s\x01' % release)
 
 
 @intent('SOURCE')

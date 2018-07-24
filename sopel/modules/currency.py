@@ -51,8 +51,10 @@ def exchange(bot, trigger):
     amount, of, to = match.groups()
     try:
         amount = float(amount)
-    except:
+    except ValueError:
         bot.reply("Sorry, I didn't understand the input.")
+    except OverflowError:
+        bot.reply("Sorry, input amount was out of range.")
     display(bot, amount, of, to)
 
 
@@ -68,28 +70,33 @@ def display(bot, amount, of, to):
         if not to_name:
             bot.reply("Unknown currency: %s" % to)
             return
-    except Exception as e:
+    except Exception as e:  # TODO: Be specific
         bot.reply("Something went wrong while I was getting the exchange rate.")
         print('[currency] {}'.format(e))
         return NOLIMIT
 
     result = amount / of_rate * to_rate
-    bot.say("{} {} ({}) = {} {} ({})".format(amount, of.upper(), of_name,
+    bot.say("{:.2f} {} ({}) = {:.2f} {} ({})".format(amount, of.upper(), of_name,
                                              result, to.upper(), to_name))
 
 
 @commands('btc', 'bitcoin')
 @example('.btc 20 EUR')
 def bitcoin(bot, trigger):
-    #if 2 args, 1st is number and 2nd is currency. If 1 arg, it's either the number or the currency.
+    # if 2 args, 1st is number and 2nd is currency. If 1 arg, it's either the number or the currency.
     to = trigger.group(4)
-    try:
-        amount = trigger.group(3)
-    except:
-        bot.reply("Sorry, I didn't understand the input.")
-        return NOLIMIT
+    amount = trigger.group(3)
     if not to:
         to = trigger.group(3) or 'USD'
         amount = 1
+
+    try:
+        amount = float(amount)
+    except ValueError:
+        bot.reply("Sorry, I didn't understand the input.")
+        return NOLIMIT
+    except OverflowError:
+        bot.reply("Sorry, input amount was out of range.")
+        return NOLIMIT
 
     display(bot, amount, 'BTC', to)

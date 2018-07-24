@@ -44,8 +44,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Sopel IRC Bot'
-copyright = '2012-2015, Elsie Powell, et al.'
+project = u'Sopel IRC Bot'
+copyright = u'2012-2018, Elsie Powell, et al.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -231,8 +231,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'sopel', 'Sopel IRC Bot Documentation',
-   'Elsie Powell, et al.', 'SopelIRCBot', 'One line description of project.',
+  ('index', 'sopel', u'Sopel IRC Bot Documentation',
+   u'Elsie Powell, et al.', 'SopelIRCBot', 'Simple, extendible IRC bot.',
    'Miscellaneous'),
 ]
 

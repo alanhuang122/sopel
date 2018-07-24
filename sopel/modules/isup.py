@@ -2,14 +2,17 @@
 """Simple website status check with isup.me"""
 # Author: Elsie Powell https://embolalia.com
 
-
 import requests
 from sopel.module import commands
+
+from requests.exceptions import SSLError
+
 
 @commands('isup', 'ping')
 def isup(bot, trigger):
     """Checks if a website is up or down."""
     site = trigger.group(2)
+    secure = trigger.group(1).lower() != 'isupinsecure'
     if not site:
         return bot.reply("What site do you want to check?")
 

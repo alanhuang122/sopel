@@ -8,13 +8,15 @@
 
 
 import re, idna
-from sopel import tools
+from sopel import tools, __version__
 from sopel.module import commands, rule, example
 from sopel.config.types import ValidatedAttribute, ListAttribute, StaticSection
 from urllib.parse import urlparse, urlunparse
 
 import requests
 
+USER_AGENT = 'Sopel/{} (https://sopel.chat)'.format(__version__)
+default_headers = {'User-Agent': USER_AGENT}
 url_finder = None
 # These are used to clean up the title tag before actually parsing it. Not the
 # world's best way to do this, but it'll do for now.
@@ -49,13 +51,10 @@ def configure(config):
     )
 
 
-def setup(bot=None):
+def setup(bot):
     global url_finder
     global user_agent
 
-    # TODO figure out why this is needed, and get rid of it, because really?
-    if not bot:
-        return
     bot.config.define_section('url', UrlSection)
 
     if bot.config.url.exclude:
@@ -240,6 +239,7 @@ def get_hostname(url):
     if slash != -1:
         hostname = hostname[:slash]
     return hostname
+
 
 if __name__ == "__main__":
     from sopel.test_tools import run_example_tests

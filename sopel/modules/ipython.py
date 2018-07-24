@@ -6,6 +6,7 @@ Licensed under the Eiffel Forum License 2.
 
 Sopel: https://sopel.chat/
 """
+from __future__ import unicode_literals, absolute_import, print_function, division
 
 import sopel
 import sys

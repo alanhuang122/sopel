@@ -74,7 +74,7 @@ def main(argv=None):
                             dest="migrate_configs",
                             help="Migrate config files to the new format")
         parser.add_argument('--quiet', action="store_true", dest="quiet",
-                            help="Supress all output")
+                            help="Suppress all output")
         parser.add_argument('-w', '--configure-all', action='store_true',
                             dest='wizard', help='Run the configuration wizard.')
         parser.add_argument('--configure-modules', action='store_true',
@@ -201,5 +201,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         print("\n\nInterrupted")
         os._exit(1)
+
+
 if __name__ == '__main__':
     main()

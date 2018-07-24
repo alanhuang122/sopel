@@ -6,6 +6,7 @@ Licensed under the Eiffel Forum License 2.
 
 https://sopel.chat/
 """
+from __future__ import unicode_literals, absolute_import, print_function, division
 
 from sopel.module import commands
 
@@ -13,7 +14,7 @@ from sopel.module import commands
 @commands('lmgtfy', 'lmgify', 'gify', 'gtfy')
 def googleit(bot, trigger):
     """Let me just... google that for you."""
-    #No input
+    # No input
     if not trigger.group(2):
         return bot.say('https://google.com/')
     bot.say('https://lmgtfy.com/?q=' + trigger.group(2).replace(' ', '+'))

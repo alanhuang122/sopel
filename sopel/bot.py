@@ -140,6 +140,9 @@ class Sopel(irc.Bot):
         modules. See :class:`sopel.tools.Sopel.SopelMemory`
         """
 
+        self.shutdown_methods = []
+        """List of methods to call on shutdown"""
+
         self.scheduler = sopel.tools.jobs.JobScheduler(self)
         self.scheduler.start()
 
@@ -233,12 +236,14 @@ class Sopel(irc.Bot):
             # TODO this should somehow find the right job to remove, rather than
             # clearing the entire queue. Issue #831
             self.scheduler.clear_jobs()
-        if (getattr(obj, '__name__', None) == 'shutdown'
-                and obj in self.shutdown_methods):
+        if (getattr(obj, '__name__', None) == 'shutdown' and
+                    obj in self.shutdown_methods):
             self.shutdown_methods.remove(obj)
 
     def register(self, callables, jobs, shutdowns, urls):
-        self.shutdown_methods = shutdowns
+        # Append module's shutdown function to the bot's list of functions to
+        # call on shutdown
+        self.shutdown_methods += shutdowns
         for callbl in callables:
             if hasattr(callbl, 'rule'):
                 for rule in callbl.rule:
@@ -501,7 +506,7 @@ class Sopel(irc.Bot):
 
         try:
             exit_code = func(sopel, trigger)
-        except Exception:
+        except Exception:  # TODO: Be specific
             exit_code = None
             self.error(trigger)
 

@@ -7,10 +7,9 @@ Licensed under the Eiffel Forum License 2.
 https://sopel.chat
 """
 
-
-import requests
 from bs4 import BeautifulSoup as Soup
 from sopel.module import commands, example
+import requests
 import re
 
 uri = 'https://en.wikipedia.org/wiki/List_of_Internet_top-level_domains'

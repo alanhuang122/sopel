@@ -10,6 +10,7 @@ dispatch function in bot.py and making it easier to maintain.
 # Copyright © 2012, Elad Alfassa <elad@fedoraproject.org>
 # Copyright 2012-2015, Elsie Powell embolalia.com
 # Licensed under the Eiffel Forum License 2.
+from __future__ import unicode_literals, absolute_import, print_function, division
 
 from random import randint
 import re
@@ -45,7 +46,7 @@ def auth_after_register(bot):
             'AUTHSERV auth',
             account + ' ' + password
         ))
-    
+
     elif bot.config.core.auth_method == 'Q':
         account = bot.config.core.auth_username
         password = bot.config.core.auth_password
@@ -53,6 +54,13 @@ def auth_after_register(bot):
             'AUTH',
             account + ' ' + password
         ))
+
+    elif bot.config.core.auth_method == 'userserv':
+        userserv_name = bot.config.core.auth_target or 'UserServ'
+        account = bot.config.core.auth_username
+        password = bot.config.core.auth_password
+        bot.msg(userserv_name, "LOGIN {account} {password}".format(
+                account=account, password=password))
 
 
 @sopel.module.event(events.RPL_WELCOME, events.RPL_LUSERCLIENT)
@@ -160,7 +168,7 @@ def handle_names(bot, trigger):
     """Handle NAMES response, happens when joining to channels."""
     names = trigger.split()
 
-    #TODO specific to one channel type. See issue 281.
+    # TODO specific to one channel type. See issue 281.
     channels = re.search('(#\S*)', trigger.raw)
     if not channels:
         return
@@ -477,7 +485,7 @@ def recieve_cap_ls_reply(bot, trigger):
     auth_caps = ['account-notify', 'extended-join', 'account-tag']
     for cap in auth_caps:
         if cap not in bot._cap_reqs:
-            bot._cap_reqs[cap] = [_CapReq('=', 'coretasks', acct_warn)]
+            bot._cap_reqs[cap] = [_CapReq('', 'coretasks', acct_warn)]
 
     for cap, reqs in iteritems(bot._cap_reqs):
         # At this point, we know mandatory and prohibited don't co-exist, but
@@ -539,7 +547,7 @@ def sasl_success(bot, trigger):
     bot.write(('CAP', 'END'))
 
 
-#Live blocklist editing
+# Live blocklist editing
 
 
 @sopel.module.commands('blocks')

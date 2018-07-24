@@ -5,7 +5,7 @@
 import datetime
 try:
     import pytz
-except:
+except ImportError:
     pytz = False
 
 
@@ -45,7 +45,7 @@ def validate_format(tformat):
     try:
         time = datetime.datetime.utcnow()
         time.strftime(tformat)
-    except:
+    except Exception:  # TODO: Be specific
         raise ValueError('Invalid time format')
     return tformat
 

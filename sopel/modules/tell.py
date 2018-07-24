@@ -69,7 +69,7 @@ def setup(self):
     if not os.path.exists(self.tell_filename):
         try:
             f = open(self.tell_filename, 'w')
-        except OSError:
+        except (OSError, IOError):  # Remove IOError when dropping py2 support
             pass
         else:
             f.write('')
@@ -102,7 +102,7 @@ def f_remind(bot, trigger):
     if not os.path.exists(bot.tell_filename):
         return
 
-    if len(tellee) > 20:
+    if len(tellee) > 30:
         return bot.reply('That nickname is too long.')
     if tellee == bot.nick:
         return bot.reply("I'm here now, you can tell me whatever you want!")

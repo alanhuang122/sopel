@@ -20,6 +20,12 @@ from sopel.module import commands, rule, example, priority
 
 logger = get_logger(__name__)
 
+
+def setup(bot):
+    global help_prefix
+    help_prefix = bot.config.core.help_prefix
+
+
 @rule('$nick' '(?i)(help|doc) +([A-Za-z]+)(?:\?+)?$')
 @example('.help tell')
 @commands('help', 'commands')
@@ -68,7 +74,7 @@ def help(bot, trigger):
             
             for category, cmds in list(collections.OrderedDict(sorted(bot.command_groups.items())).items()):
                 category = category.upper().ljust(name_length)
-                cmds = set(cmds)
+                cmds = set(cmds)  # remove duplicates
                 cmds = '  '.join(cmds)
                 msg = category + '  ' + cmds
                 indent = ' ' * (name_length + 2)
@@ -95,28 +101,29 @@ def help(bot, trigger):
 
 def create_list(bot, msg):
     msg = 'Command listing for {}@{}\n\n'.format(bot.nick, bot.config.core.host) + msg
+    payload = {"content": msg}
+    headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
     try:
-        result = requests.post('http://ix.io/', data={'f:1':msg})
+        result = requests.post('https://ptpb.pw/', json=payload, headers=headers)
     except requests.RequestException:
         bot.say("Sorry! Something went wrong.")
-        logger.exception("Error posting commands list")
+        logger.exception("Error posting commands")
         return
-    result = result.text
-    if "http://ix.io/" in result:
-        return result
-    else:
+    result = result.json()
+    if 'url' not in result:
         bot.say("Sorry! Something went wrong.")
         logger.error("Invalid result %s", result)
         return
+    return result['url']
 
 
 @rule('$nick' r'(?i)help(?:[?!]+)?$')
 @priority('low')
 def help2(bot, trigger):
     response = (
-        'Hi, I\'m a bot. Say ".commands" to me in private for a list ' +
-        'of my commands, or see https://sopel.chat for more ' +
-        'general details. My owner is %s.'
-    ) % bot.config.core.owner
+        "Hi, I'm a bot. Say {1}commands to me in private for a list "
+        "of my commands, or see https://sopel.chat for more "
+        "general details. My owner is {0}."
+        .format(bot.config.core.owner, help_prefix))
     bot.reply(response)
