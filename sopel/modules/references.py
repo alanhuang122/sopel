@@ -20,11 +20,11 @@ def reference(bot, trigger):
     if query in files:
         link = open(dir + query)
         for line in link:
-            bot.say(link)
+            bot.say(line)
 
             parts = trigger.raw.split(None)
             parts = parts[:4]
-            parts.append(':{0}'.format(link))
+            parts.append(':{0}'.format(line))
             string = ' '.join(parts)
             print(string)
 #        urls = process_urls(bot, trigger, link)

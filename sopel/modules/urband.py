@@ -24,7 +24,7 @@ def ud(word, say_url=True):
         print(('[urband] {}'.format(e)))
         return bot.say("Error connecting to urban dictionary")
         
-    if data['result_type'] == 'no_results':
+    if not data['list']:
         return None
 
     result = data['list'][0]
