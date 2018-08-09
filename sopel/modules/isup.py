@@ -28,7 +28,6 @@ def isup(bot, trigger):
         return
 
     try:
-        site = site.replace('http', 'https', 1)
         response = requests.get(site, allow_redirects=False)
     except requests.exceptions.SSLError:
         try:
