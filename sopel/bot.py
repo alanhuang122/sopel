@@ -355,9 +355,12 @@ class Sopel(irc.Bot):
                     return
 
             if recipient_id not in self.lockers:
-                self.lockers[recipient_id] = Locker(60,5)
+                if recipient_id.is_nick() or recipient_id == '#alantest':
+                    self.lockers[recipient_id] = Locker(0,5)
+                else:
+                    self.lockers[recipient_id] = Locker(60,5)
 
-            if not self.lockers[recipient_id].check() and recipient_id != '#alantest':
+            if not self.lockers[recipient_id].check():
                 if recipient_id not in self.warns:
                     self.warns[recipient_id] = False
 
