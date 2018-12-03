@@ -1,140 +1,61 @@
-# 2016.12.24 03:29:00 CST
-#Embedded file name: modules/advent.py
-import re, json, requests, threading, pickle
+import arrow
+import mwclient
+import re, json, requests, threading
 from time import sleep
 from sopel.module import commands, rule, example, require_owner
 from datetime import datetime
-from base64 import b64decode
-from Crypto.Cipher import AES
-from html.parser import HTMLParser
 
 data = {}
+
 codes = {}
-h = HTMLParser()
-timer = None
+cache = {}
 start = None
 end = None
 
 def setup(bot):
-    update()
-    global data
     global codes
-    data = pickle.load(open('/home/alan/fl-utils/data/qualities.dat', 'rb'))
-    codes = pickle.load(open('/home/alan/fl-utils/data/codes.dat', 'rb'))
-    time = datetime.utcnow()
-    if time.hour < 12:
-        diff = time.replace(hour=12, minute=0, second=0, microsecond=0) - time
-    else:
-        try:
-            diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
-        except:
-            diff = time.replace(month=time.month+1, day=1, hour=12, minute=0, second=0, microsecond=0) - time
-    print(('[advent] scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds // 3600, diff.seconds // 60 % 60, diff.seconds % 60)))
+    global cache
+
+    try:
+        with open('/home/alan/.sopel/qualities.json') as f:
+            for line in f:
+                temp = json.loads(line)
+                data[temp['key']] = temp['value']
+    except:
+        pass
+
+    with open('/home/alan/.sopel/bare.json') as f:
+        codes = json.loads(f.read())
+    try:
+        with open('/home/alan/.sopel/advent_cache.json', 'r') as f:
+            cache = json.load(f)
+    except IOError:
+        cache = {}
+        with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
+            json.dump({}, f)
+
+    start_timer(bot)
+
+def start_timer(bot):
     global start
     global end
-    start = datetime.utcnow()
-    end = datetime.utcnow() + diff
-    global timer
-    if timer:
-        timer.cancel()
-    timer = threading.Timer(diff.seconds, timed_advent, [bot])
-    timer.start()
-
-@commands('verify')
-def verify_command(bot, trigger):
-    if datetime.utcnow().hour < 12:
-        day = datetime.utcnow().day - 1
+    time = datetime.utcnow()
+    # Is it not yet December?
+    if time < datetime(time.year, 12, 1, 12):
+        diff = datetime(time.year, 12, 1, 12) - time
     else:
-        day = datetime.utcnow().day
-    try:
-        val = int(trigger.group(2))
-        if val < 0:
-            return
-    except ValueError:
-        return
-    except TypeError:
-        val = 0
-
-    page = requests.get('http://fallenlondon.storynexus.com/advent')
-    #page = requests.get('https://alanhuang.name/advent.html')
-    current = json.loads(re.search('openableDoor ?= ?(.+?);', page.text).group(1))
-    expired = json.loads(re.search('expiredDoors ?= ?(.+?);', page.text).group(1))
-    opened = json.loads(re.search('openedDoors ?= ?(.+?);', page.text).group(1))
-    futures = [x['ReleaseDay'] for x in json.loads(re.search('futureDoors ?= ?(.+?);', page.text).group(1))]
-
-    if val > current['ReleaseDay']:
-        return
-    
-    best = None
-
-    if val == 0 or val == current['ReleaseDay'] or not trigger.group(2):
-        # get latest code
-        if day > 25:
-            return
-
-        codename = current['AccessCodeName'].lower()
-
-        try:
-            code = codes[codename]
-            return
-        except KeyError:
-            update()
-            try:
-                code = codes[codename]
-                return
-            except KeyError:
-                cstring = codename.lstrip('0123456789')
-                for k in list(codes.keys()):
-                    if cstring in k:
-                        year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
-                        if not best:
-                            best = (year, k)
-                        elif year > best[0]:
-                            best = (year, k)
-
-                if not best:
-                    return
-                else:
-                    codes[codename] = codes[best[1]].copy()
-                    codes[codename].pop('TimesUsed', None)
-                    codes[codename].pop('ExpiresAt', None)
-                    codes[codename]['Name'] = codename
-                    codes[codename]['Id'] = 9999990 + current['ReleaseDay']
-                    codes[codename]['Tag'] = 'ADVENT 2017 - Manual'
-    '''    
-    for entry in opened:
-        if entry['ReleaseDay'] == val:
-            codename = entry['AccessCodeName']
-            try:
-                code = codes[codename]
-                return
-            except KeyError:
-                update()
-                try:
-                    code = codes[codename]
-                    return
-                except KeyError:
-                    cstring = codename.lstrip('0123456789')
-                    for k in codes.keys():
-                        if cstring in k:
-                            year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
-                            if not best:
-                                best = (year, k)
-                            elif year > best[0]:
-                                best = (year, k)
-
-                    if not best:
-                        return
-                    else:
-                        codes[codename] = codes[best[1]].copy()
-                        codes[codename].pop('TimesUsed', None)
-                        codes[codename].pop('ExpiresAt', None)
-                        codes[codename]['Name'] = codename
-                        codes[codename]['Id'] = 9999990 + entry['ReleaseDay']
-                        codes[codename]['Tag'] = 'ADVENT 2017 - Manual'
-    '''
-    with open('/home/alan/fl-utils/data/codes.dat', 'wb') as f:
-        pickle.dump(codes, f)
+        # Is it before noon?
+        if time < datetime(time.year, 12, time.day, 12):
+            diff = datetime(time.year, 12, time.day, 12) - time
+        elif time > datetime(time.year, 12, 25, 12):
+            diff = datetime(time.year + 1, 12, 1, 12) - time
+        else:
+            diff = datetime(time.year, 12, time.day + 1, 12) - time
+    print(f'[advent] scheduling for {diff}')
+    start = time
+    end = time + diff
+    timer = threading.Timer(diff.seconds, timed_advent, [bot, '#fallenlondon'])
+    timer.start()
 
 @commands('when')
 def when_command(bot, trigger):
@@ -143,382 +64,397 @@ def when_command(bot, trigger):
             .format(start.strftime('%c'), 
                     end.strftime('%c'), 
                     datetime.utcnow().strftime('%c'), 
-                    '{0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60)))
+                    diff))
     return
+
+@rule('^\.reloadcache$')
+@require_owner()
+def reload_cache(bot, trigger):
+    global cache
+    with open('/home/alan/.sopel/advent_cache.json', 'r') as f:
+        cache = json.load(f)
+
+@rule('^\.cache$')
+@require_owner()
+def print_cache(bot, trigger):
+    print(cache)
 
 @rule('^\.testadvent$')
 @require_owner()
-def testadvent(bot,trigger):
+def testadvent(bot, trigger):
     timed_advent(bot)
 
-def timed_advent(bot):
-    global timer
-    global start
-    global end
-    
-    timer.cancel()
+def timed_advent(bot, channel):
+    print('[advent] in timed_advent')
+    global cache
     time = datetime.utcnow()
-    diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
-
-    if time.month < 12:
-        print(('[advent] timer triggered but is not December yet - scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60)))
-        start = time
-        end = time + diff
-        timer = threading.Timer(diff.seconds, timed_advent, [bot])
-        timer.start()
-        return
-
     day = time.day
 
     if day > 25:
         print('[advent] merry christmas; no more advent codes; rip timer')
         return
-    try:
-        cache = pickle.load(open('/home/alan/.sopel/advent_cache.dat', 'rb'))
-    except IOError:
-        cache = {}
-        pickle.dump({}, open('/home/alan/.sopel/advent_cache.dat', 'wb'))
 
     print('[advent] looking for page')
     while True:
         sleep(1)
         try:
-            page = requests.get('http://fallenlondon.storynexus.com/advent')
-            current = json.loads(re.search('openableDoor ?= ?(.+?);', page.text).group(1))
-            if current['ReleaseDay'] == day:
+            advent = requests.get('https://api.fallenlondon.com/api/advent').json()
+            current = advent.get('openableDoor')
+            if current['releaseDay'] == day:
                 break
         except:
             continue
-    
-    codename = current['AccessCodeName'].lower()
-    url = 'http://fallenlondon.storynexus.com/a/{0}'.format(current['AccessCodeName'])
-    req = requests.post('https://www.googleapis.com/urlshortener/v1/url?key={0}&fields=id'.format(bot.config.google.api_key), data=json.dumps({'longUrl': url}), headers={'Content-Type': 'application/json'})
-    response = req.json()
-    
-    best = None
 
-    try:
-        code = codes[codename]
-    except KeyError:
-        update()
-        try:
-            code = codes[codename]
-        except KeyError:
-            cstring = codename.lstrip('0123456789')
-            for k in list(codes.keys()):
-                if cstring in k:
-                    year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
-                    if not best:
-                        best = [year, k]
-                    elif year > best[0]:
-                        best = [year, k]
-
-            if not best:
-                bot.say('Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(get_snippet(url)), response['id']), '#fallenlondon')
-                print(('[advent|ERROR]: could not get code {}'.format(codename)))
-                return
-            else:
-                if best[0] == 0:
-                    best[0] = "past year"
-                elif best[0] == 2016:
-                    best[0] = "last year"
-                code = codes[best[1]]
-                disclaimer = ' (note: effect from {}; may not be accurate)'.format(best[0])
-    
-    code = AccessCode(code)
-    effects = code.list_effects()
-    
-    bot.say('Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(code.message1), response['id']), '#fallenlondon')
-    bot.say('{} Effects: {}{}'.format(render(code.message2), effects, disclaimer if best else ''), '#fallenlondon')
-
-    cache[current['ReleaseDay']] = {'name': current['AccessCodeName'], 'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
-    pickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'wb'))
-    
-    time = datetime.utcnow()
-    diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
-
-    print(('[advent] scheduling for {0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60)))
-    start = datetime.utcnow()
-    end = datetime.utcnow() + diff
-    timer = threading.Timer(diff.seconds, timed_advent, [bot])
-    timer.start()
-
-def calculateTimeDiff():
-    time = datetime.utcnow()
-    if time.hour < 12:
-        diff = time.replace(hour=12, minute=0, second=0, microsecond=0) - time
+    print('[advent] got page')
+    code = current['accessCodeName']
+    r = get_response(code)['accessCode']
+    url = f'https://www.fallenlondon.com/a/{code}'
+    effects = get_effects(code)
+    if not effects:
+        bot.say(f'Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}', channel)
+        bot.say(f'{render_html(r["completedMessage"])} Effects: unknown', channel)
+        cache[str(current['releaseDay'])] = {'name': code,
+                                             'initial': r['initialMessage'],
+                                             'url': url,
+                                             'finished': r['completedMessage']}
     else:
-        diff = time.replace(day=time.day + 1, hour=12, minute=0, second=0, microsecond=0) - time
-    return '{0}:{1:02d}:{2:02d}'.format(diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60)
+        effect_text = str(effects)
+        bot.say(f'Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}', channel)
+        bot.say(f'{render_html(r["completedMessage"])} Effects: {effect_text}', channel)
+        cache[str(current['releaseDay'])] = {'name': code,
+                                             'initial': r['initialMessage'],
+                                             'url': url,
+                                             'finished': r['completedMessage'],
+                                             'effects': effect_text}
+
+    with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
+        json.dump(cache, f)
+
+    # Make the wiki edit
+    site = mwclient.Site('fallenlondon.fandom.com', path='/')
+    site.login(bot.config.wikia.username, bot.config.wikia.password)
+    page = site.pages['Advent Calendar 2018']
+    text = page.text()
+    today = arrow.get(datetime.now()).format('MMMM Do')
+    if today not in page.text():
+        edit = f"""\n\n=={today}==\n{url}\n\n[[File:{r['image']}small.png|left]] {r['initialMessage']}\n<br />\n\n'''Result:'''\n\n{r['completedMessage']}\n\n"""
+        page.save(page.text() + edit, today)
+
+    start_timer(bot)
 
 @commands('advent')
 @example('.advent 1')
 def advent_command(bot, trigger):
     """Get advent calendar link."""
-    start = datetime.utcnow().replace(month=12,day=1,hour=12,minute=0,second=0,microsecond=0)
-    now = datetime.utcnow()
-    if now < start:
-        diff = start-now
-        bot.say('No advent codes for another {} days, {} hours, {:02d} minutes, and {:02d} seconds.'.format(diff.days, diff.seconds / 3600, diff.seconds / 60 % 60, diff.seconds % 60))
+    time = datetime.utcnow()
+
+    if time < datetime(time.year, 12, 1, 12):
+        diff = datetime(time.year, 12, 1, 12) - time
+        rem, seconds = divmod(diff.seconds, 60)
+        hours, minutes = divmod(rem, 60)
+        bot.say(f'No advent codes for another {diff.days} days, {hours} hours, {minutes} minutes, and {seconds} seconds.')
         return
-    if datetime.utcnow().hour < 12:
-        day = datetime.utcnow().day - 1
-    else:
-        day = datetime.utcnow().day
+            
+    advent = requests.get('https://api.fallenlondon.com/api/advent').json()
+    current = advent.get('openableDoor')
+
     try:
-        val = int(trigger.group(2))
-        if val < -25:
-            bot.say("Ok, now you're just fucking with me.")
+        expired_index = max([x['releaseDay'] for x in advent.get('expiredDoors')])
+    except:
+        expired_index = 0
+
+    opened = advent.get('openedDoors')
+    opened = {x['releaseDay']: x for x in opened}
+
+    try:
+        input = int(trigger.group(2))
+    except ValueError:
+        bot.say("That's not a number.")
+        return
+    except TypeError:
+        input = 0
+    
+    # Handle negative number shorthand for past days
+    if input < 0:
+        if input < -25:
+            bot.say('Be serious.')
             return
-        if val < 0:
-            val = day + val
-            if val <= 0:
+        else:
+            day = time.day + input
+            if time.hour < 12:
+                day -= 1
+            if day < 1:
                 bot.say("I can't go that far back.")
                 return
-    except ValueError:
-        bot.say("I can't turn that into an integer.")
-        return
-    except TypeError:
-        val = 0
-    page = requests.get('http://fallenlondon.storynexus.com/advent')
-    #page = requests.get('https://alanhuang.name/advent.html')
-    current = json.loads(re.search('openableDoor ?= ?(.+?);', page.text).group(1))
-    expired = json.loads(re.search('expiredDoors ?= ?(.+?);', page.text).group(1))
-    opened = json.loads(re.search('openedDoors ?= ?(.+?);', page.text).group(1))
-    futures = [x['ReleaseDay'] for x in json.loads(re.search('futureDoors ?= ?(.+?);', page.text).group(1))]
-
-    try:
-        if val > current['ReleaseDay']:
-            if val > 25 and val < 32:
+    elif input == 0:
+        day = current['releaseDay']
+    else: # input > 0
+        if input > current['releaseDay']:
+            if input > 31:
+                bot.say('Be serious.')
+            elif input > 25:
                 bot.say('No advent codes after the 25th.')
-            elif val < 26:
-                bot.say('Not released yet...')
             else:
-                bot.say("Ok, now you're just fucking with me.")
+                bot.say('Not released yet...')
             return
-    except TypeError:
-        pass
+        day = input
 
-    try:
-        cache = pickle.load(open('/home/alan/.sopel/advent_cache.dat', 'rb'))
-    except IOError:
-        cache = {}
-        pickle.dump({}, open('/home/alan/.sopel/advent_cache.dat', 'wb'))
+    if day <= expired_index:
+        try:
+            entry = cache[str(day)]
+        except KeyError:
+            bot.say("I don't have any information for that day :<")
+            return
+        print('[advent] using cache for expired code')
+        code = entry['name']
 
-    try:
-        if not trigger.group(2) or val == 0 or val == current['ReleaseDay']:
-            # get latest code
-            if day > 25:
-                bot.say("No more advent codes. Will return in 2018!")
+        r = get_response(code)
+
+        if not r['isSuccess']:
+            print('[advent] must use cache for all entry')
+            bot.say(f'[EXPIRED] Advent Day {day} - {code}: {render_html(entry["initial"])}')
+            try:
+                bot.say(f'{render_html(entry["finished"])} Effects: {entry["effects"]}')
+            except KeyError:
+                bot.say(f'{render_html(entry["finished"])} Effects: unknown')
+        else:
+            r = r['accessCode']
+            url = f'https://www.fallenlondon.com/a/{code}'
+            bot.say(f'[EXPIRED] Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}')
+            try:
+                bot.say(f'{render_html(entry["finished"])} Effects: {entry["effects"]}')
+            except KeyError:
+                bot.say(f'{render_html(entry["finished"])} Effects: unknown')
+            cache[str(day)] = {'name': code,
+                               'initial': r['initialMessage'],
+                               'url': url,
+                               'finished': r['completedMessage'],
+                               'effects': entry['effects']}
+
+            if entry != cache[str(day)]:
+                print('[advent] !!! updating cache with different information!')
+                print(f'[advent] old was {entry}')
+                print(f'[advent] new is {cache[str(day)]}')
+                with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
+                    json.dump(cache, f)
+
+    else:
+        # Get the day's code
+        if day == current['releaseDay']:
+            code = current['accessCodeName']
+        else:
+            try:
+                code = opened[day]['accessCodeName']
+            except KeyError:
+                bot.say('I was expecting that number to be an opened door, and it was not.')
+                print(current)
+                print(opened)
+
+        # Get cache entry for the day - missing is ok
+        print(cache)
+        try:
+            entry = cache[str(day)]
+            print(f'got entry {entry}')
+        except KeyError:
+            pass
+
+        r = get_response(code)
+
+        if r['isSuccess']:
+            r = r['accessCode']
+            url = f'https://www.fallenlondon.com/a/{code}'
+            effects = get_effects(code)
+            print(effects)
+            print(entry)
+
+            bot.say(f'Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}')
+
+            # First try from entrybase, then try manual entry, then fall back to fail
+            if effects:
+                bot.say(f'{render_html(r["completedMessage"])} Effects: {effects}')
+            else:
+                try:
+                    bot.say(f'{render_html(r["completedMessage"])} Effects: {entry["effects"]}')
+                except KeyError:
+                    bot.say(f'{render_html(r["completedMessage"])} Effects: unknown')
                 return
 
-            codename = current['AccessCodeName'].lower()
-            url = 'http://fallenlondon.storynexus.com/a/{0}'.format(current['AccessCodeName'])
-            req = requests.post('https://www.googleapis.com/urlshortener/v1/url?key={0}&fields=id'.format(bot.config.google.api_key), data=json.dumps({'longUrl': url}), headers={'Content-Type': 'application/json'})
-            response = req.json()
-            
-            best = None
+            # Update cache entry if necessary
+            cache[str(day)] = {'name': code,
+                               'initial': r['initialMessage'],
+                               'finished': r['completedMessage'],
+                               'effects': str(effects),
+                               'url': url}
 
             try:
-                code = codes[codename]
-            except KeyError:
-                update()
+                if entry != cache[str(day)]:
+                    print('[advent] !!! updating cache with different information!')
+                    print(f'[advent] old was {entry}')
+                    print(f'[advent] new is {cache[str(day)]}')
+                    with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
+                        json.dump(cache, f)
+            except:
+                print(f'[advent] writing cache entry {cache[str(day)]}')
+                with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
+                    json.dump(cache, f)
+
+        else:   # Did not get success from /api/accesscode
+            try:
+                print('[advent] !!! NOT isSuccess - must use cache')
+                bot.say(f'Advent Day {day} - {code}: {render_html(entry["initial"])}')
                 try:
-                    code = codes[codename]
+                    bot.say(f'{render_html(entry["finished"])} Effects: {entry["effects"]}')
                 except KeyError:
-                    cstring = codename.lstrip('0123456789')
-                    for k in list(codes.keys()):
-                        if cstring in k:
-                            year = int(re.match('[a-zA-Z_]+(\d+)_\d+[a-zA-Z]+', k).group(1))
-                            if not best:
-                                best = [year, k]
-                            elif year > best[0]:
-                                best = [year, k]
-
-                    if not best:
-                        bot.say('Advent Day {0}: {1} {2}'.format(current['ReleaseDay'], render(get_snippet(url)), response['id']), '#fallenlondon')
-                        print(('[advent|ERROR]: could not get code {}'.format(codename)))
-                        return
-                    else:
-                        if best[0] == 0:
-                            best[0] = "past year"
-                        elif best[0] == 2016:
-                            best[0] = "last year"
-                        code = codes[best[1]]
-                        disclaimer = ' (note: effect from {}; may not be accurate)'.format(best[0])
-            
-            code = AccessCode(code)
-            effects = code.list_effects()
-            
-            bot.say('Advent Day {} - {}: {} {}'.format(current['ReleaseDay'], current['AccessCodeName'], render(code.message1), response['id']))
-            bot.say('{} Effects: {}{}'.format(render(code.message2), effects, disclaimer if best else ''))
-            bot.say('Next code in {}'.format(calculateTimeDiff()) if day < 25 else 'No more codes! Merry Christmas; see you in 2018!')
-        
-            cache[current['ReleaseDay']] = {'name': current['AccessCodeName'],'initial': code.message1, 'url': response['id'], 'finished': code.message2, 'effects': code.list_effects()}
-            pickle.dump(cache, open('/home/alan/.sopel/advent_cache.dat', 'wb'))
-        
-            return
-    except TypeError:
-        pass
-
-    for entry in expired:
-        if entry['ReleaseDay'] == val:
-            try:
-                data = cache[val]
-            except KeyError:
+                    bot.say(f'{render_html(entry["finished"])} Effects: unknown')
+            except:
                 bot.say("I don't have any information for that day :<")
-            print('[advent] using cache')
-            bot.say('[EXPIRED] Advent Day {} - {}: {}'.format(val, data['name'], render(data['initial'])))
-            bot.say('{} Effects: {}'.format(render(data['finished']), data['effects']))
-            return
 
-    for entry in opened:
-        if entry['ReleaseDay'] == val:
-            try:
-                data = cache[val]
-            except KeyError:
-                bot.say("I don't have any information for that day :<")
-            print('[advent] using cache')
-            bot.say('Advent Day {} - {}: {} {}'.format(val, data['name'], render(data['initial']), data['url']))
-            bot.say('{} Effects: {}'.format(render(data['finished']), data['effects']))
-            return
+def get_response(code):
+    return requests.post(f'https://api.fallenlondon.com/api/accesscode/{code}').json()
 
-    bot.say("I couldn't find anything for day {0} :<".format(val))
-
-@commands('code')
-def code_command(bot, trigger):
-    """Prints the result of an access code."""
-    if not trigger.group(2):
-        bot.say('Give me an access code.')
-        return
-
+def get_effects(codename):
+    cstring = codename.lstrip('0123456789')
     try:
-        code = codes[trigger.group(2).lower()]
+        return [Effect(e) for e in codes[cstring]]
     except KeyError:
-        update()
-        try:
-            code = codes[trigger.group(2).lower()]
-        except KeyError:
-            bot.say("I can't find that code.")
-            return
-
-    if code['Tag'] == 'Enigma':
-        bot.say("I can't find that code.")
-        return
-
-    code = AccessCode(code)
-
-    bot.say('Access code {}: {}'.format(render(code.name), render(code.message1)))
-    bot.say('{} Effects: {}'.format(render(code.message2), code.list_effects()))
-
-def get_snippet(url):
-    data = requests.get(url)
-    lines = data.text.split('\n')
-    lines = [l.strip() for l in lines if l.strip() != '']
-    try:
-        index = lines.index('<h3>Enter, Friend!</h3>')
-    except ValueError:
         return None
-    snippet = lines[index+1]
-    snippet = re.sub('<.+?>','', snippet)
-    return snippet
 
-def update():
-    global codes
-    try:
-        with open('/home/alan/fl-utils/data/revs.dat', 'rb') as f:
-            old = pickle.load(f)
-    except:
-        old = {}
-    try:
-        with open('/home/alan/fl-utils/data/codes.dat', 'rb') as f:
-            codes = pickle.load(f)
-    except:
-        codes = {}
-
-    temp = requests.get('http://couchbase-fallenlondon.storynexus.com:4984/sync_gateway_json/_all_docs').json()
-    revs = {}
-    for value in temp['rows']:
-        if 'accesscodes' in value['key']:
-            revs[value['key']] = value['value']['rev']
-
-    for row in list(revs.items()):
-        try:
-            if old[row[0]] == row[1]:
-                continue
-            else:
-                code = acquire(row[0])
-                codes[code['Name'].lower()] = code
-        except KeyError:
-            code = acquire(row[0])
-            codes[code['Name'].lower()] = code
-
-    with open('/home/alan/fl-utils/data/revs.dat', 'wb') as f:
-        pickle.dump(revs, f)
-    with open('/home/alan/fl-utils/data/codes.dat', 'wb') as f:
-        pickle.dump(codes, f)
-
-def first(text,key):
-    ecb = AES.new(key, AES.MODE_ECB)
-    return ecb.decrypt(b64decode(text))[:16]
-
-def second(text,key,iv):
-    ecb = AES.new(key, AES.MODE_CBC, iv)
-    return ecb.decrypt(b64decode(text))[16:]
-
-def decrypt(text):
-    key = 'eyJUaXRsZSI6Ildo'
-    iv = b64decode('7ENDyFzB5uxEtjFCpRpj3Q==')
-    return (first(text,key)+second(text,key,iv)).decode('utf-8')
-
-def get(id):
-    data = requests.get('http://couchbase-fallenlondon.storynexus.com:4984/sync_gateway_json/{0}'.format(id), headers={'Host' : 'couchbase-fallenlondon.storynexus.com:4984', 'User-Agent' : None, 'Accept' : 'multipart/related,  application/json'}).json()
-    return decrypt(data['body'])
-
-def clean(s):
-    temp = s.rsplit('}', 1)
-    return '{}}}'.format(temp[0])
-
-def acquire(id):
-    print(('[advent] acquiring {}'.format(id)))
-    return json.loads(clean(get(id)))
-
-def sub_qualities(string):
-    for x in re.findall(r'\[q:(\d+)\]', string):
-        string = string.replace(x, Quality(int(x)).name)
+def render_html(string):
+    string = re.sub(r'<.{,2}?br.{,2}?>','\n', string)
+    string = re.sub(r'<.{,2}?p.{,2}?>','', string)
+    string = re.sub(r'(?i)</?(em|i)>', '_', string)
+    string = re.sub(r'(?i)</?(strong|b)>', '*', string)
+    string = re.sub('\r\n', ' ', string)
     return string
 
-class Effect:
-    def __init__(self, effect):
-        self.raw = effect
-        self.quality = Quality(effect['AssociatedQuality']['Id'])
-        self.equip = 'ForceEquip' in effect
+class Quality:
+    def __init__(self, jdata):
+        #HimbleLevel is used to determine order within categories for items
+        self.raw = jdata
+        self.name = jdata.get('Name', '(no name)')
+        self.id = jdata['Id']
+        self.desc = jdata.get('Description', '(no description)')
+        self.pyramid = 'UsePyramidNumbers' in jdata
+        self.nature = jdata.get('Nature', 1) #1: quality; 2: item
         try:
-            self.amount = effect['Level']
+            qldstr = jdata['ChangeDescriptionText']
+            self.changedesc = parse_qlds(qldstr)
+        except KeyError:
+            self.changedesc = None
+        try:
+            qldstr = jdata['LevelDescriptionText']
+            self.leveldesc = parse_qlds(qldstr)
+        except KeyError:
+            self.leveldesc = None
+        try:
+            variables = {}
+            d = json.loads(jdata['VariableDescriptionText'])
+            for x in list(d.items()):
+                variables[x[0]] = parse_qlds(x[1])
+            self.variables = variables
+        except KeyError:
+            self.variables = None
+        self.cap = jdata.get('Cap')
+        self.tag = jdata.get('Tag')
+        self.test_type = 'Narrow' if 'DifficultyTestType' in jdata else 'Broad'
+        self.difficulty = jdata.get('DifficultyScaler')
+        self.slot = jdata.get('AssignToSlot', {}).get('Id')
+        try:
+            self.enhancements = []
+            for x in jdata['Enhancements']:
+                self.enhancements.append('{:+} {}'.format(x['Level'], Quality.get(x['AssociatedQuality']['Id']).name))
+        except KeyError:
+            pass
+
+    def __repr__(self):
+        return 'Quality: {}'.format(self.name)
+
+    def __str__(self):
+        string = 'Quality: {}'.format(self.name)
+        try:
+            string += '\nCategory: {}'.format(self.category)
+        except AttributeError:
+            pass
+        try:
+            if self.enhancements:
+                string += '\nEnhancements: [{}]'.format(', '.join(self.enhancements))
+        except AttributeError:
+            pass
+        return string
+
+    @classmethod
+    def get(self, id):
+        key = 'qualities:{}'.format(id)
+        return Quality(data[key])
+
+    def get_changedesc(self, level):
+        if self.changedesc and isinstance(level, int):
+            descs = sorted(list(self.changedesc.items()), reverse=True)
+            for x in descs:
+                if x[0] <= level:
+                    desc = x
+                    break
+                desc = (-1, 'no description')
+            return desc
+        return None
+
+    def get_leveldesc(self, level):
+        if self.leveldesc and isinstance(level, int):
+            descs = sorted(list(self.leveldesc.items()), reverse=True)
+            for x in descs:
+                if x[0] <= level:
+                    desc = x
+                    break
+                desc = (-1, 'no description')
+            return desc
+        return None
+
+def sub_qualities(string):
+    for x in re.findall(r'\[qb?:(\d+)\]', string):
+        string = string.replace(x, Quality.get(int(x)).name)
+    return string
+
+def parse_qlds(string):
+    qld = {}
+    qlds = string.split('~')
+    for d in qlds:
+        level, text = d.split('|', 1)
+        level = int(level)
+        qld[level] = text
+    return dict(sorted(qld.items()))
+
+class Effect:   #done: Priority goes 3/2/1/0
+    def __init__(self, jdata, costs=None):
+        self.raw = jdata
+        self.quality = Quality.get(jdata['AssociatedQuality']['Id'])
+        self.equip = 'ForceEquip' in jdata
+        try:
+            self.amount = jdata['Level']
         except:
             try:
-                self.amount = sub_qualities(effect['ChangeByAdvanced'])
+                self.amount = sub_qualities(jdata['ChangeByAdvanced']).strip()
             except KeyError:
                 pass
         try:
-            self.setTo = effect['SetToExactly']
+            self.setTo = jdata['SetToExactly']
         except:
             try:
-                self.setTo = sub_qualities(effect['SetToExactlyAdvanced'])
+                self.setTo = sub_qualities(jdata['SetToExactlyAdvanced']).strip()
             except KeyError:
                 pass
         try:
-            self.ceil = effect['OnlyIfNoMoreThan']
+            self.ceil = jdata['OnlyIfNoMoreThan']
         except KeyError:
             pass
         try:
-            self.floor = effect['OnlyIfAtLeast']
+            self.floor = jdata['OnlyIfAtLeast']
         except KeyError:
             pass
         try:
-            self.priority = effect['Priority']
+            self.priority = jdata['Priority']
         except KeyError:
             self.priority = 0
+
     def __repr__(self):
         try:
             limits = ' if no more than {} and at least {}'.format(self.ceil, self.floor)
@@ -530,79 +466,25 @@ class Effect:
                     limits = ' only if at least {}'.format(self.floor)
                 except:
                     limits = ''
+        if self.equip:
+            limits += ' (force equipped)'
 
         try:
+            if self.quality.changedesc and isinstance(self.setTo, int):
+                desc = self.quality.get_changedesc(self.setTo)
+                try:
+                    return '{} (set to {} ({}){})'.format(self.quality.name, self.setTo, desc[1], limits)
+                except TypeError:
+                    pass
             return '{} (set to {}{})'.format(self.quality.name, self.setTo, limits)
         except:
             if self.quality.nature == 2 or not self.quality.pyramid:
                 try:
                     return '{:+} x {}{}'.format(self.amount, self.quality.name, limits)
                 except:
-                    return '{} {}{}'.format('' if self.amount.startswith('-') else '+' + self.amount, self.quality.name, limits)
+                    return '{} x {}{}'.format(('' if self.amount.startswith('-') else '+') + self.amount, self.quality.name, limits)
             else:
                 try:
                     return '{} ({:+} cp{})'.format(self.quality.name, self.amount, limits)
                 except:
-                    return '{} ({} cp{})'.format(self.quality.name, '' if self.amount.startswith('-') else '' + self.amount, limits)
-
-class Quality:  #done
-    def __init__(self, id):
-        #HimbleLevel is used to determine order within categories for items
-        jdata = data['qualities:{}'.format(id)]
-        self.raw = jdata
-        self.name = jdata['Name']
-        self.id = id
-        try:
-            self.nature = jdata['Nature']
-        except KeyError:
-            self.nature = 1
-        self.pyramid = 'UsePyramidNumbers' in jdata
-
-class AccessCode:
-    def __init__(self, jdata):
-        self.raw = jdata
-        try:
-            self.name = jdata['Name']
-        except:
-            self.name = '(no name)'
-        try:
-            self.message1 = h.unescape(jdata['InitialMessage'])
-        except Exception as e:
-            print(e)
-            self.message1 = '(no message)'
-        try:
-            self.message2 = h.unescape(jdata['CompletedMessage'])
-        except Exception as e:
-            print(e)
-            self.message2 = '(no message)'
-        self.effects = []
-        for e in jdata['QualitiesAffected']:
-            self.effects.append(Effect(e))
-    def __repr__(self):
-        string = 'Access code name: {}'.format(self.name)
-        string += '\nInitial message: {}'.format(self.message1)
-        string += '\nFinish message: {}'.format(self.message2)
-        string += '\nEffects: {}'.format(self.list_effects())
-        return string.encode('utf-8')
-    def __unicode__(self):
-        string = 'Access code name: {}'.format(self.name)
-        string += '\nInitial message: {}'.format(self.message1)
-        string += '\nFinish message: {}'.format(self.message2)
-        string += '\nEffects: {}'.format(self.list_effects())
-        return string
-    def list_effects(self):
-        if self.effects != []:
-            return '[{}]'.format(', '.join([str(e) for e in self.effects]))
-
-def render(string):
-    string = re.sub(r'<.{,2}?br.{,2}?>',' ', string)
-    string = re.sub(r'<.{,2}?[pP].{,2}?>',' ', string)
-    string = string.replace('<em>', '\x1d')
-    string = string.replace('<i>', '\x1d')
-    string = string.replace('</em>', '\x1d')
-    string = string.replace('</i>', '\x1d')
-    string = string.replace('<strong>', '\x02')
-    string = string.replace('</strong>', '*\x02')
-    string = string.replace('<b>', '\x02')
-    string = string.replace('</b>', '*\x02')
-    return string
+                    return '{} ({} cp{})'.format(self.quality.name, ('' if self.amount.startswith('-') else '+') + self.amount, limits)
