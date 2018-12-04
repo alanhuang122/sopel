@@ -7,7 +7,7 @@ from fuzzywuzzy import process
 from collections import OrderedDict
 import xml.etree.ElementTree as ET
 
-@interval(10)
+#@interval(10)
 def update_news(bot):
     if not bot.config.news.target_channel:
         return
