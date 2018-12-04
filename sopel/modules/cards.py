@@ -1,14 +1,12 @@
 #!/usr/local/bin/python
 from sopel.module import commands
-import random, pickle, requests, re
-from requests.utils import quote
+import json, random, requests, re
 
 data = None
-
 def setup(bot):
     global data
     try:
-        data = pickle.load(open('/home/alan/.sopel/cards.dat', 'rb'))
+        data = json.load(open('/home/alan/.sopel/cards.dat', 'rb'))
     except:
         data = {'watchful': [], 'shadowy': [], 'dangerous': [], 'persuasive': []}
 
@@ -32,12 +30,12 @@ def cards_command(bot, trigger):
             bot.say('Not enough parameters')
             return
         
-        url = 'http://' + quote('fallenlondon.storynexus.com/Profile/{0}'.format(name))
-        r = requests.get(url)
-        if r.history:
+        url = 'https://api.fallenlondon.com/api/profile'
+        r = requests.get(url, params={'characterName': name})
+        if r.status_code == 404:
             bot.say("Couldn't find user {0}.".format(name), alias=False)
             return
-        name = re.search(r'class="character-name">(.+?)</a>', r.text).group(1)
+        name = r.json()['profileCharacter']['name']
 
         key = ''
         for k in list(data.keys()):
