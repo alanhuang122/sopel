@@ -319,41 +319,47 @@ def location_command(bot, trigger):
 
 @commands('profile')
 def profile_command(bot, trigger):
-    url = 'https://api.fallenlondon.com/api/profile/{}'.format(quote(trigger.group(2).strip()))
-    r = requests.get(url)
+    url = 'https://api.fallenlondon.com/api/profile'
+    r = requests.get(url, params={'characterName': trigger.group(2).strip()})
+    if r.status_code == 404:
+        bot.say('Couldn\'t find that profile.')
+        return
     data = json.loads(r.text)
-    if not data:
-        bot.say('Couldn\'t find that profile.')
-        return
-    name = data.get('ProfileCharacter', {}).get('Name')
-    if not name:
-        bot.say('Couldn\'t find that profile.')
-        return
-    bot.say('https://beta.fallenlondon.com/profile/{}'.format(quote(name)), alias=False)
+    name = data.get('profileCharacter', {}).get('name')
+    bot.say('https://www.fallenlondon.com/profile/{}'.format(quote(name)), alias=False)
 
 def worker_command(user, index):
-    url = 'https://api.fallenlondon.com/api/profile/{}'.format(quote(user.strip()))
-    r = requests.get(url)
-    data = json.loads(r.text)
-    if not data:
+    url = 'https://api.fallenlondon.com/api/profile'
+    r = requests.get(url, params={'characterName': user.strip()})
+    if r.status_code == 404:
         return "I couldn't find that profile."
     else:
-        character = data['ProfileCharacter']
+        data = json.loads(r.text)
+        character = data['profileCharacter']
         if index is 1:
-            return "{} has {}".format(character['Name'], character['MantelpieceItem']['NameAndLevel'])
+            return "{} has {}".format(character['name'], character['mantelpieceItem']['nameAndLevel'])
         elif index is 2:
-            return "{} has {}".format(character['Name'], character['ScrapbookStatus']['NameAndLevel'])
+            return "{} has {}".format(character['name'], character['scrapbookStatus']['nameAndLevel'])
         elif index is 3:
-            if data['CurrentArea']['Name'] == 'your Lodgings':
-                gender = data['CharacterName'].rsplit(None, 1)[1]
+            if data['currentArea']['name'] == 'Your Lodgings':
+                gender = data['characterName'].rsplit(None, 1)[1]
                 if gender == "gentleman":
                     pronoun = "his"
                 elif gender == "lady":
                     pronoun = "her"
                 elif gender == "gender":
                     pronoun = "their"
-                data['CurrentArea']['Name'] = '{} Lodgings'.format(pronoun)
-            return "{} is in {}".format(character['Name'], data['CurrentArea']['Name'])
+                data['currentArea']['name'] = f'{pronoun} Lodgings'
+            elif data['currentArea']['name'] == "a place you won't leave":
+                gender = data['characterName'].rsplit(None, 1)[1]
+                if gender == "gentleman":
+                    pronoun = "he"
+                elif gender == "lady":
+                    pronoun = "she"
+                elif gender == "gender":
+                    pronoun = "they"
+                data['currentArea']['name'] = f"a place {pronoun} won't leave"
+            return f"{character['name']} is {'on' if 'Island' in data['currentArea']['name'] else 'in'} {data['currentArea']['name']}"
 
 @commands('abom')
 def abom_command(bot, trigger):
