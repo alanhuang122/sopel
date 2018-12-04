@@ -1,5 +1,5 @@
 # coding=utf-8
-
+from __future__ import unicode_literals, division, print_function, absolute_import
 
 import os
 import tempfile
@@ -103,4 +103,3 @@ class ConfigFunctionalTest(unittest.TestCase):
     def test_fileattribute_given_file_when_dir(self):
         with self.assertRaises(ValueError):
             self.config.fake.ad_fileattr = self.testfile
->>>>>>> d4c4c16f850b63776b156fc8c9d3812287b15882

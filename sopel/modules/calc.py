@@ -13,7 +13,6 @@ import requests
 from requests.utils import quote
 from sopel.module import commands, example
 from sopel.tools.calculation import eval_equation
-from requests import get
 import sys
 
 if sys.version_info.major < 3:
@@ -104,7 +103,6 @@ def rpn(bot, trigger):
         bot.say("Error: values still on stack: {0}".format(stack))
     else:
         bot.say('{0}'.format(stack.pop()))
-
 
 @commands('c', 'calc')
 @example('.c 5 + 3', '8')

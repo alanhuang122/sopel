@@ -26,7 +26,7 @@ def setup(bot):
     help_prefix = bot.config.core.help_prefix
 
 
-@rule('$nick' '(?i)(help|doc) +([A-Za-z]+)(?:\?+)?$')
+@rule('$nick' r'(?i)(help|doc) +([A-Za-z]+)(?:\?+)?$')
 @example('.help tell')
 @commands('help', 'commands')
 @priority('low')
@@ -81,22 +81,13 @@ def help(bot, trigger):
                 # Honestly not sure why this is a list here
                 msgs.append('\n'.join(textwrap.wrap(msg, subsequent_indent=indent)))
 
-            docs = []
-            if os.path.isfile('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config)):
-                docs = pickle.load(open('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config),'rb'))
-            
-            if docs == msgs:
-                url = pickle.load(open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'rb'))
-            else:
-                url = create_list(bot, '\n\n'.join(msgs))
+            url = create_list(bot, '\n\n'.join(msgs))
             if not url:
                 return
             bot.memory['command-list'] = (len(bot.command_groups), url)
-            pickle.dump(msgs,open('/home/alan/.sopel/{0}-docs'.format(bot.config.help.config),'wb'))
-            pickle.dump(url,open('/home/alan/.sopel/{0}-docs_url'.format(bot.config.help.config),'wb'))
-        bot.say("I've posted a list of my commands at {} - You can see "
-                "more info about some of these commands by doing .help "
-                "<command> (e.g. .help time)".format(url))
+        bot.say("I've posted a list of my commands at {0} - You can see "
+                "more info about some of these commands by doing {1}help "
+                "<command> (e.g. {1}help time)".format(url, help_prefix))
 
 
 def create_list(bot, msg):

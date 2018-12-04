@@ -17,8 +17,8 @@ if sys.version_info.major >= 3:
         unescape = HTMLParser().unescape
 
 domain = r'https?://(?:www\.|np\.)?reddit\.com'
-post_url = '%s/r/(.*?)/comments/([\w-]+)' % domain
-user_url = '%s/u(ser)?/([\w-]+)' % domain
+post_url = r'%s/r/(.*?)/comments/([\w-]+)' % domain
+user_url = r'%s/u(ser)?/([\w-]+)' % domain
 post_regex = re.compile(post_url)
 user_regex = re.compile(user_url)
 spoiler_subs = [

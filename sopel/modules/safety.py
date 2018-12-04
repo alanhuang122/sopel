@@ -92,7 +92,7 @@ def _download_malwaredomains_db(path):
     urlretrieve('https://mirror1.malwaredomains.com/files/justdomains', path)
 
 
-@sopel.module.rule('(?u).*(https?://\S+).*')
+@sopel.module.rule(r'(?u).*(https?://\S+).*')
 @sopel.module.priority('high')
 def url_handler(bot, trigger):
     """ Check for malicious URLs """
