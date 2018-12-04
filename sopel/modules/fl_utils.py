@@ -7,7 +7,6 @@ import requests
 import json
 from sopel.modules import fl
 from requests.utils import quote
-from bs4 import BeautifulSoup
 
 storylets = [15691, 18728, 18730, 18729]
 areas = ['Spite', 'Ladybones Road', 'Watchmaker\'s Hill', 'Veilgarden'] # Threshold is 60
@@ -17,7 +16,7 @@ abb = {}
 def load():
     data = {}
     try:
-        with open('/home/alan/fl-utils/utils/text/fl.dat') as f:
+        with open('/home/alan/failbetter/fl-utils/utils/text/fl.dat') as f:
             last_seq = int(f.readline())
             for line in f:
                 temp = json.loads(line)
@@ -343,7 +342,3 @@ def drugs_command(bot, trigger):
 @commands('box')
 def box_command(bot, trigger):
     bot.say(f"Gazzien {worker_command('Mr Forms', 1).split(' ', 2)[2].rsplit(' ', 4)[0]} Surprise Packages <3")
-
-@commands('enigmas')
-def enigmas_command(bot, trigger):
-    bot.say('Alan ' + worker_command('ebzfan', 1).split(None, 1)[1] + ' and ' + worker_command('ebzfan', 2).split(None, 1)[1])
