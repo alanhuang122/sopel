@@ -7,8 +7,10 @@ fuzzywuzzy[speedup]
 geopy
 google-api-python-client
 google-cloud-translate
+googlemaps
 idna
 lxml
+mwclient
 pycryptodome
 pygeoip
 pytz
