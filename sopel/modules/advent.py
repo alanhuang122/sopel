@@ -67,19 +67,33 @@ def when_command(bot, trigger):
                     diff))
     return
 
-@rule('^\.reloadcache$')
+@rule(r'^\.reloadcache$')
 @require_owner()
 def reload_cache(bot, trigger):
     global cache
     with open('/home/alan/.sopel/advent_cache.json', 'r') as f:
         cache = json.load(f)
 
-@rule('^\.cache$')
+@rule(r'^\.cache$')
 @require_owner()
 def print_cache(bot, trigger):
     print(cache)
 
-@rule('^\.testadvent$')
+@commands('updatecache')
+def update_cache(bot, trigger):
+    print(f'{trigger.nick} tried to update cache using {trigger.group(0)}')
+    try:
+        day, effects = trigger.group(2).split(None, 1)
+        day = int(day)
+    except:
+        day = max([int(k) for k in cache])
+        effects = trigger.group(2)
+
+    cache[str(day)]['effects'] = effects
+    with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
+        json.dump(cache, f)
+
+@rule(r'^\.testadvent$')
 @require_owner()
 def testadvent(bot, trigger):
     timed_advent(bot)
@@ -251,10 +265,8 @@ def advent_command(bot, trigger):
                 print(opened)
 
         # Get cache entry for the day - missing is ok
-        print(cache)
         try:
             entry = cache[str(day)]
-            print(f'got entry {entry}')
         except KeyError:
             pass
 
@@ -264,20 +276,17 @@ def advent_command(bot, trigger):
             r = r['accessCode']
             url = f'https://www.fallenlondon.com/a/{code}'
             effects = get_effects(code)
-            print(effects)
-            print(entry)
 
             bot.say(f'Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}')
 
-            # First try from entrybase, then try manual entry, then fall back to fail
-            if effects:
+            if effects: # First try from known access codes
                 bot.say(f'{render_html(r["completedMessage"])} Effects: {effects}')
             else:
                 try:
                     bot.say(f'{render_html(r["completedMessage"])} Effects: {entry["effects"]}')
                 except KeyError:
                     bot.say(f'{render_html(r["completedMessage"])} Effects: unknown')
-                return
+                return  # If we pull from cache, don't update cache...
 
             # Update cache entry if necessary
             cache[str(day)] = {'name': code,
@@ -286,15 +295,10 @@ def advent_command(bot, trigger):
                                'effects': str(effects),
                                'url': url}
 
-            try:
-                if entry != cache[str(day)]:
-                    print('[advent] !!! updating cache with different information!')
-                    print(f'[advent] old was {entry}')
-                    print(f'[advent] new is {cache[str(day)]}')
-                    with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
-                        json.dump(cache, f)
-            except:
-                print(f'[advent] writing cache entry {cache[str(day)]}')
+            if entry != cache[str(day)]:
+                print('[advent] !!! updating cache with different information!')
+                print(f'[advent] old was {entry}')
+                print(f'[advent] new is {cache[str(day)]}')
                 with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
                     json.dump(cache, f)
 
