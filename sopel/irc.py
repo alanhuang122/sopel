@@ -229,10 +229,10 @@ class Bot(asynchat.async_chat):
 
         stderr('Connected.')
         self.last_ping_time = datetime.now()
-        timeout_check_thread = threading.Thread(target=self._timeout_check)
+        timeout_check_thread = threading.Thread(target=self._timeout_check, name='timeout_check')
         timeout_check_thread.daemon = True
         timeout_check_thread.start()
-        ping_thread = threading.Thread(target=self._send_ping)
+        ping_thread = threading.Thread(target=self._send_ping, name='ping')
         ping_thread.daemon = True
         ping_thread.start()
 

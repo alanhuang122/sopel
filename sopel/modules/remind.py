@@ -77,7 +77,7 @@ def setup(bot):
             time.sleep(2.5)
 
     targs = (bot,)
-    t = threading.Thread(target=monitor, args=targs)
+    t = threading.Thread(target=monitor, args=targs, name='remind')
     t.start()
 
 

@@ -62,7 +62,7 @@ class JobScheduler(threading.Thread):
 
     def __init__(self, bot):
         """Requires bot as argument for logging."""
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name='JobScheduler')
         self.bot = bot
         self._jobs = PriorityQueue()
         # While PriorityQueue it self is thread safe, this mutex is needed
@@ -119,8 +119,9 @@ class JobScheduler(threading.Thread):
             job = self._jobs.get()
             with released(self._mutex):
                 if job.func.thread:
+                    print(f'starting threaded job {job.func.__name__}')
                     t = threading.Thread(
-                        target=self._call, args=(job.func,)
+                        target=self._call, args=(job.func,), name = job.func.__name__
                     )
                     t.start()
                 else:

@@ -567,7 +567,7 @@ class Sopel(irc.Bot):
                             continue
                     if func.thread:
                         targs = (func, wrapper, trigger)
-                        t = threading.Thread(target=self.call, args=targs)
+                        t = threading.Thread(target=self.call, args=targs, name=func.__name__)
                         t.start()
                     else:
                         self.call(func, wrapper, trigger)
