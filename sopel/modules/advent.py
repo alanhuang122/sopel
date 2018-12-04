@@ -153,7 +153,8 @@ def timed_advent(bot, channel):
     if today not in page.text():
         base_edit = f"""\n\n=={today}==\n{url}\n\n[[File:{r['image']}small.png|left]] {r['initialMessage']}\n<br />\n\n'''Result:'''\n\n{r['completedMessage']}\n\n"""
         if effects:
-            base_edit += f'''{'\n'.join(generate_wiki_effects(effects))}\n\n'''
+            modification = '\n'.join(generate_wiki_effects(effects)) + '\n\n'
+            base_edit += modification
         page.save(page.text() + base_edit, today)
 
     start_timer(bot)
