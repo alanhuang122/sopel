@@ -151,10 +151,56 @@ def timed_advent(bot, channel):
     text = page.text()
     today = arrow.get(datetime.now()).format('MMMM Do')
     if today not in page.text():
-        edit = f"""\n\n=={today}==\n{url}\n\n[[File:{r['image']}small.png|left]] {r['initialMessage']}\n<br />\n\n'''Result:'''\n\n{r['completedMessage']}\n\n"""
-        page.save(page.text() + edit, today)
+        base_edit = f"""\n\n=={today}==\n{url}\n\n[[File:{r['image']}small.png|left]] {r['initialMessage']}\n<br />\n\n'''Result:'''\n\n{r['completedMessage']}\n\n"""
+        if effects:
+            base_edit += f'''{'\n'.join(generate_wiki_effects(effects))}\n\n'''
+        page.save(page.text() + base_edit, today)
 
     start_timer(bot)
+
+def generate_wiki_effects(effects):
+    template_list = []
+    for effect in effects:
+        quality_name = effect.quality.name
+        try:
+            limits = f', up to {effect.ceil+1} and if at least {effect.floor}'
+        except:
+            try:
+                limits = f', up to {effect.ceil+1}'
+            except:
+                try:
+                    limits = f', if at least {effect.floor}'
+                except:
+                    limits = ''
+        try:
+            if effect.setTo == 0:
+                template_list.append(f'* {{{{Gone|{quality_name}}}}}')
+            else:
+                template_list.append(f'* {{{{Item Gain|{quality_name}|now={effect.setTo} x}}}}')
+        except:
+            if effect.quality.nature == 2 or not effect.quality.pyramid:
+                try:
+                    if effect.amount > 0:
+                        template_list.append(f'* {{{{Item Gain|{quality_name}|{effect.amount} x{limits}}}}}')
+                    else:
+                        template_list.append(f'* {{{{Item Loss|{quality_name}|{effect.amount} x{limits}}}}}')
+                except:
+                    if effect.amount.startswith('-'):
+                        template_list.append(f'* {{{{Item Loss|{quality_name}|{effect.amount} x{limits}}}}}')
+                    else:
+                        template_list.append(f'* {{{{Item Gain|{quality_name}|{effect.amount} x{limits}}}}}')
+            else:
+                try:
+                    if effect.amount > 0:
+                        template_list.append(f'* {{{{Increase|{quality_name}|+{effect.amount} CP{limits}}}}}')
+                    else:
+                        template_list.append(f'* {{{{Drop|{quality_name}|{effect.amount} CP{limits}}}}}')
+                except:
+                    if effect.amount.startswith('-'):
+                        template_list.append(f'* {{{{Drop|{quality_name}|{effect.amount} CP{limits}}}}}')
+                    else:
+                        template_list.append(f'* {{{{Increase|{quality_name}|{effect.amount} CP{limits}}}}}')
+    return template_list
 
 @commands('advent')
 @example('.advent 1')
