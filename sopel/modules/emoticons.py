@@ -446,3 +446,19 @@ def butt_command(bot,trigger):
         stats['butt'] += 1
     except KeyError:
         stats['butt'] = 1
+
+@commands('salad')
+def salad_command(bot, trigger):
+    bot.say('<&Salaxalans> there is no salad command')
+    try:
+        stats['salad'] += 1
+    except KeyError:
+        stats['salad'] = 1
+
+@commands('zombo')
+def zombo_command(bot, trigger):
+    bot.say('http://www.zombo.com')
+    try:
+        stats['zombo'] += 1
+    except KeyError:
+        stats['zombo'] = 1
