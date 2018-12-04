@@ -221,8 +221,10 @@ def find_title(url, verify=True):
     try:
         t = lxml.html.fromstring(fix_encoding(response.text))
         title = t.find(".//title")
-        if title is not None:
+        if title is not None and title.text is not None:
             return title.text.strip()
+        else:
+            print(f'[url] {url} has no title')
     except Exception as e:
         print('exception on url {}'.format(url))
         print('[url] {}'.format(e))
