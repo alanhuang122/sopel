@@ -83,6 +83,35 @@ def setup(bot):
         abb[''.join([word[0] for word in re.split(r'[ -]+', item)]).lower()] = item
         abb[''.join([word[0] for word in re.split(r'[ -]+', item) if word[0].isupper()]).lower()] = item
 
+def render_html(string):
+    string = re.sub(r'<.{,2}?br.{,2}?>','\n', string)
+    string = re.sub(r'<.{,2}?p.{,2}?>','', string)
+    string = re.sub(r'(?i)</?(em|i)>', '_', string)
+    string = re.sub(r'(?i)</?(strong|b)>', '*', string)
+    string = re.sub('\r\n', ' ', string)
+    return string
+
+@commands('code')
+def code_command(bot, trigger):
+    code = trigger.group(2).strip()
+    r = requests.post(f'https://api.fallenlondon.com/api/accesscode/{code}').json()
+    for key in fl.data:
+        if key.startswith('accesscodes'):
+            if fl.data[key].get('Name').lower() == code.lower():
+                if fl.data[key].get('Tag') == 'Enigma' or 'Silver Tree' in fl.data[key].get('Tag'):
+                    print(f'[fl-utils] Forbidden code {code} attempted')
+                    bot.say(f'No data for code {code}.')
+                    return
+                else:
+                    break
+
+    if r['isSuccess']:
+        code = r['accessCode']
+        bot.say(f'Code {code["name"]}: {render_html(code["initialMessage"])} https://www.fallenlondon.com/a/{code["name"]}')
+        bot.say(render_html(code['completedMessage']))
+    else:
+        bot.say(f'No data for code {code}.')
+
 @commands('ub')
 def ub_command(bot, trigger):
     if not trigger.group(2):
