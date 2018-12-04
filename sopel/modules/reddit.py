@@ -3,7 +3,7 @@
 
 from sopel.module import commands, rule, example, require_chanmsg, NOLIMIT, OP
 from sopel.formatting import bold, color, colors
-from sopel.web import USER_AGENT
+from sopel.modules.url import USER_AGENT
 from sopel.tools import SopelMemory, time
 import datetime as dt
 import praw
