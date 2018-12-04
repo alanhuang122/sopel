@@ -9,6 +9,7 @@ import json
 import re
 import datetime
 from requests import HTTPError
+from base64 import b64encode
 
 issueURL = (r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?')
 commitURL = (r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:commit)/([A-z0-9\-]+)')
@@ -19,6 +20,12 @@ sopel_instance = None
 
 def fetch_api_endpoint(bot, url):
     oauth = ''
+    if bot.config.github.username and bot.config.github.access_token:
+        auth_string = bot.config.github.username + ':' + bot.config.github.access_token
+        auth = b64encode(auth_string.encode('utf-8'))
+        headers = {'Authorization': f'Basic {auth.decode("utf-8")}'}
+        return requests.get(url + oauth, headers=headers).text
+        header
 #    if bot.config.github.client_id and bot.config.github.secret:
 #        oauth = '?client_id=%s&client_secret=%s' % (bot.config.github.client_id, bot.config.github.secret)
     return requests.get(url + oauth).text
