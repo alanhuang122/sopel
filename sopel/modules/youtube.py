@@ -22,7 +22,7 @@ ISO8601_PERIOD_REGEX = re.compile(
     r"((?:T)(?P<h>[0-9]+([,.][0-9]+)?H)?"
     r"(?P<m>[0-9]+([,.][0-9]+)?M)?"
     r"(?P<s>[0-9]+([,.][0-9]+)?S)?)?$")
-regex = re.compile('(youtube.com/watch\S*v=|youtu.be/)([\w-]+)')
+regex = re.compile(r'(youtube.com/watch\S*v=|youtu.be/)([\w-]+)')
 API = None
 
 
@@ -73,7 +73,7 @@ def search(bot, trigger):
     _say_result(bot, trigger, results[0]['id']['videoId'])
 
 
-@rule('.*(youtube.com/watch\S*v=|youtu.be/)([\w-]+).*')
+@rule(r'.*(youtube.com/watch\S*v=|youtu.be/)([\w-]+).*')
 def get_info(bot, trigger, found_match=None):
     """
     Get information about the latest video uploaded by the channel provided.
@@ -126,5 +126,5 @@ def _parse_duration(duration):
 
 def _parse_published_at(bot, trigger, published):
     pubdate = datetime.datetime.strptime(published, '%Y-%m-%dT%H:%M:%S.%fZ')
-    return tools.time.format_time(bot.db, bot.config, nick=trigger.nick, 
+    return tools.time.format_time(bot.db, bot.config, nick=trigger.nick,
         channel=trigger.sender, time=pubdate)

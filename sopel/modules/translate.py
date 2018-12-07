@@ -11,8 +11,7 @@ https://sopel.chat
 from sopel.module import commands, example
 import os, sys, re
 from google.cloud import translate
-from html.parser import HTMLParser
-h = HTMLParser()
+from html import unescape
 
 def setup(bot):
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/home/alan/.sopel/sopel-irc-key.json'
@@ -83,4 +82,4 @@ def tl(bot, trigger):
         print('[translate] target {}'.format(t))
         translation = client.translate(' '.join(parts), target_language=t)
 
-    bot.reply('{0} ({1} to {2})'.format(h.unescape(translation['translatedText']), s if s is not None else translation['detectedSourceLanguage'], t))
+    bot.reply('{0} ({1} to {2})'.format(unescape(translation['translatedText']), s if s is not None else translation['detectedSourceLanguage'], t))

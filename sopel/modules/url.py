@@ -20,8 +20,8 @@ default_headers = {'User-Agent': USER_AGENT}
 url_finder = None
 # These are used to clean up the title tag before actually parsing it. Not the
 # world's best way to do this, but it'll do for now.
-title_tag_data = re.compile('<(/?)title( [^>]+)?>', re.IGNORECASE)
-quoted_title = re.compile('[\'"]<title>[\'"]', re.IGNORECASE)
+title_tag_data = re.compile(r'<(/?)title( [^>]+)?>', re.IGNORECASE)
+quoted_title = re.compile(r'[\'"]<title>[\'"]', re.IGNORECASE)
 # This is another regex that presumably does something important.
 re_dcc = re.compile(r'(?i)dcc\ssend')
 # This sets the maximum number of bytes that should be read in order to find
@@ -111,7 +111,7 @@ def title_command(bot, trigger):
         bot.reply('[ %s ] - %s' % (title, domain))
 
 
-@rule('(?u).*(https?://\S+).*')
+@rule(r'(?u).*(https?://\S+).*')
 def title_auto(bot, trigger):
     """
     Automatically show titles for URLs. For shortened URLs/redirects, find
@@ -162,11 +162,11 @@ def process_urls(bot, trigger, urls):
                 print('[url] {}'.format(e))
                 pass
             # First, check that the URL we got doesn't match
-            matched = check_callbacks(bot, trigger, url, False) 
+            matched = check_callbacks(bot, trigger, url, False)
             if matched:
                 continue
             # Finally, actually show the URL
-            title = find_title(url, verify=bot.config.core.verify_ssl)
+            title = find_title(bot, url, verify=bot.config.core.verify_ssl)
             if title:
                 results.append((title, get_hostname(url)))
     return results
@@ -194,10 +194,14 @@ def check_callbacks(bot, trigger, url, run=True):
 
 import lxml.html
 from ftfy import fix_encoding
-def find_title(url, verify=True):
+def find_title(bot, url, verify=True):
     """Return the title for the given URL."""
     try:
         response = requests.get(url, verify=verify, headers={'User-Agent': user_agent, 'Accept': 'text/html'})
+    except requests.exceptions.SSLError as e:
+        print('[url] SSL error: {}'.format(url))
+        bot.say(f"Error: {e.args[0].reason.args[0].strerror.split(']', 1)[1].rsplit('(', 1)[0].strip()}")
+        return None
     except requests.exceptions.ConnectionError as e:
         if '[Errno -2]' in str(e):  #name or service not known
             print('[url] name or service not known: {}'.format(url))

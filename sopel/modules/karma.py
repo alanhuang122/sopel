@@ -2,14 +2,14 @@
 from sopel.module import commands, example, NOLIMIT, rule, require_chanmsg
 
 @require_chanmsg(message='Sorry, because of recent abuse, changing karma is not allowed in PMs.')
-@rule('\+1 (\w*)')
+@rule(r'\+1 (\w*)')
 @example('+1 nick')
 def plusincreaseKarma(bot, trigger):
     if not trigger.group(1):
         return NOLIMIT
 
     name = trigger.group(1).strip()
-   
+
     currentKarma = bot.db.get_nick_value(name, 'karma')
     if not currentKarma:
         currentKarma = 0
@@ -25,14 +25,14 @@ def plusincreaseKarma(bot, trigger):
 #    bot.reply("One karma point given to " + trigger.group(1))
 
 @require_chanmsg(message='Sorry, because of recent abuse, changing karma is not allowed in PMs.')
-@rule('\-1 (\w*)')
+@rule(r'\-1 (\w*)')
 @example('-1 nick')
 def minusreduceKarma(bot, trigger):
     if not trigger.group(1):
         return NOLIMIT
 
     name = trigger.group(1).strip()
-   
+
     currentKarma = bot.db.get_nick_value(name, 'karma')
     if not currentKarma:
         currentKarma = 0
@@ -48,14 +48,14 @@ def minusreduceKarma(bot, trigger):
 #    bot.reply("One karma point taken from " + trigger.group(1))
 
 @require_chanmsg(message='Sorry, because of recent abuse, changing karma is not allowed in PMs.')
-@rule('^(\w*)\+\+$')
+@rule(r'^(\w*)\+\+$')
 @example('nick++')
 def increaseKarma(bot, trigger):
     if not trigger.group(1):
         return NOLIMIT
 
     name = trigger.group(1).strip()
-   
+
     currentKarma = bot.db.get_nick_value(name, 'karma')
     if not currentKarma:
         currentKarma = 0
@@ -71,14 +71,14 @@ def increaseKarma(bot, trigger):
  #   bot.reply("One karma point given to " + trigger.group(1))
 
 @require_chanmsg(message='Sorry, because of recent abuse, changing karma is not allowed in PMs.')
-@rule('^(\w*)\-\-$')
+@rule(r'^(\w*)\-\-$')
 @example('nick--')
 def reduceKarma(bot, trigger):
     if not trigger.group(1):
         return NOLIMIT
 
     name = trigger.group(1).strip()
-   
+
     currentKarma = bot.db.get_nick_value(name, 'karma')
     if not currentKarma:
         currentKarma = 0
@@ -92,7 +92,7 @@ def reduceKarma(bot, trigger):
 
     bot.db.set_nick_value(name, 'karma', currentKarma)
 #    bot.reply("One karma point taken from " + trigger.group(1))
-    
+
 @commands('karma')
 @example('.karma [nick]')
 def tellKarma(bot, trigger):
@@ -133,7 +133,7 @@ def topKarma(bot, trigger):
     reply = reply[:-2]
     bot.say(reply)
 
-@rule('.*so sad.*play despacito.*')
+@rule(r'.*so sad.*play despacito.*')
 def despacito(bot, trigger):
     karma = bot.db.get_nick_value(trigger.nick, 'karma')
     if not karma:
