@@ -5,6 +5,7 @@ import socket, ssl
 from time import sleep
 from sopel.module import commands, rule, example, require_owner
 from datetime import datetime
+from sopel.modules import fl
 
 data = {}
 
@@ -126,16 +127,16 @@ def timed_advent(bot, channel):
     url = f'https://www.fallenlondon.com/a/{code}'
     effects = get_effects(code)
     if not effects:
-        bot.say(f'Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}', channel)
-        bot.say(f'{render_html(r["completedMessage"])} Effects: unknown - please tell me using .updatecache [effects]', channel)
+        bot.say(f'Advent Day {day} - {code}: {fl.render_html(r["initialMessage"])} {url}', channel)
+        bot.say(f'{fl.render_html(r["completedMessage"])} Effects: unknown - please tell me using .updatecache [effects]', channel)
         cache[str(current['releaseDay'])] = {'name': code,
                                              'initial': r['initialMessage'],
                                              'url': url,
                                              'finished': r['completedMessage']}
     else:
         effect_text = str(effects)
-        bot.say(f'Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}', channel)
-        bot.say(f'{render_html(r["completedMessage"])} Effects: {effect_text}', channel)
+        bot.say(f'Advent Day {day} - {code}: {fl.render_html(r["initialMessage"])} {url}', channel)
+        bot.say(f'{fl.render_html(r["completedMessage"])} Effects: {effect_text}', channel)
         cache[str(current['releaseDay'])] = {'name': code,
                                              'initial': r['initialMessage'],
                                              'url': url,
@@ -165,7 +166,7 @@ def timed_advent(bot, channel):
 
 def send_advent(user, pw, day, url):
     ctx = ssl.create_default_context()
-    sock = ctx.wrap_context(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname='znc.alanhua.ng')
+    sock = ctx.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname='znc.alanhua.ng')
     sock.connect(('znc.alanhua.ng', 6667))
     sock.sendall(b'PASS ' + pw + b'\r\nNICK Alan\r\nUSER ' + user + b' 0 * :Alan\r\n')
 
@@ -295,19 +296,19 @@ def advent_command(bot, trigger):
 
         if not r['isSuccess']:
             print('[advent] must use cache for all entry')
-            bot.say(f'[EXPIRED] Advent Day {day} - {code}: {render_html(entry["initial"])}')
+            bot.say(f'[EXPIRED] Advent Day {day} - {code}: {fl.render_html(entry["initial"])}')
             try:
-                bot.say(f'{render_html(entry["finished"])} Effects: {entry["effects"]}')
+                bot.say(f'{fl.render_html(entry["finished"])} Effects: {entry["effects"]}')
             except KeyError:
-                bot.say(f'{render_html(entry["finished"])} Effects: unknown')
+                bot.say(f'{fl.render_html(entry["finished"])} Effects: unknown')
         else:
             r = r['accessCode']
             url = f'https://www.fallenlondon.com/a/{code}'
-            bot.say(f'[EXPIRED] Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}')
+            bot.say(f'[EXPIRED] Advent Day {day} - {code}: {fl.render_html(r["initialMessage"])} {url}')
             try:
-                bot.say(f'{render_html(entry["finished"])} Effects: {entry["effects"]}')
+                bot.say(f'{fl.render_html(entry["finished"])} Effects: {entry["effects"]}')
             except KeyError:
-                bot.say(f'{render_html(entry["finished"])} Effects: unknown')
+                bot.say(f'{fl.render_html(entry["finished"])} Effects: unknown')
             cache[str(day)] = {'name': code,
                                'initial': r['initialMessage'],
                                'url': url,
@@ -346,15 +347,15 @@ def advent_command(bot, trigger):
             url = f'https://www.fallenlondon.com/a/{code}'
             effects = get_effects(code)
 
-            bot.say(f'Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}')
+            bot.say(f'Advent Day {day} - {code}: {fl.render_html(r["initialMessage"])} {url}')
 
             if effects: # First try from known access codes
-                bot.say(f'{render_html(r["completedMessage"])} Effects: {effects}')
+                bot.say(f'{fl.render_html(r["completedMessage"])} Effects: {effects}')
             else:
                 try:
-                    bot.say(f'{render_html(r["completedMessage"])} Effects: {entry["effects"]}')
+                    bot.say(f'{fl.render_html(r["completedMessage"])} Effects: {entry["effects"]}')
                 except KeyError:
-                    bot.say(f'{render_html(r["completedMessage"])} Effects: unknown')
+                    bot.say(f'{fl.render_html(r["completedMessage"])} Effects: unknown')
                 return  # If we pull from cache, don't update cache...
 
             # Update cache entry if necessary
@@ -374,11 +375,11 @@ def advent_command(bot, trigger):
         else:   # Did not get success from /api/accesscode
             try:
                 print('[advent] !!! NOT isSuccess - must use cache')
-                bot.say(f'Advent Day {day} - {code}: {render_html(entry["initial"])}')
+                bot.say(f'Advent Day {day} - {code}: {fl.render_html(entry["initial"])}')
                 try:
-                    bot.say(f'{render_html(entry["finished"])} Effects: {entry["effects"]}')
+                    bot.say(f'{fl.render_html(entry["finished"])} Effects: {entry["effects"]}')
                 except KeyError:
-                    bot.say(f'{render_html(entry["finished"])} Effects: unknown')
+                    bot.say(f'{fl.render_html(entry["finished"])} Effects: unknown')
             except:
                 bot.say("I don't have any information for that day :<")
 
@@ -388,176 +389,6 @@ def get_response(code):
 def get_effects(codename):
     cstring = codename.lstrip('0123456789')
     try:
-        return [Effect(e) for e in codes[cstring]]
+        return [fl.Effect(e) for e in codes[cstring]]
     except KeyError:
         return None
-
-def render_html(string):
-    string = re.sub(r'<.{,2}?br.{,2}?>','\n', string)
-    string = re.sub(r'<.{,2}?p.{,2}?>','', string)
-    string = re.sub(r'(?i)</?(em|i)>', '_', string)
-    string = re.sub(r'(?i)</?(strong|b)>', '*', string)
-    string = re.sub('\r\n', ' ', string)
-    return string
-
-class Quality:
-    def __init__(self, jdata):
-        #HimbleLevel is used to determine order within categories for items
-        self.raw = jdata
-        self.name = jdata.get('Name', '(no name)')
-        self.id = jdata['Id']
-        self.desc = jdata.get('Description', '(no description)')
-        self.pyramid = 'UsePyramidNumbers' in jdata
-        self.nature = jdata.get('Nature', 1) #1: quality; 2: item
-        try:
-            qldstr = jdata['ChangeDescriptionText']
-            self.changedesc = parse_qlds(qldstr)
-        except KeyError:
-            self.changedesc = None
-        try:
-            qldstr = jdata['LevelDescriptionText']
-            self.leveldesc = parse_qlds(qldstr)
-        except KeyError:
-            self.leveldesc = None
-        try:
-            variables = {}
-            d = json.loads(jdata['VariableDescriptionText'])
-            for x in list(d.items()):
-                variables[x[0]] = parse_qlds(x[1])
-            self.variables = variables
-        except KeyError:
-            self.variables = None
-        self.cap = jdata.get('Cap')
-        self.tag = jdata.get('Tag')
-        self.test_type = 'Narrow' if 'DifficultyTestType' in jdata else 'Broad'
-        self.difficulty = jdata.get('DifficultyScaler')
-        self.slot = jdata.get('AssignToSlot', {}).get('Id')
-        try:
-            self.enhancements = []
-            for x in jdata['Enhancements']:
-                self.enhancements.append('{:+} {}'.format(x['Level'], Quality.get(x['AssociatedQuality']['Id']).name))
-        except KeyError:
-            pass
-
-    def __repr__(self):
-        return 'Quality: {}'.format(self.name)
-
-    def __str__(self):
-        string = 'Quality: {}'.format(self.name)
-        try:
-            string += '\nCategory: {}'.format(self.category)
-        except AttributeError:
-            pass
-        try:
-            if self.enhancements:
-                string += '\nEnhancements: [{}]'.format(', '.join(self.enhancements))
-        except AttributeError:
-            pass
-        return string
-
-    @classmethod
-    def get(self, id):
-        key = 'qualities:{}'.format(id)
-        return Quality(data[key])
-
-    def get_changedesc(self, level):
-        if self.changedesc and isinstance(level, int):
-            descs = sorted(list(self.changedesc.items()), reverse=True)
-            for x in descs:
-                if x[0] <= level:
-                    desc = x
-                    break
-                desc = (-1, 'no description')
-            return desc
-        return None
-
-    def get_leveldesc(self, level):
-        if self.leveldesc and isinstance(level, int):
-            descs = sorted(list(self.leveldesc.items()), reverse=True)
-            for x in descs:
-                if x[0] <= level:
-                    desc = x
-                    break
-                desc = (-1, 'no description')
-            return desc
-        return None
-
-def sub_qualities(string):
-    for x in re.findall(r'\[qb?:(\d+)\]', string):
-        string = string.replace(x, Quality.get(int(x)).name)
-    return string
-
-def parse_qlds(string):
-    qld = {}
-    qlds = string.split('~')
-    for d in qlds:
-        level, text = d.split('|', 1)
-        level = int(level)
-        qld[level] = text
-    return dict(sorted(qld.items()))
-
-class Effect:   #done: Priority goes 3/2/1/0
-    def __init__(self, jdata, costs=None):
-        self.raw = jdata
-        self.quality = Quality.get(jdata['AssociatedQuality']['Id'])
-        self.equip = 'ForceEquip' in jdata
-        try:
-            self.amount = jdata['Level']
-        except:
-            try:
-                self.amount = sub_qualities(jdata['ChangeByAdvanced']).strip()
-            except KeyError:
-                pass
-        try:
-            self.setTo = jdata['SetToExactly']
-        except:
-            try:
-                self.setTo = sub_qualities(jdata['SetToExactlyAdvanced']).strip()
-            except KeyError:
-                pass
-        try:
-            self.ceil = jdata['OnlyIfNoMoreThan']
-        except KeyError:
-            pass
-        try:
-            self.floor = jdata['OnlyIfAtLeast']
-        except KeyError:
-            pass
-        try:
-            self.priority = jdata['Priority']
-        except KeyError:
-            self.priority = 0
-
-    def __repr__(self):
-        try:
-            limits = ' if no more than {} and at least {}'.format(self.ceil, self.floor)
-        except:
-            try:
-                limits = ' if no more than {}'.format(self.ceil)
-            except:
-                try:
-                    limits = ' only if at least {}'.format(self.floor)
-                except:
-                    limits = ''
-        if self.equip:
-            limits += ' (force equipped)'
-
-        try:
-            if self.quality.changedesc and isinstance(self.setTo, int):
-                desc = self.quality.get_changedesc(self.setTo)
-                try:
-                    return '{} (set to {} ({}){})'.format(self.quality.name, self.setTo, desc[1], limits)
-                except TypeError:
-                    pass
-            return '{} (set to {}{})'.format(self.quality.name, self.setTo, limits)
-        except:
-            if self.quality.nature == 2 or not self.quality.pyramid:
-                try:
-                    return '{:+} x {}{}'.format(self.amount, self.quality.name, limits)
-                except:
-                    return '{} x {}{}'.format(('' if self.amount.startswith('-') else '+') + self.amount, self.quality.name, limits)
-            else:
-                try:
-                    return '{} ({:+} cp{})'.format(self.quality.name, self.amount, limits)
-                except:
-                    return '{} ({} cp{})'.format(self.quality.name, ('' if self.amount.startswith('-') else '+') + self.amount, limits)
