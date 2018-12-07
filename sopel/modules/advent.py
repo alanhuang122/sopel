@@ -1,6 +1,7 @@
 import arrow
 import mwclient
 import re, json, requests, threading
+import socket, ssl
 from time import sleep
 from sopel.module import commands, rule, example, require_owner
 from datetime import datetime
@@ -54,16 +55,16 @@ def start_timer(bot):
     print(f'[advent] scheduling for {diff}')
     start = time
     end = time + diff
-    timer = threading.Timer(diff.seconds, timed_advent, [bot, '#fallenlondon'])
+    timer = threading.Timer(diff.seconds - 5, timed_advent, [bot, '#fallenlondon'])
     timer.start()
 
 @commands('when')
 def when_command(bot, trigger):
     diff = end - datetime.utcnow()
     bot.say('timer started {}, ending at {}, now {}, remaining {}'
-            .format(start.strftime('%c'), 
-                    end.strftime('%c'), 
-                    datetime.utcnow().strftime('%c'), 
+            .format(start.strftime('%c'),
+                    end.strftime('%c'),
+                    datetime.utcnow().strftime('%c'),
                     diff))
     return
 
@@ -96,7 +97,7 @@ def update_cache(bot, trigger):
 @rule(r'^\.testadvent$')
 @require_owner()
 def testadvent(bot, trigger):
-    timed_advent(bot)
+    timed_advent(bot, '#alantest')
 
 def timed_advent(bot, channel):
     print('[advent] in timed_advent')
@@ -108,8 +109,8 @@ def timed_advent(bot, channel):
         print('[advent] merry christmas; no more advent codes; rip timer')
         return
 
-    print('[advent] looking for page')
     while True:
+        print('[advent] looking for page')
         sleep(1)
         try:
             advent = requests.get('https://api.fallenlondon.com/api/advent').json()
@@ -126,7 +127,7 @@ def timed_advent(bot, channel):
     effects = get_effects(code)
     if not effects:
         bot.say(f'Advent Day {day} - {code}: {render_html(r["initialMessage"])} {url}', channel)
-        bot.say(f'{render_html(r["completedMessage"])} Effects: unknown', channel)
+        bot.say(f'{render_html(r["completedMessage"])} Effects: unknown - please tell me using .updatecache [effects]', channel)
         cache[str(current['releaseDay'])] = {'name': code,
                                              'initial': r['initialMessage'],
                                              'url': url,
@@ -157,7 +158,28 @@ def timed_advent(bot, channel):
             base_edit += modification
         page.save(page.text() + base_edit, today)
 
+    send_advent(bot.config.discord.username, bot.config.discord.password, day, url)
+    print('done with timed_advent')
+
     start_timer(bot)
+
+def send_advent(user, pw, day, url):
+    ctx = ssl.create_default_context()
+    sock = ctx.wrap_context(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname='znc.alanhua.ng')
+    sock.connect(('znc.alanhua.ng', 6667))
+    sock.sendall(b'PASS ' + pw + b'\r\nNICK Alan\r\nUSER ' + user + b' 0 * :Alan\r\n')
+
+    while True:
+        data = sock.recv(4096)
+        if not data:
+            break
+        if b'End of /NAMES list.\r\n' in data:
+            break
+
+    print('connected')
+    sock.sendall(b'PRIVMSG #fl-sacksmas :day ' + str(day).encode('ascii') + b': ' + url.encode('ascii') + b'\r\n')
+
+    sock.close()
 
 def generate_wiki_effects(effects):
     template_list = []
@@ -182,14 +204,14 @@ def generate_wiki_effects(effects):
             if effect.quality.nature == 2 or not effect.quality.pyramid:
                 try:
                     if effect.amount > 0:
-                        template_list.append(f'* {{{{Item Gain|{quality_name}|{effect.amount} x{limits}}}}}')
+                        template_list.append(f'* {{{{Item Gain|{quality_name}|{effect.amount} x}}}}' + (f' ({limits[2:]})' if limits else ''))
                     else:
-                        template_list.append(f'* {{{{Item Loss|{quality_name}|{effect.amount} x{limits}}}}}')
+                        template_list.append(f'* {{{{Item Loss|{quality_name}|{effect.amount} x}}}}' + (f' ({limits[2:]})' if limits else ''))
                 except:
                     if effect.amount.startswith('-'):
-                        template_list.append(f'* {{{{Item Loss|{quality_name}|{effect.amount} x{limits}}}}}')
+                        template_list.append(f'* {{{{Item Loss|{quality_name}|{effect.amount} x}}}}' + (f' ({limits[2:]})' if limits else ''))
                     else:
-                        template_list.append(f'* {{{{Item Gain|{quality_name}|{effect.amount} x{limits}}}}}')
+                        template_list.append(f'* {{{{Item Gain|{quality_name}|{effect.amount} x}}}}' + (f' ({limits[2:]})' if limits else ''))
             else:
                 try:
                     if effect.amount > 0:
@@ -215,7 +237,7 @@ def advent_command(bot, trigger):
         hours, minutes = divmod(rem, 60)
         bot.say(f'No advent codes for another {diff.days} days, {hours} hours, {minutes} minutes, and {seconds} seconds.')
         return
-            
+
     advent = requests.get('https://api.fallenlondon.com/api/advent').json()
     current = advent.get('openableDoor')
 
@@ -234,7 +256,7 @@ def advent_command(bot, trigger):
         return
     except TypeError:
         input = 0
-    
+
     # Handle negative number shorthand for past days
     if input < 0:
         if input < -25:
