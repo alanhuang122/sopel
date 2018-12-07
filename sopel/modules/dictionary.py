@@ -17,7 +17,7 @@ def search(word, id, key):
     if data['results'] == []:
         return None
     return data['results'][0]['id']
-    
+
 def lookup(word, id, key):
 #    s = aspell.Speller()
 #    if not s.check(word):

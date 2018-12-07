@@ -71,7 +71,7 @@ def process_urls(bot, trigger, urls):
                 pass
             title = find_title(url, verify=bot.config.core.verify_ssl)
             if title:
-                
+
                 req = urllib.request.Request('https://www.googleapis.com/urlshortener/v1/url?key={0}'.format(bot.config.google.api_key),'{{"longUrl": "{0}"}}'.format(url).encode('utf-8'), {'Content-Type' : 'application/json'})
                 data = urllib.request.urlopen(req)
                 response = json.load(data)

@@ -42,7 +42,7 @@ def collectlines(bot, trigger):
         templist.append(line)
     else:
         templist.append(line)
-    
+
     del templist[:-10]  # Keep the log to 10 lines per person
 
     bot.memory['find_lines'][trigger.sender][Identifier(trigger.nick)] = templist

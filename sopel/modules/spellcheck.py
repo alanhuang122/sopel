@@ -41,7 +41,7 @@ def check_one(bot, word):
         return
     else:
         suggestions = c.suggest(word)[:5]
-    
+
     if len(suggestions) == 0:
         bot.say("That doesn't seem to be correct.")
     else:
@@ -56,7 +56,7 @@ def spellchecker(bot, trigger):
     if trigger.group(2) == bot.nick:
         bot.say('Hey, that\'s my name! Nothing wrong with it.')
         return
-    
+
     words = trigger.group(2).split(None)
 
     if len(words) > 1:

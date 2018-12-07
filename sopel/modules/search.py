@@ -99,7 +99,7 @@ def gs(bot, trigger):
         parts.append(':{0}'.format(result))
         string = ' '.join(parts)
         print(string)
-        
+
         pt = PreTrigger(bot.nick, string)
         bot.dispatch(pt)
 

@@ -362,7 +362,7 @@ mp_taunts = ["I don't want to talk to you no more, you empty-headed animal food 
           "Go and boil your bottoms, you sons of a silly person!",
           "I blow my nose at you, so-called \"Arthur King,\" you and all your silly English Kniggets!",
           "You don't frighten us with your silly knees-bent running around advancing behaviour!",
-          "'Allo, daffy English kniggets and Monsieur Arthur-King, who has the brain of a duck, you know!", 
+          "'Allo, daffy English kniggets and Monsieur Arthur-King, who has the brain of a duck, you know!",
           "I one more time-a unclog my nose in your direction, sons of a window-dresser!",
           "I wave my private parts at your aunties, you cheesy lot of second-hand electric donkey-bottom biters!",
           "I burst my pimples at you and call your door opening request a silly thing!",
@@ -392,7 +392,7 @@ def taunt_command(bot, trigger):
         bot.say("{0}: {1}".format(clean(trigger.group(2).strip()), taunt))
         if followup == 1:
             bot.say("{0}: {1}".format(clean(trigger.group(2).strip()), choice(continues)))
-    
+
     stats['taunt'] += 1
     save()
     return

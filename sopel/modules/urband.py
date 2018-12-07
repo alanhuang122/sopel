@@ -23,7 +23,7 @@ def ud(word, say_url=True):
     except Exception as e:
         print(('[urband] {}'.format(e)))
         return bot.say("Error connecting to urban dictionary")
-        
+
     if not data['list']:
         return None
 

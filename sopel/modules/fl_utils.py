@@ -177,7 +177,7 @@ def calc_cp(upper, lower=0):
         return('{}-{}'.format(upper_oth - lower_oth - lower, upper_oth - lower_oth),
                '{}-{}'.format(upper_main - lower_main - lower, upper_main - lower_main))
     else:
-        return ((min(upper, 50) * (min(upper, 50) + 1) // 2) + (50 * (max(upper, 50) - 50)), 
+        return ((min(upper, 50) * (min(upper, 50) + 1) // 2) + (50 * (max(upper, 50) - 50)),
                 (min(upper, 70) * (min(upper, 70) + 1) // 2) + (70 * (max(upper, 70) - 70)))
 
 def isint(string):
@@ -311,10 +311,10 @@ def quality_command(bot, trigger):
 @commands('where')
 def location_command(bot, trigger):
     if not trigger.group(2):
-        bot.say(worker_command(trigger.nick, 3)) 
+        bot.say(worker_command(trigger.nick, 3))
         return
     else:
-        bot.say(worker_command(trigger.group(2), 3)) 
+        bot.say(worker_command(trigger.group(2), 3))
         return
 
 @commands('profile')

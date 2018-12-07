@@ -29,7 +29,7 @@ def cards_command(bot, trigger):
         except ValueError:
             bot.say('Not enough parameters')
             return
-        
+
         url = 'https://api.fallenlondon.com/api/profile'
         r = requests.get(url, params={'characterName': name})
         if r.status_code == 404:
@@ -42,11 +42,11 @@ def cards_command(bot, trigger):
             if k.startswith(l.lower()):
                 key = k
                 break
-        
+
         if not key:
             bot.say("Invalid stat - choose 1 from [Watchful, Shadowy, Dangerous, Persuasive]")
             return
-        
+
         if name.lower() in [x[1].lower() for x in data[key]]:
             bot.say('{} is already in list {}'.format(name, key.title()), alias=False)
             return
@@ -62,7 +62,7 @@ def cards_command(bot, trigger):
         except ValueError:
             bot.say('Not enough parameters')
             return
-        
+
         key = ''
         for k in list(data.keys()):
             if k.startswith(l.lower()):
@@ -86,7 +86,7 @@ def cards_command(bot, trigger):
 
         bot.say('Could not find {} in list {}'.format(name, key.title()), alias=False)
         return
-    
+
     elif cmd == 'list':
         parts = params.split(None)
         if len(parts) == 0:
@@ -130,7 +130,7 @@ def cards_command(bot, trigger):
                 return
             if limit > 7:
                 limit = 7
-            
+
             key = ''
             for k in list(data.keys()):
                 if k.startswith(parts[0].lower()):

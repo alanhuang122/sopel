@@ -59,42 +59,42 @@ You can get more information about a headline with .news #"""
                'BBC' : 'bbc-news',
                'Bloomberg' : 'bloomberg',
                'CNN' : 'cnn',
-               'Fox News' : 'fox', 
+               'Fox News' : 'fox',
                'Hacker News' : 'hacker-news',
-               'IGN' : 'ign', 
-               'Newsweek' : 'newsweek', 
-               'NPR' : 'npr', 
+               'IGN' : 'ign',
+               'Newsweek' : 'newsweek',
+               'NPR' : 'npr',
                'NY Times' : 'the-new-york-times',
-               'Recode' : 'recode',  
+               'Recode' : 'recode',
                'Reuters' : 'reuters',
-               'Sky News' : 'sky-news', 
+               'Sky News' : 'sky-news',
                'The Guardian' : 'the-guardian-uk',
-               'The Independent' : 'independent', 
-               'The Next Web' : 'the-next-web', 
+               'The Independent' : 'independent',
+               'The Next Web' : 'the-next-web',
                'The Telegraph' : 'the-telegraph',
-               'The Verge' : 'the-verge', 
-               'TIME' : 'time', 
+               'The Verge' : 'the-verge',
+               'TIME' : 'time',
                'USA Today' : 'usa-today',
                'WSJ' : 'the-wall-street-journal'}
 
     names = {  'associated-press' : 'The Associated Press',
                'ars-technica' : 'Ars Technica',
                'bbc-news' : 'The BBC',
-               'bloomberg' : 'Bloomberg News', 
+               'bloomberg' : 'Bloomberg News',
                'cnn' : 'CNN',
-               'fox' : 'Fox News', 
+               'fox' : 'Fox News',
                'hacker-news' : 'Hacker News',
                'independent' : 'The Independent',
-               'ign' : 'IGN', 
-               'newsweek' : 'Newsweek', 
+               'ign' : 'IGN',
+               'newsweek' : 'Newsweek',
                'reuters' : 'Reuters',
-               'recode' : 'Recode', 
-               'sky-news' : 'Sky News', 
+               'recode' : 'Recode',
+               'sky-news' : 'Sky News',
                'the-guardian-uk' : 'The Guardian (UK)',
                'the-new-york-times' : 'The New York Times',
-               'the-next-web' : 'The Next Web', 
+               'the-next-web' : 'The Next Web',
                'the-telegraph' : 'The Telegraph',
-               'the-verge' : 'The Verge', 
+               'the-verge' : 'The Verge',
                'the-wall-street-journal' : 'The Wall Street Journal',
                'time' : 'TIME Magazine',
                'usa-today' : 'USA Today'}
@@ -144,11 +144,11 @@ You can get more information about a headline with .news #"""
     if sources[match[0]] is 'fox':
         get_headlines_fox(bot, number)
         return
-    
+
     url = "https://newsapi.org/v1/articles?source={0}&apiKey={1}".format(sources[match[0]], bot.config.news.key)
     response = urllib.request.urlopen(url)
     data = json.load(response, object_pairs_hook=OrderedDict)
-    
+
     if data['status'] is 'error':
         bot.say("Error: \"{0}\"".format(data['message']))
         return
@@ -268,7 +268,7 @@ def get_headlines_fox(bot, count):
     response = urllib.request.urlopen(url)
     tree = ET.parse(response)
     root = tree.getroot()
-    
+
     length_limit = 410
     headline_count = 0
     headlines = ''

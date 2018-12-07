@@ -65,13 +65,13 @@ def help(bot, trigger):
             msgs = []
 
             name_length = max(6, max(len(k) for k in list(bot.command_groups.keys())))
-                
+
             heading1 = 'Module Name'.upper().ljust(name_length)
             msg = heading1 + '  ' + "commands:"
             indent = ' ' * (name_length + 2)
             # Honestly not sure why this is a list here
             msgs.append('\n'.join(textwrap.wrap(msg, subsequent_indent=indent)))
-            
+
             for category, cmds in list(collections.OrderedDict(sorted(bot.command_groups.items())).items()):
                 category = category.upper().ljust(name_length)
                 cmds = set(cmds)  # remove duplicates
