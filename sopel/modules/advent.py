@@ -1,11 +1,16 @@
 import arrow
+import json
 import mwclient
-import re, json, requests, threading
-import socket, ssl
+import pytz
+import requests
+import socket
+import ssl
+import threading
+from datetime import datetime
 from time import sleep
 from sopel.module import commands, rule, example, require_owner
-from datetime import datetime
 from sopel.modules import fl
+from sopel.tools.time import get_timezone, format_time
 
 data = {}
 
@@ -13,6 +18,16 @@ codes = {}
 cache = {}
 start = None
 end = None
+
+@commands('noman')
+def noman_command(bot, trigger):
+    with open('/home/alan/.sopel/noman.cost') as f:
+        cost, time = f.read().splitlines()
+    tz = get_timezone(bot.db, bot.config, None, trigger.nick, trigger.sender)
+    pytz_tz = pytz.timezone(tz)
+    updated_at = pytz.utc.localize(datetime.utcfromtimestamp(float(time))).astimezone(pytz_tz)
+    time_str = format_time(bot.db, bot.config, tz, trigger.nick, trigger.sender, updated_at)
+    bot.say('A Noman costs {} Taste (updated {})'.format(cost, time_str))
 
 def setup(bot):
     global codes
@@ -36,8 +51,6 @@ def setup(bot):
         with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
             json.dump({}, f)
 
-    start_timer(bot)
-
 def start_timer(bot):
     global start
     global end
@@ -56,7 +69,7 @@ def start_timer(bot):
     print(f'[advent] scheduling for {diff}')
     start = time
     end = time + diff
-    timer = threading.Timer(diff.seconds - 5, timed_advent, [bot, '#fallenlondon'])
+    timer = threading.Timer(diff.seconds - 10, timed_advent, [bot, '#fallenlondon'])
     timer.start()
 
 @commands('when')
@@ -84,16 +97,17 @@ def print_cache(bot, trigger):
 @commands('updatecache')
 def update_cache(bot, trigger):
     print(f'{trigger.nick} tried to update cache using {trigger.group(0)}')
-    try:
-        day, effects = trigger.group(2).split(None, 1)
-        day = int(day)
-    except:
-        day = max([int(k) for k in cache])
-        effects = trigger.group(2)
+    day = str(max([int(k) for k in cache]))
+    effects = trigger.group(2)
+    if not (effects.startswith('[') or effects.endswith(']')):
+            effects = f'[{effects}]'
 
-    cache[str(day)]['effects'] = effects
-    with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
-        json.dump(cache, f)
+    try:
+        cache[day]['effects'] = effects
+        with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
+            json.dump(cache, f)
+    except KeyError:
+        bot.say(f'Entry for day {day} doesn\'t exist!')
 
 @rule(r'^\.testadvent$')
 @require_owner()
@@ -153,7 +167,7 @@ def timed_advent(bot, channel):
     text = page.text()
     today = arrow.get(datetime.now()).format('MMMM Do')
     if today not in page.text():
-        base_edit = f"""\n\n=={today}==\n{url}\n\n[[File:{r['image']}small.png|left]] {r['initialMessage']}\n<br />\n\n'''Result:'''\n\n{r['completedMessage']}\n\n"""
+        base_edit = f"""\n\n=={today}==\n{url}\n\n[[File:{r['image']}.png|left|78x78px]] {r['initialMessage']}\n<br clear=all/>\n\n'''Result:'''\n\n{r['completedMessage']}\n\n"""
         if effects:
             modification = '\n'.join(generate_wiki_effects(effects)) + '\n\n'
             base_edit += modification
@@ -161,14 +175,16 @@ def timed_advent(bot, channel):
 
     send_advent(bot.config.discord.username, bot.config.discord.password, day, url)
     print('done with timed_advent')
+    sleep(10)
 
     start_timer(bot)
 
 def send_advent(user, pw, day, url):
     ctx = ssl.create_default_context()
     sock = ctx.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname='znc.alanhua.ng')
-    sock.connect(('znc.alanhua.ng', 6667))
-    sock.sendall(b'PASS ' + pw + b'\r\nNICK Alan\r\nUSER ' + user + b' 0 * :Alan\r\n')
+    sock.connect(('znc.alanhua.ng', 6697))
+    login = f'PASS {pw}\r\nNICK Alan\r\nUSER {user} 0 * :Alan\r\n'
+    sock.sendall(login.encode('utf-8'))
 
     while True:
         data = sock.recv(4096)
@@ -178,7 +194,8 @@ def send_advent(user, pw, day, url):
             break
 
     print('connected')
-    sock.sendall(b'PRIVMSG #fl-sacksmas :day ' + str(day).encode('ascii') + b': ' + url.encode('ascii') + b'\r\n')
+    message = f'PRIVMSG #fl-sacksmas :day {day}: {url}\r\n'
+    sock.sendall(message.encode('utf-8'))
 
     sock.close()
 
@@ -240,7 +257,7 @@ def advent_command(bot, trigger):
         return
 
     advent = requests.get('https://api.fallenlondon.com/api/advent').json()
-    current = advent.get('openableDoor')
+    current = advent.get('openableDoor', {'releaseDay': 25})
 
     try:
         expired_index = max([x['releaseDay'] for x in advent.get('expiredDoors')])
@@ -251,7 +268,10 @@ def advent_command(bot, trigger):
     opened = {x['releaseDay']: x for x in opened}
 
     try:
-        input = int(trigger.group(2))
+        if not trigger.group(2) or not trigger.group(2).strip():
+            input = 0
+        else:
+            input = int(trigger.group(2).strip())
     except ValueError:
         bot.say("That's not a number.")
         return
