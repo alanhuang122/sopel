@@ -222,7 +222,7 @@ def mw_section(server, query, section):
 
 
 # Get a wikipedia page (excluding spaces and #, but not /File: links), with a separate optional field for the section
-@rule(r'.*\/([a-z]+\.wikipedia\.org)\/wiki\/((?!File\:)[^ #]+)#?([^ ]*).*')
+@rule(r'.*\/([a-z]+\.(?:m\.)?wikipedia\.org)\/wiki\/((?!File\:)[^ #]+)#?([^ ]*).*')
 def mw_info(bot, trigger, found_match=None):
     """
     Retrives a snippet of the specified length from the given page on the given
