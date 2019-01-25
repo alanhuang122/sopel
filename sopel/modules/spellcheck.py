@@ -3,13 +3,16 @@
 import aspell, re, string
 from sopel.module import commands
 
+
 def setup(bot):
     chars = string.ascii_letters
     global regex
     regex = re.compile('[^%s]' % re.escape(chars))
 
+
 def clean(s):
-    return regex.sub('',s)
+    return regex.sub('', s)
+
 
 @commands('add')
 def add_command(bot, trigger):
@@ -20,6 +23,7 @@ def add_command(bot, trigger):
         bot.say('Added {0}.'.format(trigger.group(2)))
     else:
         bot.say('I only trust {0} to add words >:c'.format(bot.config.core.owner))
+
 
 def check_multiple(bot, words):
     mistakes = []
@@ -34,6 +38,7 @@ def check_multiple(bot, words):
     else:
         bot.say('The following word(s) seem to be misspelled: {0}'.format(', '.join(['"{0}"'.format(w) for w in mistakes])))
 
+
 def check_one(bot, word):
     c = aspell.Speller('lang', 'en')
     if c.check(clean(word)):
@@ -46,6 +51,7 @@ def check_one(bot, word):
         bot.say("That doesn't seem to be correct.")
     else:
         bot.say("That doesn't seem to be correct. Try {0}.".format(', '.join(['"{0}"'.format(s) for s in suggestions])))
+
 
 @commands('spell', 'check', 'spellcheck')
 def spellchecker(bot, trigger):
