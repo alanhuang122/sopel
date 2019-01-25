@@ -30,7 +30,7 @@ def fetch_api_endpoint(bot, url):
 #        oauth = '?client_id=%s&client_secret=%s' % (bot.config.github.client_id, bot.config.github.secret)
     return requests.get(url + oauth).text
 
-@rule('.*%s.*' % issueURL)
+@rule(r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?')
 def issue_info(bot, trigger, match=None):
     match = match or trigger
     URL = 'https://api.github.com/repos/%s/issues/%s' % (match.group(1), match.group(2))
@@ -76,7 +76,7 @@ def issue_info(bot, trigger, match=None):
     bot.say(''.join(response))
 
 
-@rule('.*%s.*' % commitURL)
+@rule(r'.*https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:commit)/([A-z0-9\-]+).*' '.*%s.*')
 def commit_info(bot, trigger, match=None):
     match = match or trigger
     URL = 'https://api.github.com/repos/%s/commits/%s' % (match.group(1), match.group(2))
