@@ -258,7 +258,8 @@ def find_title(bot, url, verify=True):
     except KeyError:
         return None
     try:
-        t = lxml.html.fromstring(fix_encoding(response.text))
+        p = lxml.html.HTMLParser(encoding='utf-8')
+        t = lxml.html.fromstring(fix_encoding(response.text).encode('utf-8'), parser=p)
         title = t.find(".//title")
         if title is not None and title.text is not None:
             return title.text.strip()
