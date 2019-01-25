@@ -9,7 +9,7 @@ https://sopel.chat
 """
 
 from sopel.module import commands, example
-import os, sys, re
+import os
 from google.cloud import translate
 from html import unescape
 

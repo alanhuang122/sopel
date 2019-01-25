@@ -314,9 +314,9 @@ def treat_command(bot, trigger):
 @commands('praise')
 def praise_command(bot, trigger):
     if not trigger.group(2):
-        bot.reply('\[T]/ \[T]/')
+        bot.reply('\\[T]/ \\[T]/')
     else:
-        bot.say('{0}: \[T]/ \[T]/'.format(clean(trigger.group(2).strip())))
+        bot.say('{0}: \\[T]/ \\[T]/'.format(clean(trigger.group(2).strip())))
     if 'praise' not in stats:
         stats['praise'] = 0
     stats['praise'] += 1

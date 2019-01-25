@@ -8,7 +8,6 @@ import re
 import requests
 from sopel.module import commands, example
 from sopel.trigger import PreTrigger
-import json
 import requests
 import xmltodict
 import sys

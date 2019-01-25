@@ -14,7 +14,7 @@ def posix_command(bot, trigger):
 
 @commands('man')
 def man_command(bot, trigger):
-    url = 'https://man.voidlinux.eu/' + trigger.group(2)
+    url = 'https://man.voidlinux.org/' + trigger.group(2)
     r = requests.get(url)
     if 'text/html' not in r.headers['Content-Type']:
         bot.say("THAT'S NOT POSIX^WHTML")

@@ -7,7 +7,6 @@ Licensed under the Eiffel Forum License 2.
 
 
 from sopel.module import commands, require_chanmsg
-import sopel
 import random
 import codecs # TODO in python3, codecs.open isn't needed since the default open does encoding.
 import sqlite3

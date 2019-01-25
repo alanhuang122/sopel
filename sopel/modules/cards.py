@@ -1,6 +1,6 @@
 #!/usr/local/bin/python
 from sopel.module import commands
-import json, random, requests, re
+import json, random, requests
 
 data = None
 def setup(bot):

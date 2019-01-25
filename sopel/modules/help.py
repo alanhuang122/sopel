@@ -13,7 +13,6 @@ https://sopel.chat
 import textwrap
 import collections
 import requests
-import pickle, os
 
 from sopel.logger import get_logger
 from sopel.module import commands, rule, example, priority
