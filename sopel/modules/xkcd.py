@@ -4,7 +4,6 @@
 # Copyright 2013, Elsie Powell (embolalia.com)
 # Licensed under the Eiffel Forum License 2.
 
-
 import random, re, requests
 from sopel.module import commands, url
 

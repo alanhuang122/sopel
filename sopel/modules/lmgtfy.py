@@ -11,7 +11,6 @@ from __future__ import unicode_literals, absolute_import, print_function, divisi
 from sopel.module import commands
 from urllib.parse import quote
 
-
 @commands('lmgtfy', 'lmgify', 'gify', 'gtfy')
 def googleit(bot, trigger):
     """Let me just... google that for you."""

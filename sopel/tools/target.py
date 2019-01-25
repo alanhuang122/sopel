@@ -67,15 +67,16 @@ class Channel(object):
         if user is not None:
             user.channels.pop(self.name, None)
 
-    def add_user(self, user):
+    def add_user(self, user, privs=0):
         assert isinstance(user, User)
         self.users[user.nick] = user
-        self.privileges[user.nick] = 0
+        self.privileges[user.nick] = privs
         user.channels[self.name] = self
 
     def rename_user(self, old, new):
         if old in self.users:
             self.users[new] = self.users.pop(old)
+            self.users[new].nick = new
         if old in self.privileges:
             self.privileges[new] = self.privileges.pop(old)
 

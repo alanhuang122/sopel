@@ -19,3 +19,4 @@ tweepy
 Unidecode
 urllib3
 wolframalpha
+dnspython

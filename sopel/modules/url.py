@@ -6,7 +6,6 @@
 # Copyright © 2014 Elad Alfassa <elad@fedoraproject.org>
 # Licensed under the Eiffel Forum License 2.
 
-
 import re, idna
 from sopel import tools, __version__
 from sopel.module import commands, rule, example
@@ -17,11 +16,11 @@ import requests
 
 USER_AGENT = 'Sopel/{} (https://sopel.chat)'.format(__version__)
 default_headers = {'User-Agent': USER_AGENT}
-url_finder = None
+find_urls = None
 # These are used to clean up the title tag before actually parsing it. Not the
 # world's best way to do this, but it'll do for now.
-title_tag_data = re.compile(r'<(/?)title( [^>]+)?>', re.IGNORECASE)
-quoted_title = re.compile(r'[\'"]<title>[\'"]', re.IGNORECASE)
+title_tag_data = re.compile('<(/?)title( [^>]+)?>', re.IGNORECASE)
+quoted_title = re.compile('[\'"]<title>[\'"]', re.IGNORECASE)
 # This is another regex that presumably does something important.
 re_dcc = re.compile(r'(?i)dcc\ssend')
 # This sets the maximum number of bytes that should be read in order to find
@@ -29,8 +28,6 @@ re_dcc = re.compile(r'(?i)dcc\ssend')
 # just keep downloading until there's no more memory. 640k ought to be enough
 # for anybody.
 max_bytes = 655360
-user_agent = None
-
 
 class UrlSection(StaticSection):
     # TODO some validation rules maybe?
@@ -40,6 +37,13 @@ class UrlSection(StaticSection):
 
 
 def configure(config):
+    """
+    | name | example | purpose |
+    | ---- | ------- | ------- |
+    | exclude | https?://git\\\\.io/.* | A list of regular expressions for URLs for which the title should not be shown. |
+    | exclusion\\_char | ! | A character (or string) which, when immediately preceding a URL, will stop the URL's title from being shown. |
+    | shorten\\_url\\_length | 72 | If greater than 0, the title fetcher will include a TinyURL version of links longer than this many characters. |
+    """
     config.define_section('url', UrlSection)
     config.url.configure_setting(
         'exclude',
@@ -49,13 +53,22 @@ def configure(config):
         'exclusion_char',
         'Enter a character which can be prefixed to suppress URL titling'
     )
+    config.url.configure_setting(
+        'shorten_url_length',
+        'Enter how many characters a URL should be before the bot puts a'
+        ' shorter version of the URL in the title as a TinyURL link'
+        ' (0 to disable)'
+    )
 
 
 def setup(bot):
-    global url_finder
-    global user_agent
+    global find_urls
+    global USER_AGENT
 
     bot.config.define_section('url', UrlSection)
+
+    if bot.config.url.user_agent:
+        USER_AGENT = bot.config.url.user_agent
 
     if bot.config.url.exclude:
         regexes = [re.compile(s) for s in bot.config.url.exclude]
@@ -80,14 +93,33 @@ def setup(bot):
     if not bot.memory.contains('last_seen_url'):
         bot.memory['last_seen_url'] = tools.SopelMemory()
 
-    url_finder = re.compile(r'(?u)(%s?(?:http|https|ftp)(?:://\S+))' %
-                            (bot.config.url.exclusion_char), re.IGNORECASE)
+    def find_func(text, clean=False):
+        def trim_url(url):
+            # clean trailing sentence- or clause-ending punctuation
+            while url[-1] in '.,?!\'":;':
+                url = url[:-1]
 
-    if bot.config.url.user_agent:
-        user_agent = bot.config.url.user_agent
+            # clean unmatched parentheses/braces/brackets
+            for (opener, closer) in [('(', ')'), ('[', ']'), ('{', '}'), ('<', '>')]:
+                if url[-1] is closer and url.count(opener) < url.count(closer):
+                    url = url[:-1]
+
+            return url
+
+        re_url = r'(?u)((?<!%s)(?:http|https|ftp)(?::\/\/\S+))'\
+            % (bot.config.url.exclusion_char)
+        r = re.compile(re_url, re.IGNORECASE)
+
+        urls = re.findall(r, text)
+        if clean:
+            urls = [trim_url(url) for url in urls]
+        return urls
+
+    find_urls = find_func
+
 
 @commands('title')
-@example('.title https://google.com', '[ Google ] - google.com')
+@example('.title http://google.com', '[ Google ] - google.com')
 def title_command(bot, trigger):
     """
     Show the title or URL information for the given URL, or the last URL seen
@@ -104,11 +136,18 @@ def title_command(bot, trigger):
         else:
             urls = [bot.memory['last_seen_url'][trigger.sender]]
     else:
-        urls = re.findall(url_finder, trigger)
+        urls = find_urls(trigger)
 
     results = process_urls(bot, trigger, urls)
     for title, domain in results[:4]:
         bot.reply('[ %s ] - %s' % (title, domain))
+
+    # Nice to have different failure messages for one-and-only requested URL
+    # failed vs. one-of-many failed.
+    if len(urls) == 1 and not results:
+        bot.reply('Sorry, fetching that title failed. Make sure the site is working.')
+    elif len(urls) > len(results):
+        bot.reply('I couldn\'t get all of the titles, but I fetched what I could!')
 
 
 @rule(r'(?u).*(https?://\S+).*')
@@ -118,9 +157,6 @@ def title_auto(bot, trigger):
     where the URL redirects to and show the title for that (or call a function
     from another module to give more information).
     """
-    if '.shorten' in trigger:
-        return
-
     if re.match(bot.config.core.prefix + 'title', trigger):
         return
 
@@ -129,7 +165,7 @@ def title_auto(bot, trigger):
         if bot.memory['safety_cache'][trigger]['positives'] > 1:
             return
 
-    urls = re.findall(url_finder, trigger)
+    urls = find_urls(trigger)
     if len(urls) == 0:
         return
 
@@ -142,6 +178,7 @@ def title_auto(bot, trigger):
         if message != trigger:
             bot.say(message)
 
+
 def process_urls(bot, trigger, urls):
     """
     For each URL in the list, ensure that it isn't handled by another module.
@@ -150,6 +187,7 @@ def process_urls(bot, trigger, urls):
     Return a list of (title, hostname) tuples for each URL which is not handled by
     another module.
     """
+
     results = []
     for url in urls:
         if not url.startswith(bot.config.url.exclusion_char):
@@ -158,7 +196,7 @@ def process_urls(bot, trigger, urls):
                 parts = urlparse(url)
                 parts._replace(netloc=idna.encode(parts.netloc))
                 url = urlunparse(parts)
-            except Exception as e:
+            except Exception as e:  # TODO: Be specific
                 print('[url] {}'.format(e))
                 pass
             # First, check that the URL we got doesn't match
@@ -188,11 +226,8 @@ def check_callbacks(bot, trigger, url, run=True):
             if run or hasattr(function, 'url_regex'):
                 function(bot, trigger, match)
             matched = True
-    if re.search(r'https?://github\.com/([^ /]+?/?)+/?', url):
-        matched = True
     return matched
 
-import lxml.html
 from ftfy import fix_encoding
 def find_title(bot, url, verify=True):
     """Return the title for the given URL."""
@@ -245,7 +280,6 @@ def get_hostname(url):
     if slash != -1:
         hostname = hostname[:slash]
     return hostname
-
 
 if __name__ == "__main__":
     from sopel.test_tools import run_example_tests

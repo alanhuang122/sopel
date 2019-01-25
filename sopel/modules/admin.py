@@ -26,6 +26,12 @@ class AdminSection(StaticSection):
 
 
 def configure(config):
+    """
+    | name | example | purpose |
+    | ---- | ------- | ------- |
+    | hold\\_ground | False | Auto-rejoin the channel after being kicked. |
+    | auto\\_accept\\_invite | True | Auto-join channels when invited. |
+    """
     config.define_section('admin', AdminSection)
     config.admin.configure_setting('hold_ground',
                                    "Automatically re-join after being kicked?")
@@ -87,8 +93,8 @@ def quit_command(bot, trigger):
 @sopel.module.example('.msg #YourPants Does anyone else smell neurotoxin?')
 def msg(bot, trigger):
     """
-    Send a message to a given channel or nick. Can only be done in privmsg by an
-    admin.
+    Send a message to a given channel or nick. Can only be done in privmsg by
+    an admin.
     """
     if trigger.group(2) is None:
         return
@@ -107,8 +113,8 @@ def msg(bot, trigger):
 @sopel.module.priority('low')
 def me(bot, trigger):
     """
-    Send an ACTION (/me) to a given channel or nick. Can only be done in privmsg
-    by an admin.
+    Send an ACTION (/me) to a given channel or nick. Can only be done in
+    privmsg by an admin.
     """
     if trigger.group(2) is None:
         return
@@ -127,7 +133,7 @@ def me(bot, trigger):
 @sopel.module.priority('low')
 def invite_join(bot, trigger):
     """
-    Join a channel sopel is invited to, if the inviter is an admin.
+    Join a channel Sopel is invited to, if the inviter is an admin.
     """
     if trigger.admin or bot.config.admin.auto_accept_invite:
         bot.join(trigger.args[1])
@@ -139,10 +145,10 @@ def invite_join(bot, trigger):
 @sopel.module.priority('low')
 def hold_ground(bot, trigger):
     """
-    This function monitors all kicks across all channels sopel is in. If it
+    This function monitors all kicks across all channels Sopel is in. If it
     detects that it is the one kicked it'll automatically join that channel.
 
-    WARNING: This may not be needed and could cause problems if sopel becomes
+    WARNING: This may not be needed and could cause problems if Sopel becomes
     annoying. Please use this with caution.
     """
     if bot.config.admin.hold_ground:
@@ -166,7 +172,7 @@ def mode(bot, trigger):
 @sopel.module.commands('set')
 @sopel.module.example('.set core.owner Me')
 def set_config(bot, trigger):
-    """See and modify values of sopels config object.
+    """See and modify values of Sopel's config object.
 
     Trigger args:
         arg1 - section and option, in the form "section.option"
@@ -191,9 +197,13 @@ def set_config(bot, trigger):
         bot.say('[{}] section has no option {}.'.format(section_name, option))
         return
 
+    delim = trigger.group(2).find(' ')
+    # Skip preceding whitespaces, if any.
+    while delim > 0 and delim < len(trigger.group(2)) and trigger.group(2)[delim] == ' ':
+        delim = delim + 1
+
     # Display current value if no value is given.
-    value = trigger.group(4)
-    if not value:
+    if delim == -1 or delim == len(trigger.group(2)):
         if not static_sec and bot.config.parser.has_option(section, option):
             bot.reply("Option %s.%s does not exist." % (section_name, option))
             return
@@ -207,6 +217,7 @@ def set_config(bot, trigger):
         return
 
     # Otherwise, set the value to one given as argument 2.
+    value = trigger.group(2)[delim:]
     if static_sec:
         descriptor = getattr(section.__class__, option)
         try:
@@ -225,5 +236,5 @@ def set_config(bot, trigger):
 @sopel.module.commands('save')
 @sopel.module.example('.save')
 def save_config(bot, trigger):
-    """Save state of sopels config object to the configuration file."""
+    """Save state of Sopel's config object to the configuration file."""
     bot.config.save()

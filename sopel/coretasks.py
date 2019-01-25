@@ -178,6 +178,8 @@ def handle_names(bot, trigger):
 
     # This could probably be made flexible in the future, but I don't think
     # it'd be worth it.
+    # If this ever needs to be updated, remember to change the mode handling in
+    # the WHO-handler functions below, too.
     mapping = {'+': sopel.module.VOICE,
                '%': sopel.module.HALFOP,
                '@': sopel.module.OP,
@@ -232,7 +234,13 @@ def track_modes(bot, trigger):
         else:
             arg = Identifier(arg)
             for mode in modes:
-                priv = bot.privileges[channel].get(arg, 0)
+                priv = bot.channels[channel].privileges.get(arg, 0)
+                # Throw an exception if the two privilege-tracking data
+                # structures get out of sync. That should never happen.
+                # This is a good place to check that bot.channels is doing
+                # what it's supposed to do before ultimately removing the old,
+                # deprecated bot.privileges structure completely.
+                assert priv == bot.privileges[channel].get(arg, 0)
                 value = mapping.get(mode[1])
                 if value is not None:
                     if mode[0] == '+':
@@ -240,6 +248,7 @@ def track_modes(bot, trigger):
                     else:
                         priv = priv & ~value
                     bot.privileges[channel][arg] = priv
+                    bot.channels[channel].privileges[arg] = priv
 
 
 @sopel.module.rule('.*')
@@ -555,9 +564,9 @@ def sasl_success(bot, trigger):
 @sopel.module.thread(False)
 @sopel.module.unblockable
 def blocks(bot, trigger):
-    """Manage Sopel's blocking features.
-
-    https://github.com/sopel-irc/sopel/wiki/Making-Sopel-ignore-people
+    """
+    Manage Sopel's blocking features.\
+    See [ignore system documentation]({% link _usage/ignoring-people.md %}).
 
     """
     if not trigger.admin:
@@ -624,10 +633,11 @@ def recv_whox(bot, trigger):
         return LOGGER.warning('While populating `bot.accounts` a WHO response was malformed.')
     _, _, channel, user, host, nick, status, account = trigger.args
     away = 'G' in status
-    _record_who(bot, channel, user, host, nick, account, away)
+    modes = ''.join([c for c in status if c in '~&@%+'])
+    _record_who(bot, channel, user, host, nick, account, away, modes)
 
 
-def _record_who(bot, channel, user, host, nick, account=None, away=None):
+def _record_who(bot, channel, user, host, nick, account=None, away=None, modes=None):
     nick = Identifier(nick)
     channel = Identifier(channel)
     if nick not in bot.users:
@@ -638,9 +648,18 @@ def _record_who(bot, channel, user, host, nick, account=None, away=None):
     else:
         user.account = account
     user.away = away
+    priv = 0
+    if modes:
+        mapping = {'+': sopel.module.VOICE,
+           '%': sopel.module.HALFOP,
+           '@': sopel.module.OP,
+           '&': sopel.module.ADMIN,
+           '~': sopel.module.OWNER}
+        for c in modes:
+            priv = priv | mapping[c]
     if channel not in bot.channels:
         bot.channels[channel] = Channel(channel)
-    bot.channels[channel].add_user(user)
+    bot.channels[channel].add_user(user, privs=priv)
 
 
 @sopel.module.event(events.RPL_WHOREPLY)
@@ -648,8 +667,9 @@ def _record_who(bot, channel, user, host, nick, account=None, away=None):
 @sopel.module.priority('high')
 @sopel.module.unblockable
 def recv_who(bot, trigger):
-    channel, user, host, _, nick, = trigger.args[1:6]
-    _record_who(bot, channel, user, host, nick)
+    channel, user, host, _, nick, status = trigger.args[1:7]
+    modes = ''.join([c for c in status if c in '~&@%+'])
+    _record_who(bot, channel, user, host, nick, modes=modes)
 
 
 @sopel.module.event(events.RPL_ENDOFWHO)
