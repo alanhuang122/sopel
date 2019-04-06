@@ -222,18 +222,18 @@ def mw_section(server, query, section):
 
 
 # Get a wikipedia page (excluding spaces and #, but not /File: links), with a separate optional field for the section
-@rule(r'.*\/([a-z]+\.(?:m\.)?wikipedia\.org)\/wiki\/((?!File\:)[^ #]+)#?([^ ]*).*')
+@rule(r'.*\/([a-z]+\.(?:m\.)?wikipedia\.org)\/wiki\/([^ #]+)(?P<section>#?)((?!/media/File\:)[^# ]*).*')
 def mw_info(bot, trigger, found_match=None):
     """
     Retrives a snippet of the specified length from the given page on the given
     server.
     """
     match = found_match or trigger
-    if match.group(3):
-        if match.group(3).startswith('cite_note-'):  # Don't bother trying to retrieve a snippet when cite-note is linked
+    if match.group(4):
+        if match.group(4).startswith('cite_note-'):  # Don't bother trying to retrieve a snippet when cite-note is linked
             say_snippet(bot, trigger, match.group(1), unquote(match.group(2)), show_url=False)
         else:
-            say_section(bot, trigger, match.group(1), unquote(match.group(2)), unquote(match.group(3)))
+            say_section(bot, trigger, match.group(1), unquote(match.group(2)), unquote(match.group(4)))
     else:
         say_snippet(bot, trigger, match.group(1), unquote(match.group(2)), show_url=False)
 
