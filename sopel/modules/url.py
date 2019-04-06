@@ -11,6 +11,7 @@ from sopel import tools, __version__
 from sopel.module import commands, rule, example
 from sopel.config.types import ValidatedAttribute, ListAttribute, StaticSection
 from urllib.parse import urlparse, urlunparse
+import lxml
 
 import requests
 
@@ -232,7 +233,7 @@ from ftfy import fix_encoding
 def find_title(bot, url, verify=True):
     """Return the title for the given URL."""
     try:
-        response = requests.get(url, verify=verify, headers={'User-Agent': user_agent, 'Accept': 'text/html'})
+        response = requests.get(url, verify=verify, headers={'User-Agent': USER_AGENT, 'Accept': 'text/html'})
     except requests.exceptions.SSLError as e:
         print('[url] SSL error: {}'.format(url))
         bot.say(f"Error: {e.args[0].reason.args[0].strerror.split(']', 1)[1].rsplit('(', 1)[0].strip()}")
