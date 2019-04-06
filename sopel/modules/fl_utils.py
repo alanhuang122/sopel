@@ -1,6 +1,6 @@
 # 2016.12.24 03:31:56 CST
 #Embedded file name: modules/profiles.py
-from sopel.module import commands, example
+from sopel.module import commands, example, url
 from fuzzywuzzy import process
 import re
 import requests
@@ -91,9 +91,15 @@ def render_html(string):
     string = re.sub('\r\n', ' ', string)
     return string
 
+@url(r'.*(https://fallenlondon.com/a/([^ ]+)).*')
+def code_url_wrapper(bot, trigger, match):
+    code_command(bot, match.group(2))
+
 @commands('code')
-def code_command(bot, trigger):
-    code = trigger.group(2).strip()
+def code_command_wrapper(bot, trigger):
+    code_command(bot, trigger.group(2))
+
+def code_command(bot, code):
     r = requests.post(f'https://api.fallenlondon.com/api/accesscode/{code}').json()
     for key in fl.data:
         if key.startswith('accesscodes'):
