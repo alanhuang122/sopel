@@ -3,7 +3,25 @@
 from lxml.html import fromstring
 import re
 import requests
-from sopel.module import commands, example
+from sopel.module import commands, example, interval
+from datetime import datetime
+
+def setup(bot):
+    print('acn: loading data')
+    with open('/home/alan/.sopel/acn.txt') as f:
+        data = f.read().splitlines()
+    timestamp = datetime.fromtimestamp(float(data[0]))
+    bot.memory['acn-time'] = timestamp
+
+@interval(60*20)
+def acn_timer(bot):
+    with open('/home/alan/.sopel/acn.txt') as f:
+        data = f.read().splitlines()
+    timestamp = datetime.fromtimestamp(float(data[0]))
+    if bot.memory['acn-time'] != timestamp:
+        bot.say(f'ACN page update – {data[1]} http://utdallas.edu/~haas/courses/acn', '#alantest')
+        print('acn: page changed')
+        bot.memory['acn-time'] = timestamp
 
 @commands('coursebook', 'cb', 'class', 'course')
 @example('.cb cs2336')
