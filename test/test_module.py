@@ -20,9 +20,7 @@ def sopel():
 @pytest.fixture
 def bot(sopel, pretrigger):
     bot = MockSopelWrapper(sopel, pretrigger)
-    bot.privileges = dict()
-    bot.privileges[Identifier('#Sopel')] = dict()
-    bot.privileges[Identifier('#Sopel')][Identifier('Foo')] = module.VOICE
+    bot.channels[Identifier('#Sopel')].privileges[Identifier('Foo')] = module.VOICE
     return bot
 
 
@@ -80,6 +78,27 @@ def test_thread():
     def mock(bot, trigger, match):
         return True
     assert mock.thread is True
+
+
+def test_echo():
+    # test decorator with parentheses
+    @module.echo()
+    def mock(bot, trigger, match):
+        return True
+    assert mock.echo is True
+
+    # test decorator without parentheses
+    @module.echo
+    def mock(bot, trigger, match):
+        return True
+    assert mock.echo is True
+
+    # test without decorator
+    def mock(bot, trigger, match):
+        return True
+    # on undecorated callables, the attr only exists after the loader loads them
+    # so this cannot `assert mock.echo is False` here
+    assert not hasattr(mock, 'echo')
 
 
 def test_commands():

@@ -275,14 +275,13 @@ def choose(bot, trigger):
         if len(choices) > 1:
             break
     choices = [s.strip() for s in choices]
-    # Use a different delimiter in the output, to prevent ambiguity.
-    for show_delim in ',|/\\':
-        if show_delim not in trigger.group(2):
-            show_delim += ' '
-            break
-
     pick = random.choice(choices)
-    return bot.reply('Your options: %s. My choice: %s' % (show_delim.join(choices), pick))
+    # Always use a comma in the output
+    display_options = ', '.join(
+        choice if ',' not in choice else '"%s"' % choice
+        for choice in choices
+    )
+    return bot.reply('Your options: %s. My choice: %s' % (display_options, pick))
 
 @commands('coin')
 def toss_command(bot, trigger):

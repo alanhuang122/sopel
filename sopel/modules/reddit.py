@@ -4,7 +4,7 @@
 from sopel.module import commands, rule, example, require_chanmsg, NOLIMIT, OP
 from sopel.formatting import bold, color, colors
 from sopel.modules.url import USER_AGENT
-from sopel.tools import SopelMemory, time
+from sopel.tools import time
 import datetime as dt
 import praw
 import re
@@ -28,15 +28,13 @@ spoiler_subs = [
 
 
 def setup(bot):
-    if not bot.memory.contains('url_callbacks'):
-        bot.memory['url_callbacks'] = SopelMemory()
-    bot.memory['url_callbacks'][post_regex] = rpost_info
-    bot.memory['url_callbacks'][user_regex] = redditor_info
+    bot.register_url_callback(post_regex, rpost_info)
+    bot.register_url_callback(user_regex, redditor_info)
 
 
 def shutdown(bot):
-    del bot.memory['url_callbacks'][post_regex]
-    del bot.memory['url_callbacks'][user_regex]
+    bot.unregister_url_callback(post_regex)
+    bot.unregister_url_callback(user_regex)
 
 
 @rule('.*%s.*' % post_url)
@@ -115,8 +113,10 @@ def redditor_info(bot, trigger, match=None):
         client_secret=None,
     )
     match = match or trigger
-    try:
+    try:  # praw <4.0 style
         u = r.get_redditor(match.group(2))
+    except AttributeError:  # praw >=4.0 style
+        u = r.redditor(match.group(2))
     except Exception:  # TODO: Be specific
         if commanded:
             bot.say('No such Redditor.')
@@ -170,7 +170,7 @@ def update_channel(bot, trigger):
     Sets the Safe for Work status (true or false) for the current
     channel. Defaults to false.
     """
-    if bot.privileges[trigger.sender][trigger.nick] < OP:
+    if bot.channels[trigger.sender].privileges[trigger.nick] < OP:
         return
     else:
         param = 'true'

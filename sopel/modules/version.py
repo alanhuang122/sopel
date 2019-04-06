@@ -14,6 +14,8 @@ from sopel import __version__ as release
 from sopel.module import commands, intent, rate
 import re
 from os import path
+import platform
+
 
 log_line = re.compile(r'\S+ (\S+) (.*? <.*?>) (\d+) (\S+)\tcommit[^:]*: (.+)')
 
@@ -41,16 +43,15 @@ def source(bot, trigger):
 def version(bot, trigger):
     """Display the latest commit version, if Sopel is running in a git repo."""
     url = "https://github.com/alanhuang122/sopel"
-    release = sopel.__version__
     sha = git_info()
     if not sha:
-        msg = 'Sopel v. ' + release
+        msg = 'Sopel v. ' + release + ' (Python {})'.format(platform.python_version())
         if release[-4:] == '-git':
             msg += ' at unknown commit. ({})'.format(url)
         bot.reply(msg)
         return
 
-    bot.reply("Sopel v. {} at commit: {} ({})".format(sopel.__version__, sha, url))
+    bot.reply("Sopel v. {} (Python {}) at commit: {} ({})".format(release, platform.python_version(), sha, url))
 
 
 @intent('VERSION')

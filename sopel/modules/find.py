@@ -12,11 +12,12 @@ using the sed notation (s///) commonly found in vi/vim.
 
 import re
 from sopel.tools import Identifier, SopelMemory
-from sopel.module import rule, priority
+from sopel.module import rule, priority, echo
 
 def setup(bot):
     bot.memory['find_lines'] = SopelMemory()
 
+@echo
 @rule('.*')
 @priority('low')
 def collectlines(bot, trigger):
@@ -132,7 +133,10 @@ def findandreplace(bot, trigger):
     if not me:
         new_phrase = '%s to say: %s' % ('meant', new_phrase)
     if trigger.group(1):
-        phrase = '%s thinks %s %s' % (trigger.nick, rnick, new_phrase)
+        if rnick == bot.nick:
+            phrase = '%s thinks I %s' % (trigger.nick, new_phrase)
+        else:
+            phrase = '%s thinks %s %s' % (trigger.nick, rnick, new_phrase)
     else:
         phrase = '%s %s' % (trigger.nick, new_phrase)
 

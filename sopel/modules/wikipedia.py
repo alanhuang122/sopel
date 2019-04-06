@@ -3,7 +3,6 @@
 # Licensed under the Eiffel Forum License 2.
 from __future__ import unicode_literals, absolute_import, print_function, division
 
-from sopel import tools
 from sopel.config.types import StaticSection, ValidatedAttribute
 from sopel.module import NOLIMIT, commands, example, rule
 from requests import get
@@ -21,6 +20,7 @@ else:
     from html.parser import HTMLParser
 
 REDIRECT = re.compile(r'^REDIRECT (.*)')
+WIKIPEDIA_REGEX = re.compile('([a-z]+).(wikipedia.org/wiki/)([^ ]+)')
 
 
 class WikiParser(HTMLParser):
@@ -85,17 +85,18 @@ class WikiParser(HTMLParser):
 
 class WikipediaSection(StaticSection):
     default_lang = ValidatedAttribute('default_lang', default='en')
-    """The default language to find articles from."""
+    """The default language to find articles from (same as Wikipedia language subdomain)."""
     lang_per_channel = ValidatedAttribute('lang_per_channel')
+    """List of ``#channel:langcode`` pairs to define Wikipedia language per channel."""
 
 
 def setup(bot):
     bot.config.define_section('wikipedia', WikipediaSection)
+    bot.register_url_callback(WIKIPEDIA_REGEX, mw_info)
 
-    regex = re.compile('([a-z]+).(wikipedia.org/wiki/)([^ ]+)')
-    if not bot.memory.contains('url_callbacks'):
-        bot.memory['url_callbacks'] = tools.SopelMemory()
-    bot.memory['url_callbacks'][regex] = mw_info
+
+def shutdown(bot):
+    bot.unregister_url_callback(WIKIPEDIA_REGEX)
 
 
 def configure(config):

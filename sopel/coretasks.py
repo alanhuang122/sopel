@@ -175,6 +175,8 @@ def handle_names(bot, trigger):
     channel = Identifier(channels.group(1))
     if channel not in bot.privileges:
         bot.privileges[channel] = dict()
+    if channel not in bot.channels:
+        bot.channels[channel] = Channel(channel)
 
     # This could probably be made flexible in the future, but I don't think
     # it'd be worth it.
@@ -193,6 +195,15 @@ def handle_names(bot, trigger):
                 priv = priv | value
         nick = Identifier(name.lstrip(''.join(list(mapping.keys()))))
         bot.privileges[channel][nick] = priv
+        user = bot.users.get(nick)
+        if user is None:
+            # It's not possible to set the username/hostname from info received
+            # in a NAMES reply, unfortunately.
+            # Fortunately, the user should already exist in bot.users by the
+            # time this code runs, so this is 99.9% ass-covering.
+            user = User(nick, None, None)
+            bot.users[nick] = user
+        bot.channels[channel].add_user(user, privs=priv)
 
 
 @sopel.module.rule('(.*)')
@@ -235,12 +246,17 @@ def track_modes(bot, trigger):
             arg = Identifier(arg)
             for mode in modes:
                 priv = bot.channels[channel].privileges.get(arg, 0)
-                # Throw an exception if the two privilege-tracking data
-                # structures get out of sync. That should never happen.
-                # This is a good place to check that bot.channels is doing
+                # Log a warning if the two privilege-tracking data structures
+                # get out of sync. That should never happen.
+                # This is a good place to verify that bot.channels is doing
                 # what it's supposed to do before ultimately removing the old,
                 # deprecated bot.privileges structure completely.
-                assert priv == bot.privileges[channel].get(arg, 0)
+                ppriv = bot.privileges[channel].get(arg, 0)
+                if priv != ppriv:
+                    LOGGER.warning("Privilege data error! Please share Sopel's"
+                                   "raw log with the developers, if enabled. "
+                                   "(Expected {} == {} for {} in {}.)"
+                                   .format(priv, ppriv, arg, channel))
                 value = mapping.get(mode[1])
                 if value is not None:
                     if mode[0] == '+':
@@ -404,11 +420,11 @@ def track_quit(bot, trigger):
 @sopel.module.thread(False)
 @sopel.module.priority('high')
 @sopel.module.unblockable
-def recieve_cap_list(bot, trigger):
+def receive_cap_list(bot, trigger):
     cap = trigger.strip('-=~')
     # Server is listing capabilites
     if trigger.args[1] == 'LS':
-        recieve_cap_ls_reply(bot, trigger)
+        receive_cap_ls_reply(bot, trigger)
     # Server denied CAP REQ
     elif trigger.args[1] == 'NAK':
         entry = bot._cap_reqs.get(cap, None)
@@ -452,10 +468,10 @@ def recieve_cap_list(bot, trigger):
                 if req.success:
                     req.success(bot, req.prefix + trigger)
             if cap == 'sasl':  # TODO why is this not done with bot.cap_req?
-                recieve_cap_ack_sasl(bot)
+                receive_cap_ack_sasl(bot)
 
 
-def recieve_cap_ls_reply(bot, trigger):
+def receive_cap_ls_reply(bot, trigger):
     if bot.server_capabilities:
         # We've already seen the results, so someone sent CAP LS from a module.
         # We're too late to do SASL, and we don't want to send CAP END before
@@ -477,7 +493,13 @@ def recieve_cap_ls_reply(bot, trigger):
 
     # If some other module requests it, we don't need to add another request.
     # If some other module prohibits it, we shouldn't request it.
-    core_caps = ['multi-prefix', 'away-notify', 'cap-notify', 'server-time']
+    core_caps = [
+        'echo-message',
+        'multi-prefix',
+        'away-notify',
+        'cap-notify',
+        'server-time',
+    ]
     for cap in core_caps:
         if cap not in bot._cap_reqs:
             bot._cap_reqs[cap] = [_CapReq('', 'coretasks')]
@@ -526,7 +548,7 @@ def recieve_cap_ls_reply(bot, trigger):
         bot.write(('CAP', 'END'))
 
 
-def recieve_cap_ack_sasl(bot):
+def receive_cap_ack_sasl(bot):
     # Presumably we're only here if we said we actually *want* sasl, but still
     # check anyway.
     password = bot.config.core.auth_password
@@ -534,6 +556,37 @@ def recieve_cap_ack_sasl(bot):
         return
     mech = bot.config.core.auth_target or 'PLAIN'
     bot.write(('AUTHENTICATE', mech))
+
+
+def send_authenticate(bot, token):
+    """Send ``AUTHENTICATE`` command to server with the given ``token``.
+
+    :param bot: instance of IRC bot that must authenticate
+    :param str token: authentication token
+
+    In case the ``token`` is more than 400 bytes, we need to split it and send
+    as many ``AUTHENTICATE`` commands as needed. If the last chunk is 400 bytes
+    long, we must also send a last empty command (`AUTHENTICATE +` is for empty
+    line), so the server knows we are done with ``AUTHENTICATE``.
+
+    .. seealso::
+
+        https://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command
+
+    """
+    # payload is a base64 encoded token
+    payload = base64.b64encode(token.encode('utf-8'))
+
+    # split the payload into chunks of at most 400 bytes
+    chunk_size = 400
+    for i in range(0, len(payload), chunk_size):
+        offset = i + chunk_size
+        chunk = payload[i:offset]
+        bot.write(('AUTHENTICATE', chunk))
+
+    # send empty (+) AUTHENTICATE when payload's length is a multiple of 400
+    if len(payload) % chunk_size == 0:
+        bot.write(('AUTHENTICATE', '+'))
 
 
 @sopel.module.event('AUTHENTICATE')
@@ -546,8 +599,7 @@ def auth_proceed(bot, trigger):
     sasl_username = bot.config.core.auth_username or bot.nick
     sasl_password = bot.config.core.auth_password
     sasl_token = '\0'.join((sasl_username, sasl_username, sasl_password))
-    # Spec says we do a base 64 encode on the SASL stuff
-    bot.write(('AUTHENTICATE', base64.b64encode(sasl_token.encode('utf-8'))))
+    send_authenticate(bot, sasl_token)
 
 
 @sopel.module.event(events.RPL_SASLSUCCESS)
@@ -563,15 +615,13 @@ def sasl_success(bot, trigger):
 @sopel.module.priority('low')
 @sopel.module.thread(False)
 @sopel.module.unblockable
+@sopel.module.require_admin
 def blocks(bot, trigger):
     """
     Manage Sopel's blocking features.\
     See [ignore system documentation]({% link _usage/ignoring-people.md %}).
 
     """
-    if not trigger.admin:
-        return
-
     STRINGS = {
         "success_del": "Successfully deleted block: %s",
         "success_add": "Successfully added block: %s",
@@ -660,6 +710,9 @@ def _record_who(bot, channel, user, host, nick, account=None, away=None, modes=N
     if channel not in bot.channels:
         bot.channels[channel] = Channel(channel)
     bot.channels[channel].add_user(user, privs=priv)
+    if channel not in bot.privileges:
+        bot.privileges[channel] = dict()
+    bot.privileges[channel][nick] = priv
 
 
 @sopel.module.event(events.RPL_WHOREPLY)

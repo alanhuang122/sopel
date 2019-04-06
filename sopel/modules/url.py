@@ -33,6 +33,7 @@ max_bytes = 655360
 class UrlSection(StaticSection):
     # TODO some validation rules maybe?
     exclude = ListAttribute('exclude')
+    """A list of regular expressions to match URLs for which the title should not be shown."""
     exclusion_char = ValidatedAttribute('exclusion_char', default='!')
     user_agent = ValidatedAttribute('user_agent')
 
@@ -88,9 +89,7 @@ def setup(bot):
             exclude.extend(regexes)
         bot.memory['url_exclude'] = exclude
 
-    # Ensure that url_callbacks and last_seen_url are in memory
-    if not bot.memory.contains('url_callbacks'):
-        bot.memory['url_callbacks'] = tools.SopelMemory()
+    # Ensure last_seen_url is in memory
     if not bot.memory.contains('last_seen_url'):
         bot.memory['last_seen_url'] = tools.SopelMemory()
 
@@ -102,7 +101,7 @@ def setup(bot):
 
             # clean unmatched parentheses/braces/brackets
             for (opener, closer) in [('(', ')'), ('[', ']'), ('{', '}'), ('<', '>')]:
-                if url[-1] is closer and url.count(opener) < url.count(closer):
+                if (url[-1] == closer) and (url.count(opener) < url.count(closer)):
                     url = url[:-1]
 
             return url
@@ -166,7 +165,7 @@ def title_auto(bot, trigger):
         if bot.memory['safety_cache'][trigger]['positives'] > 1:
             return
 
-    urls = find_urls(trigger)
+    urls = find_urls(trigger, clean=True)
     if len(urls) == 0:
         return
 
@@ -220,13 +219,11 @@ def check_callbacks(bot, trigger, url, run=True):
     # Check if it matches the exclusion list first
     matched = any(regex.search(url) for regex in bot.memory['url_exclude'])
     # Then, check if there's anything in the callback list
-    for regex, function in tools.iteritems(bot.memory['url_callbacks']):
-        match = regex.search(url)
-        if match:
-            # Always run ones from @url; they don't run on their own.
-            if run or hasattr(function, 'url_regex'):
-                function(bot, trigger, match)
-            matched = True
+    for function, match in bot.search_url_callbacks(url):
+        # Always run ones from @url; they don't run on their own.
+        if run or hasattr(function, 'url_regex'):
+            function(bot, trigger, match)
+        matched = True
     return matched
 
 from ftfy import fix_encoding

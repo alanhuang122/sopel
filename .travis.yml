@@ -1,12 +1,14 @@
 language: python
 python:
   - "2.7"
+  - "3.3"
   - "3.4"
 git:
   submodules: false
 branches:
   only:
     - master
+    - /^\d+\.\d+\.x$/  # allows building maintenance branches
     - /^v?\d+\.\d+(\.\d+)?(-\S*)?$/  # allows building version tags
 sudo: false  # Enables running on faster infrastructure.
 cache:
@@ -15,7 +17,9 @@ cache:
 addons:
   apt:
     packages:
-      - enchant
+      - aspell
+      - aspell-en
+      - libaspell-dev
 install:
   - pip install -r requirements.txt -r dev-requirements.txt
 script:

@@ -42,11 +42,11 @@ known_good = []
 
 class SafetySection(StaticSection):
     enabled_by_default = ValidatedAttribute('enabled_by_default', bool, default=True)
-    """Enable URL safety in all channels where it isn't explicitly disabled."""
+    """Whether to enable URL safety in all channels where it isn't explicitly disabled."""
     known_good = ListAttribute('known_good')
     """List of "known good" domains to ignore."""
     vt_api_key = ValidatedAttribute('vt_api_key')
-    """Optional VirusTotal API key."""
+    """Optional VirusTotal API key (improves malicious URL detection)."""
 
 
 def configure(config):
@@ -184,8 +184,8 @@ def url_handler(bot, trigger):
 
 @sopel.module.commands('safety')
 def toggle_safety(bot, trigger):
-    """ Set safety setting for channel malicious URL scanning"""
-    if not trigger.admin and bot.privileges[trigger.sender][trigger.nick] < OP:
+    """ Set safety setting for channel """
+    if not trigger.admin and bot.channels[trigger.sender].privileges[trigger.nick] < OP:
         bot.reply('Only channel operators can change safety settings')
         return
     allowed_states = ['strict', 'on', 'off', 'local', 'local strict']

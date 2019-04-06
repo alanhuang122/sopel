@@ -34,14 +34,26 @@ import sopel.config.core_section
 from sopel.config.types import StaticSection
 
 
-class ConfigurationError(Exception):
-    """ Exception type for configuration errors """
+DEFAULT_HOMEDIR = os.path.join(os.path.expanduser('~'), '.sopel')
 
+
+class ConfigurationError(Exception):
+    """Exception type for configuration errors"""
     def __init__(self, value):
         self.value = value
 
     def __str__(self):
         return 'ConfigurationError: %s' % self.value
+
+
+class ConfigurationNotFound(ConfigurationError):
+    """Configuration file not found."""
+    def __init__(self, filename):
+        self.filename = filename
+        """Path to the configuration file not found"""
+
+    def __str__(self):
+        return 'Unable to find the configuration file %s' % self.filename
 
 
 class Config(object):
@@ -138,6 +150,9 @@ class Config(object):
         def __getattr__(self, name):
             return None
 
+        def __contains__(self, name):
+            return name in vars(self)
+
         def __setattr__(self, name, value):
             object.__setattr__(self, name, value)
             if type(value) is list:
@@ -163,6 +178,12 @@ class Config(object):
         else:
             raise AttributeError("%r object has no attribute %r"
                                  % (type(self).__name__, name))
+
+    def __getitem__(self, name):
+        return self.__getattr__(name)
+
+    def __contains__(self, name):
+        return name in self.parser.sections()
 
     def option(self, question, default=False):
         """Ask "y/n" and return the corresponding boolean answer.
@@ -211,12 +232,12 @@ class Config(object):
 
 
 def _wizard(section, config=None):
-    dotdir = os.path.expanduser('~/.sopel')
-    configpath = os.path.join(dotdir, (config or 'default') + '.cfg')
+    dotdir = os.path.dirname(config) if config is not None else DEFAULT_HOMEDIR
+    configpath = os.path.join(dotdir, ((config or 'default.cfg') + ('.cfg' if config and not config.endswith('.cfg') else '')))
     if section == 'all':
         _create_config(configpath)
     elif section == 'mod':
-        _check_dir(False)
+        _check_dir(dotdir, False)
         if not os.path.isfile(configpath):
             print("No config file found." +
                   " Please make one before configuring these options.")
@@ -225,15 +246,14 @@ def _wizard(section, config=None):
         config._modules()
 
 
-def _check_dir(create=True):
-    dotdir = os.path.join(os.path.expanduser('~'), '.sopel')
-    if not os.path.isdir(dotdir):
+def _check_dir(path=DEFAULT_HOMEDIR, create=True):
+    if not os.path.isdir(path):
         if create:
-            print('Creating a config directory at ~/.sopel...')
+            print('Creating a config directory at {}...'.format(path))
             try:
-                os.makedirs(dotdir)
+                os.makedirs(path)
             except Exception as e:
-                print('There was a problem creating %s:' % dotdir, file=sys.stderr)
+                print('There was a problem creating %s:' % path, file=sys.stderr)
                 print('%s, %s' % (e.__class__, str(e)), file=sys.stderr)
                 print('Please fix this and then run Sopel again.', file=sys.stderr)
                 sys.exit(1)
@@ -243,7 +263,7 @@ def _check_dir(create=True):
 
 
 def _create_config(configpath):
-    _check_dir()
+    _check_dir(os.path.dirname(configpath))
     print("Please answer the following questions" +
           " to create your configuration file:\n")
     try:
@@ -259,5 +279,6 @@ def _create_config(configpath):
         print("Encountered an error while writing the config file." +
               " This shouldn't happen. Check permissions.")
         raise
-        sys.exit(1)
+
     print("Config file written successfully!")
+    return config.filename

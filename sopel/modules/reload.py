@@ -11,9 +11,9 @@ https://sopel.chat
 import collections
 import sys
 import time
-from sopel.tools import iteritems
+from sopel.tools import stderr, iteritems
 import sopel.loader
-from sopel.module import commands, nickname_commands, priority, thread
+from sopel.module import commands, nickname_commands, priority, thread, require_admin
 import subprocess
 
 try:
@@ -25,7 +25,6 @@ except ImportError:
         pass  # fallback to builtin if neither module is available
 
 
-@commands('reload')
 @nickname_commands("reload")
 @priority("low")
 @thread(False)
@@ -69,6 +68,22 @@ def reload_module_tree(bot, name, seen=None, silent=False):
     old_callables = {}
     for obj_name, obj in iteritems(vars(old_module)):
         if callable(obj):
+            if (getattr(obj, '__name__', None) == 'shutdown' and
+                        obj in bot.shutdown_methods):
+                # If this is a shutdown method, call it first.
+                try:
+                    stderr(
+                        "calling %s.%s" % (
+                            obj.__module__, obj.__name__,
+                        )
+                    )
+                    obj(bot)
+                except Exception as e:
+                    stderr(
+                        "Error calling shutdown method for module %s:%s" % (
+                            obj.__module__, e
+                        )
+                    )
             bot.unregister(obj)
         elif (type(obj) is ModuleType and
               obj.__name__.startswith(name + '.') and
@@ -114,28 +129,12 @@ def load_module(bot, name, path, type_, silent=False):
         bot.reply('%r (version: %s)' % (module, modified))
 
 
-@nickname_commands('update')
-def f_update(bot, trigger):
-    if not trigger.admin:
-        return
-
-    """Pulls the latest versions of all modules from Git"""
-    proc = subprocess.Popen('/usr/bin/git pull',
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, shell=True)
-    bot.reply(proc.communicate()[0])
-
-    f_reload(bot, trigger)
-
-
 @nickname_commands("load")
 @priority("low")
 @thread(False)
+@require_admin
 def f_load(bot, trigger):
     """Loads a module, for use by admins only."""
-    if not trigger.admin:
-        return
-
     name = trigger.group(2)
     path = ''
     if not name:

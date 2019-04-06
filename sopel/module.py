@@ -23,10 +23,34 @@ be used, for example, to allow a user to retry a failed command immediately.
 """
 
 VOICE = 1
+"""Privilege level for the +v channel permission
+
+.. versionadded:: 4.1
+"""
+
 HALFOP = 2
+"""Privilege level for the +h channel permission
+
+.. versionadded:: 4.1
+"""
+
 OP = 4
+"""Privilege level for the +o channel permission
+
+.. versionadded:: 4.1
+"""
+
 ADMIN = 8
+"""Privilege level for the +a channel permission
+
+.. versionadded:: 4.1
+"""
+
 OWNER = 16
+"""Privilege level for the +q channel permission
+
+.. versionadded:: 4.1
+"""
 
 
 def unblockable(function):
@@ -113,6 +137,22 @@ def thread(value):
     def add_attribute(function):
         function.thread = value
         return function
+    return add_attribute
+
+
+def echo(function=None):
+    """Decorate a function to specify if it should receive echo messages.
+
+    This decorator can be used to listen in on the messages that Sopel is
+    sending and react accordingly.
+    """
+    def add_attribute(function):
+        function.echo = True
+        return function
+
+    # hack to allow both @echo and @echo() to work
+    if callable(function):
+        return add_attribute(function)
     return add_attribute
 
 
@@ -306,7 +346,7 @@ def require_privilege(level, message=None):
             # If this is a privmsg, ignore privilege requirements
             if trigger.is_privmsg:
                 return function(bot, trigger, *args, **kwargs)
-            channel_privs = bot.privileges[trigger.sender]
+            channel_privs = bot.channels[trigger.sender].privileges
             allowed = channel_privs.get(trigger.nick, 0) >= level
             if not trigger.is_privmsg and not allowed:
                 if message and not callable(message):
@@ -317,22 +357,33 @@ def require_privilege(level, message=None):
     return actual_decorator
 
 
-def require_admin(message=None):
+def require_admin(message=None, reply=False):
     """Decorate a function to require the triggering user to be a bot admin.
 
-    If they are not, `message` will be said if given."""
+    :param str message: optional message said to non-admin user
+    :param bool reply: use `reply` instead of `say` when true, default to false
+
+    When the triggering user is not an admin, the command is not run, and the
+    bot will say the ``message`` if given. By default, it uses ``bot.say``,
+    but when ``reply`` is true, then it uses ``bot.reply`` instead.
+    """
     def actual_decorator(function):
         @functools.wraps(function)
         def guarded(bot, trigger, *args, **kwargs):
             if not trigger.admin:
                 if message and not callable(message):
-                    bot.say(message)
+                    if reply:
+                        bot.reply(message)
+                    else:
+                        bot.say(message)
             else:
                 return function(bot, trigger, *args, **kwargs)
         return guarded
+
     # Hack to allow decorator without parens
     if callable(message):
         return actual_decorator(message)
+
     return actual_decorator
 
 

@@ -33,7 +33,7 @@ LOGGER = get_logger(__name__)
 
 class GeoipSection(StaticSection):
     GeoIP_db_path = FilenameAttribute('GeoIP_db_path', directory=True)
-    """Path of the directory containing the GeoIP db files."""
+    """Path of the directory containing the GeoIP database files."""
 
 
 def configure(config):
@@ -99,7 +99,7 @@ def _find_geoip_db(bot):
 
 @commands('iplookup', 'ip')
 @example('.ip 8.8.8.8',
-         r'[IP/Host Lookup] Hostname: google-public-dns-a.google.com | Location: United States | ISP: AS15169 Google LLC',
+         r'\[IP\/Host Lookup\] Hostname: \S*dns\S*\.google\S* \| Location: United States \| ISP: AS15169 Google LLC',
          re=True,
          ignore='Downloading GeoIP database, please wait...')
 def ip(bot, trigger):

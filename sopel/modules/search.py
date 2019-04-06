@@ -6,7 +6,7 @@
 
 import re
 import requests
-from sopel.module import commands, example
+from sopel.module import commands, example, echo
 from sopel.trigger import PreTrigger
 import requests
 import xmltodict
