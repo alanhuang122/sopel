@@ -1,7 +1,7 @@
 # coding=utf8
 
 
-from sopel.module import commands, rule, NOLIMIT
+from sopel.module import commands, rule, NOLIMIT, url
 from sopel.tools.time import get_timezone, format_time
 
 import operator, requests
@@ -30,7 +30,7 @@ def fetch_api_endpoint(bot, url):
 #        oauth = '?client_id=%s&client_secret=%s' % (bot.config.github.client_id, bot.config.github.secret)
     return requests.get(url + oauth).text
 
-@rule(r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?')
+@url(r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?')
 def issue_info(bot, trigger, match=None):
     match = match or trigger
     URL = 'https://api.github.com/repos/%s/issues/%s' % (match.group(1), match.group(2))
@@ -76,7 +76,7 @@ def issue_info(bot, trigger, match=None):
     bot.say(''.join(response))
 
 
-@rule(r'.*https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:commit)/([A-z0-9\-]+).*' '.*%s.*')
+@url(r'.*https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:commit)/([A-z0-9\-]+).*' '.*%s.*')
 def commit_info(bot, trigger, match=None):
     match = match or trigger
     URL = 'https://api.github.com/repos/%s/commits/%s' % (match.group(1), match.group(2))
@@ -149,9 +149,9 @@ def get_data(bot, trigger, URL):
     return data
 
 
-@rule(r'.*https?://github\.com/([^ /]+?)/([^ /]+)/?(?!\S).*')
-def data_url(bot, trigger):
-    URL = 'https://api.github.com/repos/%s/%s' % (trigger.group(1).strip(), trigger.group(2).strip())
+@url(r'.*https?://github\.com/([^ /]+?)/([^ /]+)/?(?!\S).*')
+def data_url(bot, trigger, match=None):
+    URL = 'https://api.github.com/repos/%s/%s' % (match.group(1).strip(), match.group(2).strip())
     fmt_response(bot, trigger, URL, True)
 
 
