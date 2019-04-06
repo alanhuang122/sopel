@@ -19,16 +19,6 @@ cache = {}
 start = None
 end = None
 
-@commands('noman')
-def noman_command(bot, trigger):
-    with open('/home/alan/.sopel/noman.cost') as f:
-        cost, time = f.read().splitlines()
-    tz = get_timezone(bot.db, bot.config, None, trigger.nick, trigger.sender)
-    pytz_tz = pytz.timezone(tz)
-    updated_at = pytz.utc.localize(datetime.utcfromtimestamp(float(time))).astimezone(pytz_tz)
-    time_str = format_time(bot.db, bot.config, tz, trigger.nick, trigger.sender, updated_at)
-    bot.say('A Noman costs {} Taste (updated {})'.format(cost, time_str))
-
 def setup(bot):
     global codes
     global cache
