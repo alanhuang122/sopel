@@ -2,15 +2,13 @@
 # Copyright 2013 Elsie Powell, embolalia.com
 # Licensed under the Eiffel Forum License 2
 
-
 import re
 import requests
 
+from fuzzywuzzy import process
 from sopel.module import commands, example, NOLIMIT
 
-# The Canadian central bank has better exchange rate data than the Fed, the
-# Bank of England, or the European Central Bank. Who knew?
-base_url = 'https://www.bankofcanada.ca/valet/observations/FX{}CAD/json'
+api_url = 'http://data.fixer.io/api/latest'
 regex = re.compile(r'''
     (\d+(?:\.\d+)?)        # Decimal number
     \s*([a-zA-Z]{3})       # 3-letter currency code
@@ -18,23 +16,23 @@ regex = re.compile(r'''
     ([a-zA-Z]{3})          # 3-letter currency code
     ''', re.VERBOSE)
 
+def setup(bot):
+    global key
+    global names
+    global currencies
+    key = bot.config.currency.api_key
+    names = requests.get('http://data.fixer.io/api/symbols', params={'access_key': key}).json()['symbols']
+    currencies = {v:k for k,v in names.items()}
 
-def get_rate(code):
+def get_rate(bot, code):
     code = code.upper()
-    if code == 'CAD':
-        return 1, 'Canadian Dollar'
-    elif code == 'BTC':
-        btc_rate = requests.get('https://apiv2.bitcoinaverage.com/indices/global/ticker/BTCCAD')
-        rates = btc_rate.json()
-        return 1 / rates['averages']['day'], 'Bitcoin—24hr average'
+    if code == 'EUR':
+        return 1, 'Euro'
 
-    data = get(base_url.format(code))
-    name = data.json()['seriesDetail']['FX{}CAD'.format(code)]['description']
-    name = name.split(" to Canadian")[0]
-    json = data.json()['observations']
-    for element in reversed(json):
-        if 'v' in element['FX{}CAD'.format(code)]:
-            return 1 / float(element['FX{}CAD'.format(code)]['v']), name
+    data = requests.get(api_url, params={'access_key': key, 'symbols': code}).json()
+    if not data['success']:
+        return None, None
+    return 1 / data['rates'][code], names[code]
 
 @commands('cur', 'currency', 'exchange')
 @example('.cur 20 EUR in USD')
@@ -61,42 +59,24 @@ def exchange(bot, trigger):
 def display(bot, amount, of, to):
     if not amount:
         bot.reply("Zero is zero, no matter what country you're in.")
-    try:
-        of_rate, of_name = get_rate(of)
+    of_rate, of_name = get_rate(bot, of)
+    if not of_name:
+        of_cur = process.extractOne(of, currencies.keys())
+        print(of_cur)
+        of_rate, of_name = get_rate(bot, of)
         if not of_name:
             bot.reply("Unknown currency: %s" % of)
             return
-        to_rate, to_name = get_rate(to)
+    to_rate, to_name = get_rate(bot, to)
+    if not to_name:
+        to_cur = process.extractOne(to, currencies.keys())
+        print(to_cur)
+        to_rate, to_name = get_rate(bot, to)
         if not to_name:
             bot.reply("Unknown currency: %s" % to)
             return
-    except Exception:  # TODO: Be specific
-        bot.reply("Something went wrong while I was getting the exchange rate.")
-        print('[currency] {}'.format(e))
-        return NOLIMIT
 
-    result = amount / of_rate * to_rate
+    print(amount, of_rate, to_rate)
+    result = amount * of_rate / to_rate
     bot.say("{:.2f} {} ({}) = {:.2f} {} ({})".format(amount, of.upper(), of_name,
                                              result, to.upper(), to_name))
-
-
-@commands('btc', 'bitcoin')
-@example('.btc 20 EUR')
-def bitcoin(bot, trigger):
-    # if 2 args, 1st is number and 2nd is currency. If 1 arg, it's either the number or the currency.
-    to = trigger.group(4)
-    amount = trigger.group(3)
-    if not to:
-        to = trigger.group(3) or 'USD'
-        amount = 1
-
-    try:
-        amount = float(amount)
-    except ValueError:
-        bot.reply("Sorry, I didn't understand the input.")
-        return NOLIMIT
-    except OverflowError:
-        bot.reply("Sorry, input amount was out of range.")
-        return NOLIMIT
-
-    display(bot, amount, 'BTC', to)
