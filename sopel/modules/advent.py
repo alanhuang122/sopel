@@ -359,10 +359,7 @@ def advent_command(bot, trigger):
                 print(opened)
 
         # Get cache entry for the day - missing is ok
-        try:
-            entry = cache[str(day)]
-        except KeyError:
-            pass
+        entry = cache.get(str(day))
 
         r = get_response(code)
 
