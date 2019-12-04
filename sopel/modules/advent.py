@@ -114,20 +114,23 @@ def timed_advent(bot, channel):
     time = datetime.utcnow()
     day = time.day
 
-    if day > 25:
+    if day > 25 and time.month == 12:
         print('[advent] merry christmas; no more advent codes; rip timer')
         return
 
-    while True:
-        print('[advent] looking for page')
+    print('[advent] looking for page')
+    for x in range(70):
         sleep(1)
         try:
             advent = requests.get('https://api.fallenlondon.com/api/advent').json()
-            current = advent.get('openableDoor')
-            if current['releaseDay'] == day:
+            current = advent.get('openableDoor', {})
+            if current.get('releaseDay', 0) == day:
                 break
         except:
             continue
+    if advent.get('openableDoor', {}).get('releaseDay') != day:
+        print("Couldn't get code after 20 seconds", channel)
+        return
 
     print('[advent] got page')
     code = current['accessCodeName']
