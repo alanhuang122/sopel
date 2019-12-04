@@ -158,41 +158,48 @@ def timed_advent(bot, channel):
         json.dump(cache, f)
 
     # Make the wiki edit
+    print('editing wiki')
     site = mwclient.Site('fallenlondon.fandom.com', path='/')
     site.login(bot.config.wikia.username, bot.config.wikia.password)
-    page = site.pages['Advent Calendar 2018']
+    page = site.pages['Advent Calendar 2019']
     text = page.text()
     today = arrow.get(datetime.now()).format('MMMM Do')
     if today not in page.text():
+        print('adding today\'s code')
         base_edit = f"""\n\n=={today}==\n{url}\n\n[[File:{r['image']}.png|left|78x78px]] {r['initialMessage']}\n<br clear=all/>\n\n'''Result:'''\n\n{r['completedMessage']}\n\n"""
         if effects:
             modification = '\n'.join(generate_wiki_effects(effects)) + '\n\n'
             base_edit += modification
+        print(base_edit)
         page.save(page.text() + base_edit, today)
 
-    send_advent(bot.config.discord.username, bot.config.discord.password, day, url)
+    send_advent(bot.config.discord.username, 'Failbetter', '#fl-sacksmas', bot.config.discord.password, day, url, effects)
+    send_advent(bot.config.discord.username, 'FBG', '#fallen-london', bot.config.discord.password, day, url, [])
     print('done with timed_advent')
     sleep(10)
 
     start_timer(bot)
 
-def send_advent(user, pw, day, url):
+def send_advent(user, server, pw, channel, day, url, effects):
     ctx = ssl.create_default_context()
     sock = ctx.wrap_socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM), server_hostname='znc.alanhua.ng')
     sock.connect(('znc.alanhua.ng', 6697))
-    login = f'PASS {pw}\r\nNICK Alan\r\nUSER {user} 0 * :Alan\r\n'
+    login = f'PASS {pw}\r\nNICK Alan\r\nUSER {user}/{server} 0 * :Alan\r\n'
     sock.sendall(login.encode('utf-8'))
 
     while True:
         data = sock.recv(4096)
         if not data:
             break
-        if b'End of /NAMES list.\r\n' in data:
+        if b'Welcome' in data:
             break
 
-    print('connected')
-    message = f'PRIVMSG #fl-sacksmas :day {day}: {url}\r\n'
+    print(f'connected to discord: {server}')
+    message = f'PRIVMSG {channel} :day {day}: {url}\r\n'
     sock.sendall(message.encode('utf-8'))
+    if effects:
+        message = f'PRIVMSG {channel} :effects: {effects}\r\n'
+        sock.sendall(message.encode('utf-8'))
 
     sock.close()
 
