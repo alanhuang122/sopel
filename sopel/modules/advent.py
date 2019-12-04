@@ -6,7 +6,8 @@ import requests
 import socket
 import ssl
 import threading
-from datetime import datetime
+from fuzzywuzzy import process
+from datetime import datetime, timedelta
 from time import sleep
 from sopel.module import commands, rule, example, require_owner
 from sopel.modules import fl
@@ -401,4 +402,8 @@ def get_effects(codename):
     try:
         return [fl.Effect(e) for e in codes[cstring]]
     except KeyError:
-        return None
+        canonical = process.extractOne(cstring, codes.keys())
+        if canonical[1] > 90:
+            return [fl.Effect(e) for e in codes[canonical[0]]]
+        else:
+            return None
