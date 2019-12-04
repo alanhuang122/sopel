@@ -41,6 +41,7 @@ def setup(bot):
         cache = {}
         with open('/home/alan/.sopel/advent_cache.json', 'w') as f:
             json.dump({}, f)
+    start_timer(bot)
 
 def start_timer(bot):
     global start
@@ -57,16 +58,17 @@ def start_timer(bot):
             diff = datetime(time.year + 1, 12, 1, 12) - time
         else:
             diff = datetime(time.year, 12, time.day + 1, 12) - time
-    print(f'[advent] scheduling for {diff}')
     start = time
     end = time + diff
-    timer = threading.Timer(diff.seconds - 10, timed_advent, [bot, '#fallenlondon'])
-    timer.start()
+    print(f'[advent] scheduling #fallenlondon for {diff}')
+    main_timer = threading.Timer((diff.days * 24 * 60 * 60) + diff.seconds - 10, timed_advent, [bot, '#fallenlondon'])
+    main_timer.name = '#fallenlondon advent'
+    main_timer.start()
 
 @commands('when')
 def when_command(bot, trigger):
     diff = end - datetime.utcnow()
-    bot.say('timer started {}, ending at {}, now {}, remaining {}'
+    bot.say('main timer started {}, ending at {}, now {}, remaining {}'
             .format(start.strftime('%c'),
                     end.strftime('%c'),
                     datetime.utcnow().strftime('%c'),
