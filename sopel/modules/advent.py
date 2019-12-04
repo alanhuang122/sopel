@@ -31,6 +31,7 @@ def setup(bot):
                 data[temp['key']] = temp['value']
     except:
         pass
+    fl.data = data
 
     with open('/home/alan/.sopel/bare.json') as f:
         codes = json.loads(f.read())
