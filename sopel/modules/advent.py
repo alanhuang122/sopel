@@ -119,18 +119,14 @@ def timed_advent(bot, channel):
         return
 
     print('[advent] looking for page')
-    for x in range(70):
+    while True:
         sleep(1)
         try:
             advent = requests.get('https://api.fallenlondon.com/api/advent').json()
-            current = advent.get('openableDoor', {})
-            if current.get('releaseDay', 0) == day:
+            if advent.get('openableDoor', {}).get('releaseDay') == day:
                 break
         except:
             continue
-    if advent.get('openableDoor', {}).get('releaseDay') != day:
-        print("Couldn't get code after 20 seconds", channel)
-        return
 
     print('[advent] got page')
     code = current['accessCodeName']
