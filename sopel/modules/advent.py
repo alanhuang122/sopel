@@ -162,7 +162,7 @@ def timed_advent(bot, channel):
     today = arrow.get(datetime.now()).format('MMMM Do')
     if today not in page.text():
         print('adding today\'s code')
-        base_edit = f"""\n\n=={today}==\n{url}\n\n[[File:{r['image']}.png|left|78x78px]] {r['initialMessage']}\n<br clear=all/>\n\n'''Result:'''\n\n{r['completedMessage']}\n\n"""
+        base_edit = f"""\n\n=={today}==\n{{{{Access Code\n|Code = {url}\n|Image = {r['image']}.png\n|Description = {r['initialMessage']}\n|Result = {r['completedMessage']}\n}}}}\n\n"""
         if effects:
             modification = '\n'.join(generate_wiki_effects(effects)) + '\n\n'
             base_edit += modification
